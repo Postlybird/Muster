@@ -178,7 +178,9 @@ test("the business hears when someone hasn't clocked in, and can confirm they're
   await page.goto(`/business/jobs/${shift.jobId}`);
   await expect(page.getByText(/not clocked in yet\./)).toBeVisible();
   await page.getByRole("button", { name: "They're here" }).click();
-  await expect(page.getByText("Arrival confirmed")).toBeVisible();
+  await expect(
+    page.getByText("Arrival confirmed", { exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByText(/arrival confirmed for \d+:\d\d [ap]m/),
   ).toBeVisible();
