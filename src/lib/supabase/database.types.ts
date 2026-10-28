@@ -1304,6 +1304,92 @@ export type Database = {
           },
         ];
       };
+      invoices: {
+        Row: {
+          business_id: string;
+          created_at: string;
+          due_on: string;
+          emailed_at: string | null;
+          emailed_to: string | null;
+          gst_cents: number;
+          id: string;
+          issued_on: string;
+          marked_paid_by: string | null;
+          number: string;
+          paid_on: string | null;
+          pay_run_id: string;
+          payment_reference: string | null;
+          pdf_path: string | null;
+          status: string;
+          subtotal_cents: number;
+          total_cents: number;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          business_id: string;
+          created_at?: string;
+          due_on: string;
+          emailed_at?: string | null;
+          emailed_to?: string | null;
+          gst_cents: number;
+          id?: string;
+          issued_on: string;
+          marked_paid_by?: string | null;
+          number: string;
+          paid_on?: string | null;
+          pay_run_id: string;
+          payment_reference?: string | null;
+          pdf_path?: string | null;
+          status?: string;
+          subtotal_cents: number;
+          total_cents: number;
+          updated_at?: string;
+        };
+        Update: {
+          business_id?: string;
+          created_at?: string;
+          due_on?: string;
+          emailed_at?: string | null;
+          emailed_to?: string | null;
+          gst_cents?: number;
+          id?: string;
+          issued_on?: string;
+          marked_paid_by?: string | null;
+          number?: string;
+          paid_on?: string | null;
+          pay_run_id?: string;
+          payment_reference?: string | null;
+          pdf_path?: string | null;
+          status?: string;
+          subtotal_cents?: number;
+          total_cents?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoices_business_id_fkey";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_marked_paid_by_fkey";
+            columns: ["marked_paid_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_pay_run_id_fkey";
+            columns: ["pay_run_id"];
+            isOneToOne: false;
+            referencedRelation: "pay_runs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       job_credentials: {
         Row: {
           created_at: string;
@@ -1751,6 +1837,167 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "jurisdictions";
             referencedColumns: ["code"];
+          },
+        ];
+      };
+      pay_run_lines: {
+        Row: {
+          allowance_cents: number;
+          assignment_id: string;
+          bill_cents: number;
+          break_minutes: number | null;
+          business_id: string;
+          created_at: string;
+          description: string;
+          detail: string | null;
+          finish_at: string | null;
+          hours: number;
+          id: string;
+          invoice_id: string;
+          kind: Database["public"]["Enums"]["pay_line_kind"];
+          pay_cents: number;
+          pay_run_id: string;
+          site_name: string;
+          start_at: string | null;
+          timesheet_id: string | null;
+          work_date: string;
+          work_type: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          allowance_cents?: number;
+          assignment_id: string;
+          bill_cents: number;
+          break_minutes?: number | null;
+          business_id: string;
+          created_at?: string;
+          description: string;
+          detail?: string | null;
+          finish_at?: string | null;
+          hours: number;
+          id?: string;
+          invoice_id: string;
+          kind: Database["public"]["Enums"]["pay_line_kind"];
+          pay_cents: number;
+          pay_run_id: string;
+          site_name: string;
+          start_at?: string | null;
+          timesheet_id?: string | null;
+          work_date: string;
+          work_type: string;
+          worker_id: string;
+        };
+        Update: {
+          allowance_cents?: number;
+          assignment_id?: string;
+          bill_cents?: number;
+          break_minutes?: number | null;
+          business_id?: string;
+          created_at?: string;
+          description?: string;
+          detail?: string | null;
+          finish_at?: string | null;
+          hours?: number;
+          id?: string;
+          invoice_id?: string;
+          kind?: Database["public"]["Enums"]["pay_line_kind"];
+          pay_cents?: number;
+          pay_run_id?: string;
+          site_name?: string;
+          start_at?: string | null;
+          timesheet_id?: string | null;
+          work_date?: string;
+          work_type?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pay_run_lines_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: true;
+            referencedRelation: "assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_run_lines_business_id_fkey";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_run_lines_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_run_lines_pay_run_id_fkey";
+            columns: ["pay_run_id"];
+            isOneToOne: false;
+            referencedRelation: "pay_runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_run_lines_timesheet_id_fkey";
+            columns: ["timesheet_id"];
+            isOneToOne: true;
+            referencedRelation: "timesheets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pay_run_lines_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pay_runs: {
+        Row: {
+          bill_cents: number;
+          created_at: string;
+          gst_cents: number;
+          id: string;
+          line_count: number;
+          pay_cents: number;
+          period_end: string;
+          period_start: string;
+          run_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          bill_cents: number;
+          created_at?: string;
+          gst_cents: number;
+          id?: string;
+          line_count: number;
+          pay_cents: number;
+          period_end: string;
+          period_start: string;
+          run_by?: string | null;
+        };
+        Update: {
+          bill_cents?: number;
+          created_at?: string;
+          gst_cents?: number;
+          id?: string;
+          line_count?: number;
+          pay_cents?: number;
+          period_end?: string;
+          period_start?: string;
+          run_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pay_runs_run_by_fkey";
+            columns: ["run_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -3049,6 +3296,7 @@ export type Database = {
         }[];
       };
       can_edit_job: { Args: { p_job_id: string }; Returns: boolean };
+      can_read_invoice_folder: { Args: { p_folder: string }; Returns: boolean };
       can_see_job: { Args: { p_job_id: string }; Returns: boolean };
       can_see_site: { Args: { p_site_id: string }; Returns: boolean };
       cancel_my_bookings: {
@@ -3142,6 +3390,18 @@ export type Database = {
         Args: { p_path: string; p_worker_id: string };
         Returns: boolean;
       };
+      invoice_lines: {
+        Args: { p_invoice_id: string };
+        Returns: {
+          bill_cents: number;
+          description: string;
+          detail: string;
+          hours: number;
+          kind: Database["public"]["Enums"]["pay_line_kind"];
+          line_id: string;
+          work_date: string;
+        }[];
+      };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_business_manager: {
         Args: { p_business_id: string };
@@ -3192,6 +3452,11 @@ export type Database = {
         };
         Returns: undefined;
       };
+      mark_invoice_paid: {
+        Args: { p_id: string; p_paid_on: string; p_reference?: string };
+        Returns: undefined;
+      };
+      mark_invoice_unpaid: { Args: { p_id: string }; Returns: undefined };
       my_business_id: { Args: Record<PropertyKey, never>; Returns: string };
       my_business_role: {
         Args: Record<PropertyKey, never>;
@@ -3314,6 +3579,14 @@ export type Database = {
         Args: { p_id: string; p_note: string };
         Returns: undefined;
       };
+      pay_run_candidates: {
+        Args: { p_until: string };
+        Returns: {
+          assignment_id: string;
+          kind: Database["public"]["Enums"]["pay_line_kind"];
+          timesheet_id: string;
+        }[];
+      };
       post_job: { Args: { p_job_id: string }; Returns: undefined };
       rate_site: {
         Args: {
@@ -3370,6 +3643,15 @@ export type Database = {
       review_worker_credential: {
         Args: { p_approve: boolean; p_id: string; p_reason?: string };
         Returns: undefined;
+      };
+      save_pay_run: {
+        Args: {
+          p_invoices: Json;
+          p_lines: Json;
+          p_period_start: string;
+          p_run_by: string;
+        };
+        Returns: string;
       };
       set_current_agreement: {
         Args: { p_agreement_id: string };
@@ -3433,6 +3715,7 @@ export type Database = {
       job_type: "single" | "multi_day" | "urgent";
       licence_class: "none" | "C" | "MR" | "HR";
       licence_status: "active" | "expired" | "suspended" | "cancelled";
+      pay_line_kind: "hours" | "cancellation";
       payroll_status: "not_started" | "invited" | "complete";
       ppe_supplier: "business" | "worker" | "both";
       rating_direction: "worker" | "site";
@@ -3610,6 +3893,7 @@ export const Constants = {
       job_type: ["single", "multi_day", "urgent"],
       licence_class: ["none", "C", "MR", "HR"],
       licence_status: ["active", "expired", "suspended", "cancelled"],
+      pay_line_kind: ["hours", "cancellation"],
       payroll_status: ["not_started", "invited", "complete"],
       ppe_supplier: ["business", "worker", "both"],
       rating_direction: ["worker", "site"],

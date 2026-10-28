@@ -39,6 +39,12 @@ function readValue(key: SettingKey, formData: FormData): unknown {
       return Object.fromEntries(
         input.fields.map((f) => [f.key, number(`${key}.${f.key}`)]),
       );
+    case "text":
+      return text(key);
+    case "text_fields":
+      return Object.fromEntries(
+        input.fields.map((f) => [f.key, text(`${key}.${f.key}`)]),
+      );
   }
 }
 

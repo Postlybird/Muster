@@ -21,7 +21,17 @@ export type SettingInput =
   | { kind: "time_range" }
   | { kind: "weekday" }
   | { kind: "number_list"; unit?: string }
-  | { kind: "percent_fields"; fields: { key: string; label: string }[] };
+  | { kind: "percent_fields"; fields: { key: string; label: string }[] }
+  | { kind: "text"; maxLength: number }
+  | {
+      kind: "text_fields";
+      fields: {
+        key: string;
+        label: string;
+        type?: "text" | "email" | "tel";
+        maxLength: number;
+      }[];
+    };
 
 export type SettingGroup = "workers" | "cancellations" | "on_the_day" | "money";
 
@@ -333,6 +343,88 @@ export const SETTINGS = {
       fields: [
         { key: "pay", label: "On pay" },
         { key: "bill", label: "On the bill" },
+      ],
+    },
+    isPublic: false,
+    placeholder: true,
+  }),
+  invoice_prefix: define({
+    label: "Invoice number prefix",
+    help: "Goes before each invoice's number, like INV-1001.",
+    group: "money",
+    schema: z
+      .string()
+      .trim()
+      .regex(
+        /^[A-Z0-9-]{1,10}$/,
+        "Use up to 10 capital letters, numbers or dashes",
+      ),
+    defaultValue: "INV-",
+    input: { kind: "text", maxLength: 10 },
+    isPublic: false,
+    placeholder: true,
+  }),
+  company_details: define({
+    label: "Our details on invoices",
+    help: "The legal name, ABN and address on every tax invoice, and who businesses contact about invoices.",
+    group: "money",
+    schema: z.object({
+      legal_name: z.string().trim().max(120),
+      abn: z
+        .string()
+        .trim()
+        .regex(/^(\d{11})?$/, "An ABN is 11 digits, with no spaces"),
+      address: z.string().trim().max(200),
+      email: z.union([z.literal(""), z.email("Enter an email address")]),
+      phone: z.string().trim().max(20),
+    }),
+    defaultValue: {
+      legal_name: "",
+      abn: "",
+      address: "",
+      email: "",
+      phone: "",
+    },
+    input: {
+      kind: "text_fields",
+      fields: [
+        { key: "legal_name", label: "Legal name", maxLength: 120 },
+        { key: "abn", label: "ABN", maxLength: 11 },
+        { key: "address", label: "Address", maxLength: 200 },
+        {
+          key: "email",
+          label: "Accounts email",
+          type: "email",
+          maxLength: 200,
+        },
+        { key: "phone", label: "Phone", type: "tel", maxLength: 20 },
+      ],
+    },
+    isPublic: false,
+    placeholder: true,
+  }),
+  bank_details: define({
+    label: "Bank account for payments",
+    help: "Printed on invoices so businesses can pay by bank transfer.",
+    group: "money",
+    schema: z.object({
+      account_name: z.string().trim().max(100),
+      bsb: z
+        .string()
+        .trim()
+        .regex(/^(\d{3}-?\d{3})?$/, "A BSB is 6 digits"),
+      account_number: z
+        .string()
+        .trim()
+        .regex(/^(\d{5,10})?$/, "An account number is 5 to 10 digits"),
+    }),
+    defaultValue: { account_name: "", bsb: "", account_number: "" },
+    input: {
+      kind: "text_fields",
+      fields: [
+        { key: "account_name", label: "Account name", maxLength: 100 },
+        { key: "bsb", label: "BSB", maxLength: 7 },
+        { key: "account_number", label: "Account number", maxLength: 10 },
       ],
     },
     isPublic: false,

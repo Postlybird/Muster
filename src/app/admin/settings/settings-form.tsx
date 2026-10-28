@@ -148,6 +148,39 @@ function SettingInputControl({
         </fieldset>
       );
     }
+    case "text":
+      return (
+        <Input
+          id={key}
+          name={key}
+          defaultValue={value as string}
+          maxLength={input.maxLength}
+          className="w-40"
+          {...aria}
+        />
+      );
+    case "text_fields": {
+      const values = value as Record<string, string>;
+      return (
+        <fieldset className="space-y-3" {...aria}>
+          <legend className="sr-only">{row.label}</legend>
+          {input.fields.map((field) => (
+            <div key={field.key} className="space-y-1">
+              <Label htmlFor={`${key}.${field.key}`} className="font-normal">
+                {field.label}
+              </Label>
+              <Input
+                id={`${key}.${field.key}`}
+                name={`${key}.${field.key}`}
+                type={field.type ?? "text"}
+                defaultValue={values[field.key] ?? ""}
+                maxLength={field.maxLength}
+              />
+            </div>
+          ))}
+        </fieldset>
+      );
+    }
     case "percent_fields": {
       const values = value as Record<string, number>;
       return (
@@ -216,7 +249,8 @@ export function SettingsGroupForm({
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   {row.input.kind === "time_range" ||
-                  row.input.kind === "percent_fields" ? (
+                  row.input.kind === "percent_fields" ||
+                  row.input.kind === "text_fields" ? (
                     <span className="text-sm font-medium">{row.label}</span>
                   ) : (
                     <Label htmlFor={row.key}>{row.label}</Label>
