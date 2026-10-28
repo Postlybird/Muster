@@ -13,7 +13,8 @@ import { failure, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import { acceptedUpload } from "@/lib/uploads";
 import { getAllSettings } from "@/server/settings";
-import { getMyWorker, saveFailed } from "@/server/workers";
+import { getMyWorker } from "@/server/workers";
+import { saveFailed } from "@/server/errors";
 
 function dateField(
   value: FormDataEntryValue | null,

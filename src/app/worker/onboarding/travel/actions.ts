@@ -5,7 +5,8 @@ import { z } from "zod";
 import { getGeocoder } from "@/adapters/geocode";
 import { failure, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
-import { getMyWorker, goOn, saveFailed, stepsWith } from "@/server/workers";
+import { getMyWorker, goOn, stepsWith } from "@/server/workers";
+import { saveFailed } from "@/server/errors";
 
 import {
   LICENCE_LABELS,

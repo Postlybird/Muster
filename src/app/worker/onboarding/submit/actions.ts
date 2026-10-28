@@ -6,11 +6,8 @@ import { redirect } from "next/navigation";
 import { stepTitle } from "@/domain/onboarding";
 import { failure, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
-import {
-  getMyWorker,
-  missingOnboardingSteps,
-  saveFailed,
-} from "@/server/workers";
+import { getMyWorker, missingOnboardingSteps } from "@/server/workers";
+import { saveFailed } from "@/server/errors";
 
 export async function submitOnboarding(): Promise<ActionState> {
   const { user, worker } = await getMyWorker();

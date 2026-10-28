@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { credentialBucket } from "@/lib/uploads";
 import { getAllSettings } from "@/server/settings";
 import { textPerson } from "@/server/notify";
-import { saveFailed } from "@/server/workers";
+import { saveFailed } from "@/server/errors";
 
 type Decision =
   | { approve: true }

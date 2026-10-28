@@ -5,7 +5,8 @@ import { z } from "zod";
 import { failure, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import { acceptedUpload } from "@/lib/uploads";
-import { finishStep, getMyWorker, saveFailed } from "@/server/workers";
+import { finishStep, getMyWorker } from "@/server/workers";
+import { saveFailed } from "@/server/errors";
 
 export async function saveIdentity(
   _prev: ActionState,

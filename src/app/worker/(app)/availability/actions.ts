@@ -12,7 +12,8 @@ import { isIsoDate } from "@/domain/onboarding";
 import { sydneyDateKey } from "@/lib/format";
 import { failure, formBoolean, success, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
-import { getMyWorker, goOn, saveFailed, stepsWith } from "@/server/workers";
+import { getMyWorker, goOn, stepsWith } from "@/server/workers";
+import { saveFailed } from "@/server/errors";
 
 /** Saves the weekly pattern and the urgent call-out choice. */
 export async function saveWeekly(

@@ -11,11 +11,12 @@ import {
   type OnboardingStepKey,
 } from "@/domain/onboarding";
 import { requireRole, type SessionUser } from "@/lib/auth";
-import { failure, success, type ActionState } from "@/lib/forms";
+import { success, type ActionState } from "@/lib/forms";
 import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 
 import { currentAgreement, hasAccepted } from "./agreements";
+import { saveFailed } from "./errors";
 
 export type WorkerRow = Tables<"workers">;
 
@@ -165,22 +166,6 @@ export async function finishStep(
     if (error) return saveFailed(error);
   }
   return goOn(worker, step);
-}
-
-/**
- * A database error as a message for the worker. Our own rules (locked
- * records, checks) explain themselves; anything else gets a generic message.
- */
-export function saveFailed(error: {
-  code?: string;
-  message: string;
-}): ActionState {
-  if (error.code === "42501" && !/row-level security/i.test(error.message)) {
-    return failure(error.message);
-  }
-  if (error.code === "P0001") return failure(error.message);
-  console.error("Save failed", error);
-  return failure("Something went wrong saving that. Please try again.");
 }
 
 /** Legal names and date of birth lock once photo ID has been checked. */

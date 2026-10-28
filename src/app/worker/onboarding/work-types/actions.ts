@@ -4,7 +4,8 @@ import { z } from "zod";
 
 import { failure, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
-import { getMyWorker, goOn, saveFailed, stepsWith } from "@/server/workers";
+import { getMyWorker, goOn, stepsWith } from "@/server/workers";
+import { saveFailed } from "@/server/errors";
 
 const bioSchema = z.string().trim().max(500, "Keep it under 500 characters");
 

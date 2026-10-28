@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { publicEnv } from "@/lib/env";
 
 import type { Database } from "./database.types";
+import { freshFetch } from "./fresh-fetch";
 
 /**
  * Supabase client for Server Components, Server Actions and Route Handlers.
@@ -34,6 +35,7 @@ export async function createClient() {
           }
         },
       },
+      global: { fetch: freshFetch },
     },
   );
 }

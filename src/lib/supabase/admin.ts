@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { publicEnv } from "@/lib/env";
 
 import type { Database } from "./database.types";
+import { freshFetch } from "./fresh-fetch";
 
 /**
  * Service-role client. It BYPASSES row level security, so use it only for
@@ -20,5 +21,6 @@ export function createAdminClient() {
   }
   return createClient<Database>(publicEnv.supabaseUrl, secretKey, {
     auth: { autoRefreshToken: false, persistSession: false },
+    global: { fetch: freshFetch },
   });
 }

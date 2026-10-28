@@ -13,9 +13,9 @@ import {
   getMyWorker,
   goOn,
   identityVerified,
-  saveFailed,
   stepsWith,
 } from "@/server/workers";
+import { saveFailed } from "@/server/errors";
 
 const names = z.object({
   legal_first_name: z

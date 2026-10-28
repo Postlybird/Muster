@@ -66,6 +66,10 @@ export async function signInAsNewBusiness(page: Page) {
 
 /** Fails the test with a readable list if the page breaks WCAG 2.1 AA rules. */
 export async function expectAccessible(page: Page) {
+  // Let fades finish: a toast that's still appearing is partly transparent.
+  await page.waitForFunction(() =>
+    document.getAnimations().every((a) => a.playState !== "running"),
+  );
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .exclude("nextjs-portal")
@@ -224,4 +228,20 @@ export async function createPendingWorker(
     });
   }
   return { workerId, email, mobile, name: `Pat ${lastName}` };
+}
+
+/** A random ABN with a valid checksum (the demo register accepts any). */
+export function randomAbn(): string {
+  const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+  for (;;) {
+    const digits = Array.from({ length: 11 }, () =>
+      Math.floor(Math.random() * 10),
+    );
+    if (digits[0] === 0) continue;
+    const sum = digits.reduce(
+      (total, digit, i) => total + (i === 0 ? digit - 1 : digit) * weights[i]!,
+      0,
+    );
+    if (sum % 89 === 0) return digits.join("");
+  }
 }

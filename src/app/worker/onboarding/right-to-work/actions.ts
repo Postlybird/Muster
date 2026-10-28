@@ -6,7 +6,8 @@ import { failure, formBoolean, type ActionState } from "@/lib/forms";
 import type { TablesInsert } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import { acceptedUpload } from "@/lib/uploads";
-import { finishStep, getMyWorker, saveFailed } from "@/server/workers";
+import { finishStep, getMyWorker } from "@/server/workers";
+import { saveFailed } from "@/server/errors";
 
 import { BASIS_LABELS, EVIDENCE_LABELS } from "@/config/worker-options";
 
