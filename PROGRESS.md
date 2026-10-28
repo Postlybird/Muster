@@ -13,10 +13,20 @@ _Last updated: 28/10/2026_
   - ESLint, Prettier, Vitest and Playwright set up.
   - Brand config in `src/config/brand.ts`; design tokens in `src/app/globals.css`.
   - `BRIEF.md`, `CLAUDE.md`, `docs/plan.md`, this file, `README.md` and `.env.example` added.
+- **0.2 Database base:**
+  - Local Supabase config set to match the hosted project.
+  - Migrations for:
+    - profiles, created on sign-up; the requested role is limited to worker or business user, so admins can't self-register
+    - settings (public and admin-only keys)
+    - the append-only audit log with a generic change trigger and `log_access_event()`
+    - the demo outbox
+    - the catalogues: categories, tickets, hazards, PPE, and category defaults
+  - Supabase Auth hooks send SMS and email login codes to the demo outbox.
+  - 27 pgTAP tests: RLS on every table, anon can't write anything or call any function, profile isolation, no self-promotion to admin, settings visibility, audit log is immutable.
+  - TypeScript types generated.
 
 ## Next
 
-- **0.2** Local Supabase and base schema: profiles, settings, audit log, dev outbox, catalogues, access helpers, RLS tests.
 - **0.3** Sign-in: SMS code, email code/link, demo "sign in as", role routing.
 - **0.4** Design system and layouts. **0.5** Adapters and mocks. **0.6** Seed script. **0.7** CI, DB deploy workflow, Vercel.
 
@@ -31,6 +41,9 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | The Supabase access token for CI is scoped to `muster-dev` only, with full access and no expiry. Stored as GitHub secret `SUPABASE_ACCESS_TOKEN`. | CI needs to apply migrations and auth config. If it's ever exposed, delete it at supabase.com → Account → Access Tokens.                                                                                                |
 | 28/10/2026 | The dev project gets demo data from CI using the GitHub secret `SUPABASE_SECRET_KEY`.                                                             | The seed script creates demo users through the Auth admin API. Dev project only; production will never be seeded.                                                                                                       |
 | 28/10/2026 | Servers and unit tests run in UTC; all display goes through Australia/Sydney helpers.                                                             | Brief §1. Vercel runs in UTC, so tests do too.                                                                                                                                                                          |
+| 28/10/2026 | Login codes (SMS and email) go through Supabase Auth hooks into `dev_outbox` while in demo mode. A placeholder Twilio provider is switched on locally because Supabase disables phone login without one; the hook intercepts every message first. | Demo and tests work with no SMS/email accounts. Production will point the hooks at our SMS/email adapters (Twilio/Resend), with the owner's OK. |
+| 28/10/2026 | Join tables (`category_credentials`, `category_ppe`) use composite primary keys instead of a UUID id; append-only tables (`audit_log`, `dev_outbox`) have `created_at` but no `updated_at`. | Small, deliberate exception to "every table has a UUID id and created/updated timestamps" (brief §9): these rows are never edited. |
+| 28/10/2026 | Users may update only their own name and notification preferences on `profiles` (column-level grant). Email and phone are copied from Supabase Auth, where they're verified. | Stops anyone changing their own role or contact details without verification. |
 
 ## Open questions for the owner
 

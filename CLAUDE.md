@@ -50,6 +50,11 @@ This project uses Next.js 16, which has breaking changes from older versions:
 ## Cloud container notes
 
 - The Docker daemon may not be running. Start it with `dockerd > /tmp/dockerd.log 2>&1 &`.
-- `public.ecr.aws` (Supabase's default image registry) can fail with "Data limit exceeded". If so, pull from Docker Hub with `SUPABASE_INTERNAL_IMAGE_REGISTRY=docker.io npm run db:start`.
+- Image pulls for local Supabase can fail:
+  - `public.ecr.aws` (the default registry) with "Data limit exceeded".
+  - Docker Hub with "429 Too Many Requests".
+
+  What works: set `SUPABASE_INTERNAL_IMAGE_REGISTRY=docker.io` for every `supabase` command. For any image Docker Hub refuses, run `docker pull mirror.gcr.io/supabase/<image>:<tag>`, then `docker tag` it to `supabase/<image>:<tag>`. `npx supabase services` lists the tags; `pg_prove:3.36` and `postgres-meta:<tag>` are needed for `test:db` and `db:types`.
+- Postgres grants EXECUTE on new functions to PUBLIC by default. The base migration revokes that globally; `supabase/tests/database/00_security_baseline.test.sql` fails if any function becomes callable by `anon`.
 - `ui.shadcn.com` and `abr.business.gov.au` are blocked by this environment's network policy. Components are hand-written; the live ABN adapter can only be exercised from Vercel or once the owner allows the host.
 - Playwright browsers are pre-installed for `@playwright/test@1.63.0`. Keep that exact version unless you also install browsers.
