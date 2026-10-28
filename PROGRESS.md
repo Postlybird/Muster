@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.9 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.10 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -208,16 +208,23 @@ _Last updated: 28/10/2026_
   - Workers see bookings the business cancelled, in My shifts and on the job page.
   - Tests: 208 pgTAP, 271 unit and 140 browser tests passing.
 
+- **1.10 On the day** (Phase 1):
+  - **Clocking in and out:** from two hours before a booked shift until twelve hours after it ends, the shift page shows "On now" with one big button: Clock in, then Clock out. It checks the phone's location against the site (each site's radius, or the setting: 200 m for now). Away from the site, or with no location, the worker can still clock in by saying why, and admins are flagged.
+  - **No signal:** the clock-in is saved on the phone with the time it happened, and sent as soon as there's a connection.
+  - **Safety:** "Report a safety issue" (with an optional photo) reaches every admin by email straight away and is flagged. Only the reporter and admins can see it.
+  - **Businesses** see when each worker clocked in and out (and where, if away from the site), confirm someone has arrived when their phone couldn't ("They're here"), or report a no-show.
+  - **Possible no-shows:** a scheduled job (`/api/cron/attendance`) flags anyone booked who hasn't clocked in 30 minutes after the start (a setting), once each, and emails whoever posted the job.
+  - Tests: 226 pgTAP, 273 unit and 148 browser tests passing.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Once the site has an address:** schedule the `reminders` and `finish-shifts` jobs (every 10 minutes) with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET`. Vercel's free plan only runs scheduled jobs once a day.
-- **Phase 1, step 1.10:** on the day:
-  - clock in and out on the phone with a GPS check against the site; outside the radius is allowed with a reason and flagged
-  - clock-ins queue when there's no signal and sync later
-  - a "Report a safety issue" button that alerts admin straight away
-  - supervisors confirm arrival, adjust times and record breaks; possible no-shows flagged automatically 30 minutes after the start
+- **Once the site has an address:** schedule the `reminders`, `finish-shifts` and `attendance` jobs (every 10 minutes) with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET`. Vercel's free plan only runs scheduled jobs once a day.
+- **Phase 1, step 1.11:** timesheets:
+  - a timesheet created at clock-out (start, finish, break, hours by rate type, allowances)
+  - the business approves or disputes within 48 hours (a setting), adjusting times and breaks; otherwise it approves itself, with a notification
+  - disputes go to the admin queue with both sides' notes
 
 ## Decisions
 
@@ -286,6 +293,10 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | Businesses cancel a whole shift or job; taking one booked worker off a shift isn't offered yet. | Keeps cancelling simple. Each booking still gets its own charge and message. |
 | 28/10/2026 | A late business cancellation is charged as hours at each booking's bill rate, recorded on the booking. | Brief §4.5: "charged per policy". The hours are a setting; invoices (step 1.13) add the line. |
 | 28/10/2026 | Admins are flagged about every no-show and suspension in a new list, shown in the admin queues from step 1.15. | Brief §4.5: suspension is "pending admin review". |
+| 28/10/2026 | Clocking in opens two hours before a shift and closes twelve hours after it ends. A phone's stated accuracy (up to 100 m) counts in the worker's favour. | Allows for early arrivals and late clock-outs without signal; GPS indoors is rough. |
+| 28/10/2026 | Clock-ins and outs always use a fresh location, not one the phone cached earlier. | A cached location could be from before they arrived. |
+| 28/10/2026 | Safety reports are seen by the reporter and admins only; admins follow up with the business. | Workers can raise issues without the business seeing who reported them. |
+| 28/10/2026 | Supervisors adjust times and record breaks on the timesheet (step 1.11) rather than on the day. | One place for the hours that get paid and billed. |
 | 28/10/2026 | The most specific bill rule wins: the business's rule for the category, then its rule for all categories, then the category's standard rule, then the default margin. Only one rule per business, category and start date. | Plan: a margin with per-category and per-business overrides. The pay and bill engine (step 1.5) always finds exactly one rule. |
 
 ## Open questions for the owner
