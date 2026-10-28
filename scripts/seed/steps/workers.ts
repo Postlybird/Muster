@@ -3,10 +3,10 @@ import { readFileSync } from "node:fs";
 import { findSuburb } from "../../../src/data/sydney-suburbs";
 import {
   addDays,
-  addMonths,
   STEP_KEYS,
   type OnboardingStepKey,
 } from "../../../src/domain/onboarding";
+import { hasWorkLimit, nextVevoCheck } from "../../../src/domain/verification";
 import { sydneyDateKey } from "../../../src/lib/format";
 import type { TablesUpdate } from "../../../src/lib/supabase/database.types";
 import { check, must, type SeedClient } from "../client";
@@ -191,8 +191,6 @@ async function seedRightToWork(
     rights.expiresInDays === null
       ? null
       : addDays(ctx.today, rights.expiresInDays);
-  // Bridging visas (subclasses 0xx) with no end date are re-checked regularly.
-  const bridging = rights.subclass.startsWith("0") && expiry === null;
   const vevoDate = sydneyDateKey(checkedAt);
 
   check(
@@ -212,12 +210,14 @@ async function seedRightToWork(
             vevo_reference: `DEMO-VEVO-${2000 + index}`,
             visa_expiry: expiry,
             visa_conditions: rights.conditions ?? null,
-            work_limit_flag: /8105|limited/i.test(rights.conditions ?? ""),
-            next_check_due:
-              expiry ??
-              (bridging
-                ? addMonths(vevoDate, ctx.bridgingRecheckMonths)
-                : null),
+            work_limit_flag: hasWorkLimit(rights.conditions ?? null),
+            next_check_due: nextVevoCheck({
+              basis,
+              subclass: rights.subclass,
+              visaExpiry: expiry,
+              checkedOn: vevoDate,
+              bridgingRecheckMonths: ctx.bridgingRecheckMonths,
+            }),
           }
         : {}),
     }),

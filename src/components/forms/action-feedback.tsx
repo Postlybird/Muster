@@ -10,10 +10,19 @@ import type { ActionState } from "@/lib/forms";
  * Shows a toast when a save succeeds, and the error in the form (where
  * screen readers announce it) when it fails.
  */
-export function ActionFeedback({ state }: { state: ActionState }) {
+export function ActionFeedback({
+  state,
+  successToast = true,
+}: {
+  state: ActionState;
+  /** Off when the caller shows its own success message. */
+  successToast?: boolean;
+}) {
   useEffect(() => {
-    if (state.status === "success") toast.success(state.message);
-  }, [state]);
+    if (successToast && state.status === "success") {
+      toast.success(state.message);
+    }
+  }, [state, successToast]);
 
   if (state.status !== "error") return null;
   return (

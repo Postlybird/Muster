@@ -33,6 +33,7 @@ This project uses Next.js 16, which has breaking changes from older versions:
 - **Data access:** user-initiated reads and writes use the signed-in user's Supabase client, so RLS applies. Use the service-role client only in cron jobs, seeding, audited admin actions and recording agreement acceptances (`src/server/agreements.ts`, so the IP address comes from the server).
 - **UI:** shadcn/ui-style components in `src/components/ui/`, written by hand on Radix (`radix-ui` package) because the shadcn registry is blocked from the cloud container. Mobile-first for workers, large tap targets, one main action per screen. Worker forms use `NativeSelect` rather than the Radix select.
 - **Worker area:** `src/app/worker/(app)/` has the tabbed app; `src/app/worker/onboarding/` is the wizard, whose step pages also serve as edit pages once a worker has submitted (`StepFrame`, `StepActions`).
+- **Admin access:** admin pages and actions call `requireAdmin()` (role plus authenticator app; the database's `is_admin()` checks the same). Log views of worker documents with `logAccess()` (`src/server/audit.ts`).
 - **Uploads:** browser to private storage via `FileUpload` (`src/components/forms/file-upload.tsx`), in a folder named after the worker's id. Server actions accept a path only through `acceptedUpload()` in `src/lib/uploads.ts`.
 - **Brand:** the product name lives only in `src/config/brand.ts`.
 - **Adapters:** each outside service lives in `src/adapters/<name>/` as a typed interface, a mock or manual implementation, and a `get<Name>()` factory.

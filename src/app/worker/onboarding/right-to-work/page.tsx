@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import { ContinueForm } from "../continue-form";
 import { loadStep, StepFrame } from "../step-frame";
-import { BASIS_LABELS } from "./options";
+import { BASIS_LABELS } from "@/config/worker-options";
 import { RightToWorkForm } from "./right-to-work-form";
 
 export const metadata: Metadata = { title: "Right to work" };

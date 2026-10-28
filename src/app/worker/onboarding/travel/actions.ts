@@ -7,7 +7,11 @@ import { failure, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import { getMyWorker, goOn, saveFailed, stepsWith } from "@/server/workers";
 
-import { LICENCE_LABELS, RADIUS_OPTIONS_KM, suburbLabel } from "./options";
+import {
+  LICENCE_LABELS,
+  RADIUS_OPTIONS_KM,
+  suburbLabel,
+} from "@/config/worker-options";
 
 const yesNo = z.enum(["yes", "no"], { error: "Choose yes or no" });
 

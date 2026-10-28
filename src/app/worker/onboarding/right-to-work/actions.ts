@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { acceptedUpload } from "@/lib/uploads";
 import { finishStep, getMyWorker, saveFailed } from "@/server/workers";
 
-import { BASIS_LABELS, EVIDENCE_LABELS } from "./options";
+import { BASIS_LABELS, EVIDENCE_LABELS } from "@/config/worker-options";
 
 const basisSchema = z.enum(
   Object.keys(BASIS_LABELS) as [keyof typeof BASIS_LABELS],

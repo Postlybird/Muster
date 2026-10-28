@@ -60,7 +60,7 @@ test("admins need an authenticator app as well as their email", async ({
   ).toBeVisible();
 
   // Next time: just the code. Codes can't be reused, so use the next one.
-  await page.getByRole("button", { name: "Sign out" }).first().click();
+  await page.context().clearCookies();
   await signInByEmail(page, email);
   await expect(page).toHaveURL(/\/mfa$/);
   await expect(

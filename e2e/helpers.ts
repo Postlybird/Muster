@@ -124,3 +124,104 @@ export function totp(secret: string, at = Date.now()): string {
   const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000;
   return String(code).padStart(6, "0");
 }
+
+/**
+ * A worker who has submitted everything and is waiting to be checked,
+ * created directly in the database so admin tests can be repeated.
+ */
+export async function createPendingWorker(
+  options: { visa?: boolean; ticketCode?: string } = {},
+) {
+  const supabase = serviceClient();
+  const mobile = randomMobile();
+  const email = randomEmail("pending");
+  const lastName = `Tester${Math.floor(Math.random() * 1e6)}`;
+  const { data: created, error } = await supabase.auth.admin.createUser({
+    email,
+    phone: mobile.e164,
+    email_confirm: true,
+    phone_confirm: true,
+    user_metadata: { full_name: `Pat ${lastName}` },
+  });
+  if (error || !created.user) throw new Error(error?.message);
+  const { data: worker } = await supabase
+    .from("workers")
+    .select("id")
+    .eq("profile_id", created.user.id)
+    .single();
+  const workerId = worker!.id as string;
+
+  const image = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  const upload = async (bucket: string, path: string) => {
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(path, image, { contentType: "image/png", upsert: true });
+    if (uploadError) throw new Error(uploadError.message);
+    return path;
+  };
+
+  await supabase
+    .from("workers")
+    .update({
+      legal_first_name: "Pat",
+      legal_last_name: lastName,
+      date_of_birth: "1995-04-02",
+      photo_path: await upload("worker-photos", `${workerId}/photo-e2e.png`),
+      photo_status: "pending",
+      home_suburb: "Parramatta",
+      home_postcode: "2150",
+      status: "pending",
+      submitted_at: new Date().toISOString(),
+      onboarding_steps: ["about", "contact", "travel", "right-to-work"],
+    })
+    .eq("id", workerId);
+  await supabase.from("work_rights").insert(
+    options.visa
+      ? {
+          worker_id: workerId,
+          basis: "visa",
+          passport_number: "E2E12345",
+          passport_country: "Japan",
+          visa_subclass: "500",
+          vevo_consent_at: new Date().toISOString(),
+        }
+      : {
+          worker_id: workerId,
+          basis: "citizen",
+          citizenship_evidence: "australian_passport",
+          evidence_path: await upload(
+            "identity",
+            `${workerId}/citizenship-e2e.png`,
+          ),
+        },
+  );
+  await supabase.from("identity_checks").insert({
+    worker_id: workerId,
+    document_type: "driver_licence",
+    document_path: await upload("identity", `${workerId}/id-document-e2e.png`),
+    selfie_path: await upload("identity", `${workerId}/selfie-e2e.png`),
+  });
+  if (options.ticketCode) {
+    const { data: type } = await supabase
+      .from("credential_types")
+      .select("id, kind")
+      .eq("code", options.ticketCode)
+      .single();
+    await supabase.from("worker_credentials").insert({
+      worker_id: workerId,
+      credential_type_id: type!.id,
+      number: "E2E-1",
+      issued_on: new Date(Date.now() - 30 * 86_400_000)
+        .toISOString()
+        .slice(0, 10),
+      document_path: await upload(
+        type!.kind === "police_check" ? "identity" : "worker-docs",
+        `${workerId}/ticket-e2e.png`,
+      ),
+    });
+  }
+  return { workerId, email, mobile, name: `Pat ${lastName}` };
+}

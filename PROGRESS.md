@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 and 1.2 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.3 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -108,11 +108,25 @@ _Last updated: 28/10/2026_
   - **Demo data:** all 30 demo workers filled in, with placeholder photos and documents stamped as demo data. Draft workers stop part-way through.
   - Tests: 77 pgTAP, 161 unit and 78 browser tests passing, including the full phone sign-up to submission.
 
+- **1.3 Verification and activation** (Phase 1):
+  - **Admin sign-in with an authenticator app.** After the email code, admins set up (first time) or enter a code from an authenticator app. The database itself refuses admin powers without it, so a stolen email link isn't enough. Seeded demo admins skip it, only where the demo data allows. An **Admin team** page lets one admin reset another's app (lost phone).
+  - **Verification queue** (`/admin/verification`): new workers oldest first, updates from current workers (new tickets, photos, renewals), and visa re-checks due in the next 14 days.
+  - **Worker review page** (`/admin/workers/[id]`), each document beside the details entered:
+    - photo: approve, or reject with a reason
+    - right to work: citizens' evidence checked then deleted; for everyone else, record the VEVO result (date, reference, expiry, conditions, hours limit). The next check is worked out automatically (visa expiry, or 3 months for a bridging visa with no end date). Re-checks are recorded the same way.
+    - photo ID: compare ID and selfie with the name and date of birth, keep the last 4 characters of the document number; the images are deleted on saving
+    - tickets: verify (a renewal replaces the old copy) or reject; police certificates are deleted after checking
+    - work type levels, payroll setup (Employment Hero employee ID and status), paperwork accepted
+    - **Activate**, once photo, right to work, ID and payroll setup are done
+  - Rejections come with ready-made reasons the admin can edit. The worker gets a text and sees the reason with a "fix it" link.
+  - Every view of worker documents is logged.
+  - Tests: 93 pgTAP, 169 unit and 86 browser tests passing.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Phase 1, step 1.3:** the verification queue: admins check photos, ID, right to work and tickets (document beside the details), record VEVO results, delete ID images after checking, and activate workers. Admin sign-in gets an authenticator app (MFA).
+- **Phase 1, step 1.4:** business onboarding: email sign-up, live ABN lookup (mock until the GUID arrives), billing contact, sites with address lookup, inviting managers and supervisors, the Labour Hire Services Agreement, and admin approval with account terms.
 
 ## Decisions
 
@@ -144,6 +158,10 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | Availability is one window per day (overnight allowed). "Available now" lasts 4 hours and is only for verified workers. | Simple to set on a phone. Covers the brief's weekly pattern, "available now" switch and blocked-out dates. |
 | 28/10/2026 | Agreement acceptances are written by the server with the service-role key. | The IP address and browser come from the request, so a user can't forge or change them. The records can't be edited afterwards. |
 | 28/10/2026 | The worker app uses the phone's own pickers (native selects) for lists. | Easier on phones, and the chosen value shows before the page's scripts load. |
+| 28/10/2026 | Admin powers need an authenticator app, enforced by the database as well as the app. Seeded `@demo.test` admins are exempt only where the demo data sets `demo_admins_skip_mfa`. | Admin accounts can see ID and visa details, so an email sign-in alone isn't enough. The exemption keeps "Sign in as" usable in the demo; production is never seeded. |
+| 28/10/2026 | ID images, citizenship evidence and police certificates are deleted when the admin saves a decision, approved or rejected. We keep the outcome, date, reviewer and a short reference. | Plan question 2. A rejected worker uploads new ones anyway. |
+| 28/10/2026 | Payroll setup is recorded by hand in v1: the admin adds the worker in Employment Hero, then records the employee ID and marks setup complete. Activation needs it complete. | Plan question 9. Phase 2 does this through the Employment Hero API. |
+| 28/10/2026 | Account messages to workers (rejections, activation) are sent as texts straight away. | They're critical. Step 1.14 moves them into the full notifications system with templates and preferences. |
 
 ## Open questions for the owner
 
@@ -155,6 +173,7 @@ _Last updated: 28/10/2026_
 ## Before launch (not now)
 
 - Set `DEMO_MODE=false` in production; seed demo data into the dev project only.
+- Create the first real admin account (sign in once, then set its role to admin in the database). Every other admin can be managed from the app after that.
 - Point the Supabase Auth SMS and email hooks at our adapters (Twilio, Resend). These are paid services: ask the owner first.
 - Turn on CAPTCHA for code requests (Cloudflare Turnstile is free) to stop SMS-pumping fraud once real texts cost money.
 - Upgrade to Vercel Pro and Supabase Pro (commercial use, backups, no pausing). Ask the owner first.

@@ -13,7 +13,7 @@ import {
   LICENCE_LABELS,
   RADIUS_OPTIONS_KM,
   type LicenceClass,
-} from "./options";
+} from "@/config/worker-options";
 
 export type TravelValues = {
   suburbLabel: string;

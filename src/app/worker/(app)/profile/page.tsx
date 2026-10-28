@@ -14,7 +14,7 @@ import { createClient } from "@/lib/supabase/server";
 import { loadTickets } from "@/server/tickets";
 import { getMyWorker, signedUrl } from "@/server/workers";
 
-import { LICENCE_LABELS } from "../../onboarding/travel/options";
+import { LICENCE_LABELS } from "@/config/worker-options";
 
 export const metadata: Metadata = { title: "Profile" };
 

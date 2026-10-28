@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Timer,
+  UserCog,
   UserRound,
   Users,
   UsersRound,
@@ -308,6 +309,13 @@ export const adminNav: NavGroup[] = [
         icon: BadgeCheck,
         description: "Our labour hire licences by state.",
         step: "1.1",
+      },
+      {
+        href: "/admin/team",
+        label: "Admin team",
+        icon: UserCog,
+        description: "People with admin access and their authenticator apps.",
+        step: "1.3",
       },
       {
         href: "/admin/templates",

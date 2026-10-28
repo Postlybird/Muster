@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getAllSettings } from "@/server/settings";
 
 import { loadStep, StepFrame } from "../step-frame";
-import { suburbLabel } from "./options";
+import { suburbLabel } from "@/config/worker-options";
 import { TravelForm } from "./travel-form";
 
 export const metadata: Metadata = { title: "Getting to work" };

@@ -19,7 +19,7 @@ import {
   EVIDENCE_LABELS,
   type Basis,
   type Evidence,
-} from "./options";
+} from "@/config/worker-options";
 
 export type RightToWorkValues = {
   basis: Basis | null;
