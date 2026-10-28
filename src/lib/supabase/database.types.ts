@@ -3339,6 +3339,26 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_shift_board: {
+        Args: { p_from: string; p_to: string };
+        Returns: {
+          applicants: number;
+          arrived: number;
+          booked: number;
+          business_id: string;
+          business_name: string;
+          category_name: string;
+          ends_at: string;
+          fill_mode: Database["public"]["Enums"]["fill_mode"];
+          headcount: number;
+          job_id: string;
+          job_type: Database["public"]["Enums"]["job_type"];
+          shift_id: string;
+          site_name: string;
+          starts_at: string;
+          suburb: string;
+        }[];
+      };
       admin_worker_list: {
         Args: {
           p_category_id?: string;
