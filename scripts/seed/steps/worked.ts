@@ -66,10 +66,6 @@ export async function seedWorked(client: SeedClient) {
       w.id,
     ]),
   );
-  const profileOf = new Map(
-    must(workers, "workers").map((w) => [w.id, w.profile_id]),
-  );
-
   let shifts = 0;
   for (const demo of DEMO_WORKED) {
     const business = must(businesses, "businesses").find(
@@ -292,17 +288,58 @@ export async function seedWorked(client: SeedClient) {
     );
     await costTimesheetsWith(client, settings, approved);
 
-    // Ratings both ways for approved hours, and the averages they make.
+    shifts++;
+  }
+  return { shifts };
+}
+
+/**
+ * Ratings both ways for the demo's approved hours, and the averages they
+ * make. Separate from the shifts, so a database seeded before ratings
+ * existed gets them too; a booking already rated is left alone.
+ */
+export async function seedRatings(client: SeedClient) {
+  let added = 0;
+  for (const demo of DEMO_WORKED) {
     for (const person of demo.workers) {
-      const sheet = sheets.find(
-        (s) => s.worker_id === workerId.get(person.name),
+      if (!person.ratings) continue;
+      const [first, ...rest] = person.name.split(" ");
+      const worker = must(
+        await client
+          .from("workers")
+          .select("id, profile_id")
+          .eq("legal_first_name", first!)
+          .eq("legal_last_name", rest.join(" "))
+          .maybeSingle(),
+        "demo worker",
       );
-      if (!sheet || !person.ratings) continue;
+      if (!worker) continue;
+      const sheet = must(
+        await client
+          .from("timesheets")
+          .select(
+            "assignment_id, jobs!inner(business_id, site_id, sites!inner(name), businesses!inner(trading_name, created_by))",
+          )
+          .eq("worker_id", worker.id)
+          .in("status", ["approved", "auto_approved", "adjusted"])
+          .eq("jobs.businesses.trading_name", demo.business)
+          .eq("jobs.sites.name", demo.site)
+          .order("start_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        "demo hours to rate",
+      );
+      if (!sheet?.jobs.site_id) continue;
+      const { count } = await client
+        .from("ratings")
+        .select("id", { count: "exact", head: true })
+        .eq("assignment_id", sheet.assignment_id);
+      if (count) continue;
       const common = {
         assignment_id: sheet.assignment_id,
-        worker_id: sheet.worker_id,
-        business_id: business.id,
-        site_id: site.id,
+        worker_id: worker.id,
+        business_id: sheet.jobs.business_id,
+        site_id: sheet.jobs.site_id,
       };
       check(
         await client.from("ratings").insert([
@@ -312,7 +349,7 @@ export async function seedWorked(client: SeedClient) {
             score: person.ratings.worker.score,
             tags: person.ratings.worker.tags,
             private_note: person.ratings.worker.note ?? null,
-            rated_by: business.created_by!,
+            rated_by: sheet.jobs.businesses.created_by!,
           },
           {
             ...common,
@@ -320,16 +357,16 @@ export async function seedWorked(client: SeedClient) {
             score: person.ratings.site.score,
             tags: person.ratings.site.tags,
             private_note: person.ratings.site.note ?? null,
-            rated_by: profileOf.get(sheet.worker_id)!,
+            rated_by: worker.profile_id,
           },
         ]),
         "demo ratings",
       );
-      await updateAverages(client, sheet.worker_id, business.id);
+      await updateAverages(client, worker.id, sheet.jobs.business_id);
+      added++;
     }
-    shifts++;
   }
-  return { shifts };
+  return { added };
 }
 
 /** The averages rate_worker() and rate_site() keep, for seeded ratings. */

@@ -11,7 +11,7 @@ import { seedJobs } from "./steps/jobs";
 import { seedMatches } from "./steps/matches";
 import { seedSettings } from "./steps/settings";
 import { seedUsers } from "./steps/users";
-import { seedWorked } from "./steps/worked";
+import { seedRatings, seedWorked } from "./steps/worked";
 import { seedWorkers } from "./steps/workers";
 
 async function main() {
@@ -54,6 +54,9 @@ async function main() {
 
   const worked = await seedWorked(client);
   console.log(`  worked shifts with timesheets: ${worked.shifts} added`);
+
+  const ratings = await seedRatings(client);
+  console.log(`  demo ratings: ${ratings.added} added`);
 
   console.log("Done.");
 }
