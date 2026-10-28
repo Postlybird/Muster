@@ -3347,6 +3347,31 @@ export type Database = {
           worker_id: string;
         }[];
       };
+      admin_report_breakdown: {
+        Args: { p_from: string; p_to: string };
+        Returns: {
+          bill_cents: number;
+          cost_cents: number;
+          dimension: string;
+          key: string;
+          margin_cents: number;
+          name: string;
+          paid_minutes: number;
+          shifts: number;
+        }[];
+      };
+      admin_report_summary: {
+        Args: { p_from: string; p_to: string };
+        Returns: {
+          active_workers: number;
+          filled: number;
+          median_minutes_to_fill: number;
+          no_shows: number;
+          places: number;
+          started_bookings: number;
+          workers_worked: number;
+        }[];
+      };
       admin_shift_board: {
         Args: { p_from: string; p_to: string };
         Returns: {

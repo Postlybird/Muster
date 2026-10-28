@@ -277,6 +277,7 @@ _Last updated: 28/10/2026_
     - safety reports, away from the site and visa work limits: record what was done
   - Possible no-shows settle themselves when the worker clocks in, the business confirms they arrived or reports a no-show. Recently settled matters are listed with their decisions.
   - New messages: taken off a shift (worker, and the business without the reason), no-show excused, and hold lifted.
+  - **Reports:** for shifts starting in a period (last 7 or 30 days, this month, last month, or chosen dates): the fill rate (places booked of places posted), the typical time from posting to booking, the no-show rate, active workers and how many worked, then hours, revenue, cost and gross margin by work type and by business, from approved hours before GST.
   - Filtered lists keep their filters in the page address, so they can be bookmarked or shared with another admin.
 
 ## Next
@@ -288,8 +289,7 @@ _Last updated: 28/10/2026_
   - hourly: `compliance`
   - once a day, early morning: `pay-run` (it only runs on the run day)
 - **Optional, any time:** turn on push notifications (Admin → Settings → Push notifications has the steps).
-- **Phase 1, step 1.15:** the rest of the admin console:
-  - reports and the audit log viewer
+- **Phase 1, step 1.15:** the rest of the admin console: the audit log viewer and the admin dashboard.
 
 ## Decisions
 
