@@ -51,9 +51,18 @@ _Last updated: 28/10/2026_
   - Draft privacy, terms, FAQ and contact pages, marked for legal review.
   - Automated accessibility checks (axe, WCAG 2.1 AA) on public pages, the UI kit, the wizard and the worker and business areas: zero violations. 36 browser tests pass on phone and desktop sizes.
 
+- **0.5 Adapters:** each one has an interface plus a mock or manual implementation, with a factory chosen by env var:
+  - **ABN:** checksum validation; live ABN Lookup client that unwraps JSONP (used when `ABN_LOOKUP_GUID` is set); mock with fictional demo businesses, including a cancelled ABN and a sole trader.
+  - **Email, SMS and push:** mocks deliver to the demo outbox. The outbox page has a "Send test messages" button.
+  - **Address lookup:** mock using a built-in list of about 60 Sydney suburbs. It understands "12 George St, Parramatta" and places addresses near the suburb centre, the same spot every time.
+  - **Identity, police check and right to work:** manual review (admin) for v1.
+  - **Payroll:** CSV export. The columns are a draft until we have the owner's Employment Hero template.
+  - **Payments:** account terms (pay by bank transfer).
+  - 70 unit tests in total.
+
 ## Next
 
-- **0.5** Adapters and mocks. **0.6** Seed script. **0.7** CI, DB deploy workflow, Vercel.
+- **0.6** Seed script. **0.7** CI, DB deploy workflow, Vercel.
 
 ## Decisions
 

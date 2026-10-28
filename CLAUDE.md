@@ -33,6 +33,10 @@ This project uses Next.js 16, which has breaking changes from older versions:
 - **Data access:** user-initiated reads and writes use the signed-in user's Supabase client, so RLS applies. Use the service-role client only in cron jobs, seeding and audited admin actions.
 - **UI:** shadcn/ui-style components in `src/components/ui/`, written by hand on Radix (`radix-ui` package) because the shadcn registry is blocked from the cloud container. Mobile-first for workers, large tap targets, one main action per screen.
 - **Brand:** the product name lives only in `src/config/brand.ts`.
+- **Adapters:** each outside service lives in `src/adapters/<name>/` as a typed interface, a mock or manual implementation, and a `get<Name>()` factory.
+  - Mocks for email, SMS and push write to `dev_outbox`.
+  - The ABN adapter has a live implementation (free ABR service), used when `ABN_LOOKUP_GUID` is set.
+  - Add a real paid provider only after the owner approves it, selected by its `*_PROVIDER` env var.
 
 ## Commands
 

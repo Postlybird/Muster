@@ -8,6 +8,7 @@ import { formatDateTime } from "@/lib/format";
 import { formatAuPhone, normaliseAuMobile } from "@/lib/phone";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+import { sendTestMessages } from "./actions";
 import { AutoRefresh } from "./auto-refresh";
 
 export const metadata: Metadata = {
@@ -48,6 +49,15 @@ export default async function OutboxPage({
           refreshes itself.
         </p>
       </div>
+
+      <form action={sendTestMessages}>
+        <button
+          type="submit"
+          className="h-11 rounded-md border border-input px-4 text-sm font-medium hover:bg-accent"
+        >
+          Send test messages
+        </button>
+      </form>
 
       <form className="flex gap-2" role="search">
         <label htmlFor="to" className="sr-only">
