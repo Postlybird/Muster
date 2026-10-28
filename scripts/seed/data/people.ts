@@ -29,6 +29,15 @@ export type SeedBusiness = {
     fullName: string;
     email: string;
     role: "owner" | "manager" | "supervisor";
+    /** Supervisors: the sites (by name) they look after. */
+    sites?: string[];
+  }[];
+  /** Street address plus suburb, as typed into the address picker. */
+  sites: {
+    name: string;
+    address: string;
+    accessNotes?: string;
+    parkingNotes?: string;
   }[];
 };
 
@@ -55,6 +64,21 @@ export const BUSINESSES: SeedBusiness[] = [
         fullName: "Tom Walsh",
         email: "tom.walsh@demo.test",
         role: "supervisor",
+        sites: ["Granville flood job"],
+      },
+    ],
+    sites: [
+      {
+        name: "Parramatta depot",
+        address: "18 Church St, Parramatta",
+        accessNotes: "Sign in at the front office. Induction is 15 minutes.",
+        parkingNotes: "Staff parking at the back, off Macquarie St.",
+      },
+      {
+        name: "Granville flood job",
+        address: "42 Parramatta Rd, Granville",
+        accessNotes: "Report to the site container at the driveway.",
+        parkingNotes: "Street parking only.",
       },
     ],
   },
@@ -77,6 +101,16 @@ export const BUSINESSES: SeedBusiness[] = [
         role: "manager",
       },
     ],
+    sites: [
+      {
+        name: "Blacktown office tower",
+        address: "35 Main St, Blacktown",
+        accessNotes:
+          "Building security will let you in through the loading dock.",
+        parkingNotes:
+          "Loading dock bays for 30 minutes, then the public car park.",
+      },
+    ],
   },
   {
     abn: "28322761077",
@@ -95,6 +129,19 @@ export const BUSINESSES: SeedBusiness[] = [
         fullName: "Ella Brooks",
         email: "ella.brooks@demo.test",
         role: "supervisor",
+        sites: ["Manly storm repairs"],
+      },
+    ],
+    sites: [
+      {
+        name: "Brookvale warehouse",
+        address: "7 Winbourne Rd, Brookvale",
+        parkingNotes: "Plenty of parking in the yard.",
+      },
+      {
+        name: "Manly storm repairs",
+        address: "60 Pittwater Rd, Manly",
+        accessNotes: "Meet the supervisor on the front steps.",
       },
     ],
   },
@@ -107,6 +154,13 @@ export const BUSINESSES: SeedBusiness[] = [
     phone: "+61255500404",
     people: [
       { fullName: "Hannah Lee", email: "hannah.lee@demo.test", role: "owner" },
+    ],
+    sites: [
+      {
+        name: "Sutherland storage",
+        address: "9 Eton St, Sutherland",
+        accessNotes: "Roller door at the side. Call when you arrive.",
+      },
     ],
   },
   {
@@ -121,6 +175,12 @@ export const BUSINESSES: SeedBusiness[] = [
         fullName: "Jordan Parker",
         email: "jordan.parker@demo.test",
         role: "owner",
+      },
+    ],
+    sites: [
+      {
+        name: "Home base",
+        address: "14 Luxford Rd, Mount Druitt",
       },
     ],
   },

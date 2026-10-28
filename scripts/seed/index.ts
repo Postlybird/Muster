@@ -3,6 +3,7 @@
  * missing. See scripts/seed/data for the people and catalogues.
  */
 import { createSeedClient, loadEnv } from "./client";
+import { seedBusinesses } from "./steps/businesses";
 import { seedCatalogues } from "./steps/catalogues";
 import { seedCompliance } from "./steps/compliance";
 import { seedSettings } from "./steps/settings";
@@ -25,6 +26,11 @@ async function main() {
 
   const users = await seedUsers(client);
   console.log(`  demo logins: ${users.users} (${users.newUsers} new)`);
+
+  const businesses = await seedBusinesses(client);
+  console.log(
+    `  businesses: ${businesses.businesses} (${businesses.added} added)`,
+  );
 
   const workers = await seedWorkers(client);
   console.log(

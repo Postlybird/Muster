@@ -48,10 +48,12 @@ export function check<T>(
 
 /** Like check(), for queries that must return something. */
 export function must<T>(
-  result: { data: T | null; error: { message: string } | null },
+  result: { data: T; error: { message: string } | null },
   what: string,
-): T {
+): NonNullable<T> {
   const data = check(result, what);
-  if (data === null) throw new Error(`${what}: nothing returned`);
+  if (data === null || data === undefined) {
+    throw new Error(`${what}: nothing returned`);
+  }
   return data;
 }

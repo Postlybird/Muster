@@ -50,6 +50,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "agreement_acceptances_business_fk";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "agreement_acceptances_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
@@ -301,6 +308,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "bill_rate_rules_business_fk";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "bill_rate_rules_category_id_fkey";
             columns: ["category_id"];
             isOneToOne: false;
@@ -309,6 +323,220 @@ export type Database = {
           },
           {
             foreignKeyName: "bill_rate_rules_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      business_user_sites: {
+        Row: {
+          business_user_id: string;
+          created_at: string;
+          site_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          business_user_id: string;
+          created_at?: string;
+          site_id: string;
+        };
+        Update: {
+          business_user_id?: string;
+          created_at?: string;
+          site_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "business_user_sites_business_user_id_fkey";
+            columns: ["business_user_id"];
+            isOneToOne: false;
+            referencedRelation: "business_users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "business_user_sites_site_id_fkey";
+            columns: ["site_id"];
+            isOneToOne: false;
+            referencedRelation: "sites";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      business_users: {
+        Row: {
+          accepted_at: string | null;
+          archived_at: string | null;
+          business_id: string;
+          created_at: string;
+          id: string;
+          invite_email: string | null;
+          invited_at: string | null;
+          invited_by: string | null;
+          profile_id: string | null;
+          role: Database["public"]["Enums"]["business_role"];
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          accepted_at?: string | null;
+          archived_at?: string | null;
+          business_id: string;
+          created_at?: string;
+          id?: string;
+          invite_email?: string | null;
+          invited_at?: string | null;
+          invited_by?: string | null;
+          profile_id?: string | null;
+          role: Database["public"]["Enums"]["business_role"];
+          updated_at?: string;
+        };
+        Update: {
+          accepted_at?: string | null;
+          archived_at?: string | null;
+          business_id?: string;
+          created_at?: string;
+          id?: string;
+          invite_email?: string | null;
+          invited_at?: string | null;
+          invited_by?: string | null;
+          profile_id?: string | null;
+          role?: Database["public"]["Enums"]["business_role"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "business_users_business_id_fkey";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "business_users_invited_by_fkey";
+            columns: ["invited_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "business_users_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      businesses: {
+        Row: {
+          abn: string;
+          abn_status: string;
+          abn_status_from: string | null;
+          abr_checked_at: string;
+          abr_postcode: string | null;
+          abr_state: string | null;
+          account_terms_approved: boolean;
+          accounts_email: string | null;
+          acn: string | null;
+          approved_at: string | null;
+          approved_by: string | null;
+          archived_at: string | null;
+          billing_contact_name: string | null;
+          billing_contact_phone: string | null;
+          created_at: string;
+          created_by: string | null;
+          entity_type: string | null;
+          entity_type_code: string | null;
+          gst_registered: boolean;
+          gst_registered_from: string | null;
+          id: string;
+          legal_name: string;
+          onboarding_steps: string[];
+          payment_terms_days: number | null;
+          status: Database["public"]["Enums"]["business_status"];
+          status_reason: string | null;
+          stripe_customer_id: string | null;
+          submitted_at: string | null;
+          trading_name: string | null;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          abn: string;
+          abn_status: string;
+          abn_status_from?: string | null;
+          abr_checked_at: string;
+          abr_postcode?: string | null;
+          abr_state?: string | null;
+          account_terms_approved?: boolean;
+          accounts_email?: string | null;
+          acn?: string | null;
+          approved_at?: string | null;
+          approved_by?: string | null;
+          archived_at?: string | null;
+          billing_contact_name?: string | null;
+          billing_contact_phone?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          entity_type?: string | null;
+          entity_type_code?: string | null;
+          gst_registered?: boolean;
+          gst_registered_from?: string | null;
+          id?: string;
+          legal_name: string;
+          onboarding_steps?: string[];
+          payment_terms_days?: number | null;
+          status?: Database["public"]["Enums"]["business_status"];
+          status_reason?: string | null;
+          stripe_customer_id?: string | null;
+          submitted_at?: string | null;
+          trading_name?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          abn?: string;
+          abn_status?: string;
+          abn_status_from?: string | null;
+          abr_checked_at?: string;
+          abr_postcode?: string | null;
+          abr_state?: string | null;
+          account_terms_approved?: boolean;
+          accounts_email?: string | null;
+          acn?: string | null;
+          approved_at?: string | null;
+          approved_by?: string | null;
+          archived_at?: string | null;
+          billing_contact_name?: string | null;
+          billing_contact_phone?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          entity_type?: string | null;
+          entity_type_code?: string | null;
+          gst_registered?: boolean;
+          gst_registered_from?: string | null;
+          id?: string;
+          legal_name?: string;
+          onboarding_steps?: string[];
+          payment_terms_days?: number | null;
+          status?: Database["public"]["Enums"]["business_status"];
+          status_reason?: string | null;
+          stripe_customer_id?: string | null;
+          submitted_at?: string | null;
+          trading_name?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "businesses_approved_by_fkey";
+            columns: ["approved_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "businesses_created_by_fkey";
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
@@ -880,6 +1108,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "rate_cards_business_fk";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "rate_cards_category_id_fkey";
             columns: ["category_id"];
             isOneToOne: false;
@@ -931,6 +1166,82 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
+          },
+        ];
+      };
+      sites: {
+        Row: {
+          access_notes: string | null;
+          address_line1: string;
+          archived_at: string | null;
+          business_id: string;
+          created_at: string;
+          geofence_radius_m: number | null;
+          id: string;
+          lat: number;
+          lng: number;
+          name: string;
+          parking_notes: string | null;
+          postcode: string;
+          report_to_name: string | null;
+          report_to_phone: string | null;
+          state: string;
+          suburb: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          access_notes?: string | null;
+          address_line1: string;
+          archived_at?: string | null;
+          business_id: string;
+          created_at?: string;
+          geofence_radius_m?: number | null;
+          id?: string;
+          lat: number;
+          lng: number;
+          name: string;
+          parking_notes?: string | null;
+          postcode: string;
+          report_to_name?: string | null;
+          report_to_phone?: string | null;
+          state: string;
+          suburb: string;
+          updated_at?: string;
+        };
+        Update: {
+          access_notes?: string | null;
+          address_line1?: string;
+          archived_at?: string | null;
+          business_id?: string;
+          created_at?: string;
+          geofence_radius_m?: number | null;
+          id?: string;
+          lat?: number;
+          lng?: number;
+          name?: string;
+          parking_notes?: string | null;
+          postcode?: string;
+          report_to_name?: string | null;
+          report_to_phone?: string | null;
+          state?: string;
+          suburb?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sites_business_id_fkey";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sites_state_fkey";
+            columns: ["state"];
+            isOneToOne: false;
+            referencedRelation: "jurisdictions";
+            referencedColumns: ["code"];
           },
         ];
       };
@@ -1276,7 +1587,12 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      accept_business_invites: {
+        Args: Record<PropertyKey, never>;
+        Returns: string;
+      };
       activate_worker: { Args: { p_worker_id: string }; Returns: undefined };
+      can_see_site: { Args: { p_site_id: string }; Returns: boolean };
       dev_auth_email: {
         Args: {
           p_action: string;
@@ -1294,6 +1610,11 @@ export type Database = {
         Returns: boolean;
       };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
+      is_business_manager: {
+        Args: { p_business_id: string };
+        Returns: boolean;
+      };
+      is_business_owner: { Args: { p_business_id: string }; Returns: boolean };
       log_access_event: {
         Args: {
           p_action: string;
@@ -1305,6 +1626,11 @@ export type Database = {
           p_user_agent?: string;
         };
         Returns: undefined;
+      };
+      my_business_id: { Args: Record<PropertyKey, never>; Returns: string };
+      my_business_role: {
+        Args: Record<PropertyKey, never>;
+        Returns: Database["public"]["Enums"]["business_role"];
       };
       my_role: {
         Args: Record<PropertyKey, never>;
@@ -1320,6 +1646,7 @@ export type Database = {
         Args: { p_agreement_id: string };
         Returns: undefined;
       };
+      submit_business: { Args: Record<PropertyKey, never>; Returns: undefined };
       submit_worker_onboarding: {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
@@ -1334,6 +1661,8 @@ export type Database = {
         | "privacy_collection_notice"
         | "worker_supply_notice";
       bill_method: "markup" | "fixed";
+      business_role: "owner" | "manager" | "supervisor";
+      business_status: "draft" | "pending" | "approved" | "suspended";
       check_status: "pending" | "verified" | "rejected" | "expired";
       citizenship_evidence:
         "australian_passport" | "birth_certificate" | "citizenship_certificate";
@@ -1484,6 +1813,8 @@ export const Constants = {
         "worker_supply_notice",
       ],
       bill_method: ["markup", "fixed"],
+      business_role: ["owner", "manager", "supervisor"],
+      business_status: ["draft", "pending", "approved", "suspended"],
       check_status: ["pending", "verified", "rejected", "expired"],
       citizenship_evidence: [
         "australian_passport",

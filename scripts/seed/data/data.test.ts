@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { DEMO_ABNS } from "@/adapters/abn/mock";
+import { MockGeocoder } from "@/adapters/geocode/mock";
 import { isValidAbn } from "@/adapters/abn/validate";
 import { isDemoEmail } from "@/config/demo";
 import { findSuburb } from "@/data/sydney-suburbs";
@@ -86,6 +87,21 @@ describe("seed people", () => {
     }
     for (const business of BUSINESSES)
       expect(findSuburb(business.suburb)).toBeDefined();
+  });
+
+  it("gives every business a site the address lookup understands", async () => {
+    const geocoder = new MockGeocoder();
+    for (const business of BUSINESSES) {
+      expect(business.sites.length).toBeGreaterThan(0);
+      const names = business.sites.map((site) => site.name);
+      for (const site of business.sites) {
+        const [suggestion] = await geocoder.suggest(site.address);
+        expect(suggestion, site.address).toBeDefined();
+      }
+      for (const person of business.people) {
+        for (const site of person.sites ?? []) expect(names).toContain(site);
+      }
+    }
   });
 
   it("gives businesses valid demo ABNs and phone numbers", () => {
