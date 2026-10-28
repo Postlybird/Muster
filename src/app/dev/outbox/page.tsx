@@ -1,6 +1,5 @@
 import { Mail, MessageSquare, Bell } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { isDemoMode } from "@/lib/env";
@@ -130,12 +129,13 @@ export default async function OutboxPage({
                 {message.body}
               </p>
               {meta.link ? (
-                <Link
+                // A plain link: Next.js <Link> would prefetch it.
+                <a
                   href={meta.link}
                   className="text-sm font-medium text-primary underline"
                 >
                   Open sign-in link
-                </Link>
+                </a>
               ) : null}
             </li>
           );

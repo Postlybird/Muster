@@ -1,0 +1,59 @@
+name: Deploy database (muster-dev)
+
+# Applies new migrations and the demo data to the hosted dev project.
+# Production will get its own workflow without demo data.
+
+on:
+  push:
+    branches: [main, "claude/**"]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/config.toml"
+      - "scripts/seed/**"
+      - ".github/workflows/db-deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: db-deploy-dev
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Migrations and demo data
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Check the repository secrets are set
+        run: |
+          missing=0
+          for name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_ID; do
+            if [ -z "${!name}" ]; then echo "::error::Repository secret $name isn't set"; missing=1; fi
+          done
+          exit $missing
+
+      - name: Link the dev project
+        run: npx supabase link --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Apply new migrations
+        run: npx supabase db push --linked --yes
+
+      - name: Load demo data
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SEED_ALLOW_REMOTE: "true"
+        run: npm run seed

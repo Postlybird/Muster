@@ -44,5 +44,16 @@ npm run test:e2e   # browser tests (needs local Supabase + seed)
 ## Deployment
 
 - **Code:** GitHub (`Postlybird/Muster`).
-- **App:** Vercel. Previews come from every pushed branch, and functions run in Sydney (`syd1`).
-- **Database:** the Supabase project `muster-dev`. Migrations and demo data are applied by the GitHub workflow in `.github/workflows/`.
+- **Checks:** every push runs `.github/workflows/ci.yml`:
+  - lint, type check, formatting and unit tests
+  - a throwaway local Supabase for the database rule tests
+  - demo data, a production build and the browser tests on phone and desktop sizes
+- **Database:** `.github/workflows/db-deploy.yml` applies new migrations and the demo data to the Supabase project `muster-dev`. It uses the repository secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_ID` and `SUPABASE_SECRET_KEY`.
+- **App:** Vercel, with functions pinned to Sydney (`syd1`, see `vercel.json`). Set these environment variables in Vercel:
+
+| Variable | Value |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<project id>.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → Project Settings → API Keys → publishable key |
+| `SUPABASE_SECRET_KEY` | Supabase → Project Settings → API Keys → secret key (mark it Sensitive) |
+| `DEMO_MODE` | `true` while we're building; `false` in production |

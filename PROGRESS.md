@@ -69,9 +69,18 @@ _Last updated: 28/10/2026_
   - Worker details and tickets are defined now and get loaded into Phase 1 tables as those tables are built.
   - Data integrity tests; e2e tests for "Sign in as" each role.
 
+- **0.7 CI and deployment:**
+  - GitHub Actions CI on every push: lint, types, formatting, unit tests; then a throwaway local Supabase for the pgTAP tests, demo data, a production build and Playwright.
+  - A database deploy workflow applies migrations and demo data to `muster-dev`.
+  - Web app manifest and brand icons (`npm run icons` regenerates them after a brand change).
+  - `/dev` tools are checked for demo mode on every request.
+  - Fix found by the production-build tests: sign-in links in emails now open a "Sign in" button page. Before, simply opening the link (as Next.js prefetching, link previews and email security scanners do) used up the one-time code. 46 browser tests pass against the production build.
+
 ## Next
 
-- **0.7** CI, DB deploy workflow, Vercel.
+- Owner: set up Vercel (steps in README / the latest chat message), then send the preview URL.
+- Then: push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` via `supabase config push`.
+- Then: review of Phase 0 with the owner, the 10 open questions, then Phase 1 (step 1.1).
 
 ## Decisions
 

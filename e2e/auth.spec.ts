@@ -87,6 +87,12 @@ test.describe("sign-in", () => {
 
     await page.goto(`/dev/outbox?to=${encodeURIComponent(email)}`);
     await page.getByRole("link", { name: "Open sign-in link" }).first().click();
+
+    // Opening the link alone doesn't sign in (email scanners open links too).
+    await expect(
+      page.getByRole("heading", { name: /^Sign in to / }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Sign in" }).click();
     await expect(page).toHaveURL(/\/business$/);
   });
 
