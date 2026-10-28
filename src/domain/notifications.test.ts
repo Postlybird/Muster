@@ -63,6 +63,19 @@ describe("messages", () => {
     });
   });
 
+  it("keep a quoted sentence before the link", () => {
+    expect(
+      renderMessage(
+        {
+          title: "Hours changed",
+          body: "They set your hours. {{note}} If that's not right, query them: {{link}}",
+        },
+        { note: '"You left early."' },
+        "https://example.com/t/1",
+      ).short,
+    ).toBe('They set your hours. "You left early."');
+  });
+
   it("keep what follows a link in the middle", () => {
     expect(
       renderMessage(

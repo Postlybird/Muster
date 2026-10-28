@@ -70,14 +70,12 @@ export function renderMessage(
   const at = marked.indexOf(LINK_MARK);
   let short = marked;
   if (at >= 0) {
-    const before = marked.slice(0, at);
-    const start = Math.max(
-      before.lastIndexOf(". ") + 1,
-      before.lastIndexOf("? ") + 1,
-      before.lastIndexOf("! ") + 1,
-      before.lastIndexOf("\n") + 1,
-      0,
-    );
+    // The link's sentence starts after the last sentence end before it
+    // (a full stop, perhaps with a closing quote, or a line break).
+    let start = 0;
+    for (const end of marked.slice(0, at).matchAll(/[.!?]["'”’)]*\s|\n/g)) {
+      start = end.index + end[0].length;
+    }
     const after = marked.slice(at + 1);
     const end = after.search(/[.!?](\s|$)|\n/);
     short = fillTemplate(

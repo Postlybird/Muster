@@ -10,9 +10,12 @@ import { WorkerTabBar } from "./worker-tab-bar";
  */
 export function WorkerShell({
   user,
+  unread = 0,
   children,
 }: {
   user: SessionUser;
+  /** Notifications not yet seen. */
+  unread?: number;
   children: React.ReactNode;
 }) {
   return (
@@ -20,7 +23,7 @@ export function WorkerShell({
       <header className="sticky top-(--banner-h) z-30 border-b bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-4">
           <BrandMark href="/worker" />
-          <WorkerMenu user={user} />
+          <WorkerMenu user={user} unread={unread} />
         </div>
       </header>
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-6 pb-28">

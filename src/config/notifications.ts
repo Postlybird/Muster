@@ -1,3 +1,5 @@
+import { brand } from "./brand";
+
 /**
  * Every message we send people (brief §5). This registry is the source of
  * truth for what each message is, who gets it and its words: admins can
@@ -122,11 +124,11 @@ function define<V extends Record<string, string>>(
   return template;
 }
 
-/** Filled in for every template. */
+/** Filled in for every template (examples for previews). */
 export const SHARED_VALUES = {
-  brand: "Muster",
+  brand: brand.name,
   link: "https://example.com/worker/shifts/…",
-  contact: "Questions? Email support@example.com or call +61 2 0000 0000.",
+  contact: `Questions? Email ${brand.supportEmail} or call ${brand.supportPhone}.`,
 } as const;
 
 export const TEMPLATES = {

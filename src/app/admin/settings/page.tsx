@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { pushPublicKey } from "@/adapters/push";
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -12,6 +13,8 @@ import {
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
+import { makePushKeys } from "./actions";
+import { PushKeys } from "./push-keys";
 import { SettingsGroupForm, type SettingRow } from "./settings-form";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -72,6 +75,29 @@ export default async function SettingsPage() {
           />
         ),
       )}
+      <section
+        aria-labelledby="push"
+        className="space-y-3 rounded-lg border p-4"
+      >
+        <h2 id="push" className="text-lg font-semibold">
+          Push notifications
+        </h2>
+        {pushPublicKey() ? (
+          <p className="text-sm">
+            Set up. Workers who install the app and turn notifications on get
+            messages there instead of by text.
+          </p>
+        ) : (
+          <>
+            <p className="text-sm">
+              Not set up yet, so workers get texts (in the demo, messages that
+              would be pushed go to the outbox). Push notifications are free;
+              they need a pair of keys added to the hosting settings.
+            </p>
+            <PushKeys makeKeys={makePushKeys} />
+          </>
+        )}
+      </section>
     </div>
   );
 }

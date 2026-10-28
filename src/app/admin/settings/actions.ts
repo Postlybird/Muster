@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { makeVapidKeys } from "@/adapters/push/web-push";
 import {
   SETTINGS,
   settingKeys,
@@ -102,4 +103,16 @@ export async function saveSettingsGroup(
 
   revalidatePath("/admin/settings");
   return success("Settings saved");
+}
+
+/**
+ * A new pair of keys for real push notifications. Shown to the admin once
+ * and never saved: the owner adds them to the hosting settings.
+ */
+export async function makePushKeys(): Promise<{
+  publicKey: string;
+  privateKey: string;
+}> {
+  await requireAdmin();
+  return makeVapidKeys();
 }

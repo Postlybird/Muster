@@ -2,19 +2,27 @@ import type { Metadata } from "next";
 
 import { formatAbn } from "@/adapters/abn/validate";
 import { Markdown } from "@/components/markdown";
+import { PreferencesForm } from "@/components/notifications/preferences-form";
 import { ScrollBox } from "@/components/scroll-box";
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { StatusBadge } from "@/components/status/status-badge";
+import {
+  CATEGORIES_FOR,
+  NOTIFICATION_CATEGORIES,
+} from "@/config/notifications";
+import { readPrefs } from "@/domain/notifications";
 import { formatAuPhone } from "@/lib/phone";
 import { formatCalendarDate, formatDate } from "@/lib/format";
 import { businessStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
 import { currentAgreement } from "@/server/agreements";
 import { getMyBusiness } from "@/server/businesses";
+import { choosableCategories } from "@/server/notification-settings";
 
 import { AgreementForm } from "../onboarding/agreement/agreement-form";
 import { DetailsForm } from "../onboarding/details/details-form";
+import { savePreferences } from "./actions";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -28,7 +36,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export default async function BusinessSettingsPage() {
-  const { business, role } = await getMyBusiness();
+  const { business, role, user } = await getMyBusiness();
   if (!business) {
     return (
       <div className="space-y-6">
@@ -50,6 +58,12 @@ export default async function BusinessSettingsPage() {
     .order("accepted_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("notification_prefs")
+    .eq("id", user.id)
+    .single();
+  const prefs = readPrefs(profile?.notification_prefs);
   const acceptedCurrent = !!agreement && latest?.agreement_id === agreement.id;
   const acceptedBy = latest?.profiles?.full_name
     ? ` by ${latest.profiles.full_name}`
@@ -123,6 +137,31 @@ export default async function BusinessSettingsPage() {
             <Row label="Accounts email" value={business.accounts_email} />
           </dl>
         )}
+      </section>
+
+      <section aria-labelledby="emails" className="space-y-3">
+        <div className="space-y-1">
+          <h2 id="emails" className="text-lg font-semibold">
+            Emails to you
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {user.email
+              ? `We email ${user.email} about the work you post.`
+              : "We email you about the work you post."}
+          </p>
+        </div>
+        <PreferencesForm
+          action={savePreferences}
+          choices={choosableCategories("business").map((key) => ({
+            key,
+            label: NOTIFICATION_CATEGORIES[key].label,
+            help: NOTIFICATION_CATEGORIES[key].help,
+            on: prefs[key] !== false,
+          }))}
+          alwaysSent={CATEGORIES_FOR.business
+            .filter((key) => NOTIFICATION_CATEGORIES[key].critical)
+            .map((key) => NOTIFICATION_CATEGORIES[key].label.toLowerCase())}
+        />
       </section>
 
       {agreement ? (
