@@ -7,6 +7,7 @@ import { seedCatalogues } from "./steps/catalogues";
 import { seedCompliance } from "./steps/compliance";
 import { seedSettings } from "./steps/settings";
 import { seedUsers } from "./steps/users";
+import { seedWorkers } from "./steps/workers";
 
 async function main() {
   loadEnv();
@@ -24,6 +25,11 @@ async function main() {
 
   const users = await seedUsers(client);
   console.log(`  demo logins: ${users.users} (${users.newUsers} new)`);
+
+  const workers = await seedWorkers(client);
+  console.log(
+    `  worker details: ${workers.workers} workers (${workers.newlySeeded} filled in)`,
+  );
 
   console.log("Done.");
 }

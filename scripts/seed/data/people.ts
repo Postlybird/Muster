@@ -1,3 +1,5 @@
+import type { OnboardingStepKey } from "../../../src/domain/onboarding";
+
 /**
  * Demo people. Everyone is fictional:
  * - emails use the reserved .test domain (demo "Sign in as" only accepts these)
@@ -142,6 +144,7 @@ export type SeedRightToWork =
       /** null: no expiry (e.g. permanent residents, some bridging visas). */
       expiresInDays: number | null;
       conditions?: string;
+      passportCountry: string;
     };
 
 export type SeedWorker = {
@@ -164,6 +167,8 @@ export type SeedWorker = {
   travelRadiusKm: number;
   urgentOptIn: boolean;
   bio?: string;
+  /** Draft workers only: the onboarding steps they've finished so far. */
+  stepsDone?: OnboardingStepKey[];
 };
 
 const citizen: SeedRightToWork = { basis: "citizen" };
@@ -204,6 +209,7 @@ export const WORKERS: SeedWorker[] = [
       subclass: "186",
       label: "Employer Nomination Scheme (permanent)",
       expiresInDays: null,
+      passportCountry: "Singapore",
     },
     categories: [
       { code: "commercial_cleaner", years: 6 },
@@ -436,6 +442,7 @@ export const WORKERS: SeedWorker[] = [
       label: "Bridging visa A",
       expiresInDays: null,
       conditions: "No work limitation",
+      passportCountry: "Malaysia",
     },
     categories: [
       { code: "commercial_cleaner", years: 3 },
@@ -561,6 +568,7 @@ export const WORKERS: SeedWorker[] = [
       subclass: "444",
       label: "Special Category (New Zealand citizen)",
       expiresInDays: null,
+      passportCountry: "New Zealand",
     },
     categories: [
       { code: "restoration_labourer", years: 5 },
@@ -620,6 +628,7 @@ export const WORKERS: SeedWorker[] = [
       expiresInDays: 400,
       conditions:
         "8105: work limited to 48 hours per fortnight during study periods",
+      passportCountry: "Japan",
     },
     categories: [{ code: "mould_remediation_assistant", years: 1 }],
     tickets: [
@@ -666,6 +675,7 @@ export const WORKERS: SeedWorker[] = [
       subclass: "189",
       label: "Skilled Independent (permanent)",
       expiresInDays: null,
+      passportCountry: "Brazil",
     },
     categories: [{ code: "restoration_labourer", years: 2 }],
     tickets: [{ code: "white_card", status: "pending", issuedDaysAgo: 15 }],
@@ -687,6 +697,7 @@ export const WORKERS: SeedWorker[] = [
     transport: { car: false, publicTransport: true },
     travelRadiusKm: 20,
     urgentOptIn: false,
+    stepsDone: ["about", "contact"],
   },
   {
     firstName: "Noah",
@@ -702,6 +713,14 @@ export const WORKERS: SeedWorker[] = [
     transport: { car: true, licenceClass: "C", publicTransport: false },
     travelRadiusKm: 30,
     urgentOptIn: false,
+    stepsDone: [
+      "about",
+      "contact",
+      "travel",
+      "right-to-work",
+      "identity",
+      "work-types",
+    ],
   },
   {
     firstName: "Lucy",
@@ -717,6 +736,7 @@ export const WORKERS: SeedWorker[] = [
     transport: { car: false, publicTransport: true },
     travelRadiusKm: 15,
     urgentOptIn: false,
+    stepsDone: [],
   },
   {
     firstName: "Josh",

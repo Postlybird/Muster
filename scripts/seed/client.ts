@@ -45,3 +45,13 @@ export function check<T>(
   if (result.error) throw new Error(`${what}: ${result.error.message}`);
   return result.data;
 }
+
+/** Like check(), for queries that must return something. */
+export function must<T>(
+  result: { data: T | null; error: { message: string } | null },
+  what: string,
+): T {
+  const data = check(result, what);
+  if (data === null) throw new Error(`${what}: nothing returned`);
+  return data;
+}
