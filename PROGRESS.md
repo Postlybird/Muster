@@ -281,6 +281,7 @@ _Last updated: 28/10/2026_
   - **Audit log:** who viewed, changed or verified personal records, and when, newest first, with what changed. Filter by person (name, email or mobile), what was done, the kind of record and dates; jobs, shifts and settings only when asked for. Each worker's page links to the entries about them.
   - **Dashboard:** what needs attention today, each linking to where it's done: unfilled shifts starting within 24 hours and open safety reports (red when there are any), hours queried, other queue matters, workers to check, VEVO re-checks due, businesses to approve and overdue invoices.
   - Filtered lists keep their filters in the page address, so they can be bookmarked or shared with another admin.
+  - Tests: 388 pgTAP, 364 unit and 196 browser tests passing.
 
 ## Next
 
