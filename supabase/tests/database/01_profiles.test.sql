@@ -36,6 +36,9 @@ select is(
   'sign-up from the business path creates a business user'
 );
 
+-- Every profile in the database, including any demo data already loaded.
+select count(*) as total_profiles from public.profiles \gset
+
 -- Act as worker A.
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
@@ -68,7 +71,7 @@ select set_config('request.jwt.claims', '{"sub": "44444444-4444-4444-4444-444444
 
 select is(
   (select count(*)::int from public.profiles),
-  4,
+  :total_profiles,
   'an admin sees every profile'
 );
 
