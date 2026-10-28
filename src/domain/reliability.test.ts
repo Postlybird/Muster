@@ -32,33 +32,36 @@ describe("reliability", () => {
   });
 
   it("knows what each booking counts as", () => {
-    const now = new Date("2026-11-10T00:00:00Z");
-    const past = new Date("2026-11-09T00:00:00Z");
-    const future = new Date("2026-11-11T00:00:00Z");
-    const base = { lateCancellation: false, endsAt: past };
-    expect(outcomeOf({ ...base, status: "confirmed" }, now)).toBe("worked");
+    const base = { lateCancellation: false, worked: false, lateArrival: false };
+    expect(outcomeOf({ ...base, status: "confirmed", worked: true })).toBe(
+      "worked",
+    );
+    // Still to come, or their hours aren't in yet.
+    expect(outcomeOf({ ...base, status: "confirmed" })).toBeNull();
     expect(
-      outcomeOf({ ...base, status: "confirmed", endsAt: future }, now),
-    ).toBeNull();
-    expect(
-      outcomeOf({ ...base, status: "completed", lateArrival: true }, now),
+      outcomeOf({
+        ...base,
+        status: "confirmed",
+        worked: true,
+        lateArrival: true,
+      }),
     ).toBe("late_arrival");
-    expect(outcomeOf({ ...base, status: "no_show" }, now)).toBe("no_show");
+    expect(outcomeOf({ ...base, status: "no_show" })).toBe("no_show");
     expect(
-      outcomeOf(
-        { ...base, status: "cancelled_by_worker", lateCancellation: true },
-        now,
-      ),
+      outcomeOf({
+        ...base,
+        status: "cancelled_by_worker",
+        lateCancellation: true,
+      }),
     ).toBe("late_cancellation");
     // Cancelling in good time, or the business cancelling, doesn't count.
+    expect(outcomeOf({ ...base, status: "cancelled_by_worker" })).toBeNull();
     expect(
-      outcomeOf({ ...base, status: "cancelled_by_worker" }, now),
-    ).toBeNull();
-    expect(
-      outcomeOf(
-        { ...base, status: "cancelled_by_business", lateCancellation: true },
-        now,
-      ),
+      outcomeOf({
+        ...base,
+        status: "cancelled_by_business",
+        lateCancellation: true,
+      }),
     ).toBeNull();
   });
 });

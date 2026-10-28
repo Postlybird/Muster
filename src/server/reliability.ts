@@ -5,19 +5,18 @@ import {
   reliabilityScore,
   type ShiftOutcome,
 } from "@/domain/reliability";
+import { isLateArrival } from "@/domain/timesheets";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 import { getAllSettings } from "./settings";
 
 /**
  * Brings workers' reliability and shifts-worked counts up to date (brief
- * §4.7) from their bookings: after a cancellation or no-show, and when
- * shifts finish. Reads every booking, so it uses the service-role key.
+ * §4.7) from their bookings and timesheets: after a cancellation or
+ * no-show, and when hours come in or change. Reads every booking, so it
+ * uses the service-role key.
  */
-export async function refreshReliability(
-  workerIds: readonly string[],
-  now = new Date(),
-) {
+export async function refreshReliability(workerIds: readonly string[]) {
   const ids = [...new Set(workerIds)];
   if (ids.length === 0) return;
   const admin = createAdminClient();
@@ -26,7 +25,7 @@ export async function refreshReliability(
     admin
       .from("assignments")
       .select(
-        "worker_id, status, late_cancellation, shifts(starts_at, ends_at)",
+        "worker_id, status, late_cancellation, shifts(starts_at), timesheets(status, start_at)",
       )
       .in("worker_id", ids),
   ]);
@@ -41,16 +40,24 @@ export async function refreshReliability(
       const outcomes = (data ?? [])
         .filter((row) => row.worker_id === workerId && row.shifts)
         .sort((a, b) => b.shifts!.starts_at.localeCompare(a.shifts!.starts_at))
-        .map((row) =>
-          outcomeOf(
-            {
-              status: row.status,
-              lateCancellation: row.late_cancellation,
-              endsAt: new Date(row.shifts!.ends_at),
-            },
-            now,
-          ),
-        )
+        .map((row) => {
+          const hours =
+            row.timesheets && row.timesheets.status !== "rejected"
+              ? row.timesheets
+              : null;
+          return outcomeOf({
+            status: row.status,
+            lateCancellation: row.late_cancellation,
+            worked: hours !== null,
+            lateArrival:
+              hours !== null &&
+              isLateArrival(
+                new Date(hours.start_at),
+                new Date(row.shifts!.starts_at),
+                settings.late_arrival_grace_minutes,
+              ),
+          });
+        })
         .filter((outcome): outcome is ShiftOutcome => outcome !== null);
       const { error: saveError } = await admin
         .from("workers")

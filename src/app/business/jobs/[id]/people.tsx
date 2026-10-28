@@ -1,4 +1,5 @@
 import { Phone } from "lucide-react";
+import Link from "next/link";
 
 import { ActionButton } from "@/components/forms/action-button";
 import { ConfirmAction } from "@/components/forms/confirm-action";
@@ -8,11 +9,12 @@ import { shiftsLabel } from "@/domain/bookings";
 import { formatDayShort, formatTime } from "@/lib/format";
 import { attendanceOf } from "@/lib/my-shifts";
 import { formatAuPhone } from "@/lib/phone";
+import { businessTimesheetStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
 
 import { confirmArrival, pickApplicant, reportNoShow } from "./actions";
 
-type Shift = { id: string; starts_at: string };
+type Shift = { id: string; starts_at: string; ends_at: string };
 
 /** Short-lived links to the workers' photos the business may see. */
 async function photoLinks(paths: (string | null)[]) {
@@ -141,20 +143,24 @@ export async function Booked({
       booking,
     ]);
   }
-  const [photos, { data: events }] = await Promise.all([
+  const assignmentIds = bookings.map((b) => b.assignment_id);
+  const [photos, { data: events }, { data: timesheets }] = await Promise.all([
     photoLinks(bookings.map((b) => b.photo_path)),
     supabase
       .from("attendance_events")
       .select(
         "assignment_id, kind, occurred_at, inside_geofence, distance_m, reason",
       )
-      .in(
-        "assignment_id",
-        bookings.map((b) => b.assignment_id),
-      ),
+      .in("assignment_id", assignmentIds),
+    supabase
+      .from("timesheets")
+      .select("id, assignment_id, status")
+      .in("assignment_id", assignmentIds),
   ]);
   const attendance = (assignmentId: string) =>
     (events ?? []).filter((e) => e.assignment_id === assignmentId);
+  const timesheetOf = (assignmentId: string) =>
+    (timesheets ?? []).find((t) => t.assignment_id === assignmentId);
   return (
     <section
       aria-labelledby="booked"
@@ -205,55 +211,99 @@ export async function Booked({
                         e.kind === "clock_in" && e.inside_geofence === false,
                     );
                     const day = formatDayShort(shift.starts_at);
-                    if (state.startedAt) {
+                    const timesheet = timesheetOf(row.assignment_id);
+                    const over = new Date(shift.ends_at) <= now;
+                    const noShow = (
+                      <ConfirmAction
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            Didn&apos;t turn up {day}
+                          </Button>
+                        }
+                        title={`Report ${worker.display_name} as a no-show?`}
+                        description={`For ${day}. It counts against their reliability, and repeated no-shows put their account on hold. We'll let them know.`}
+                        confirmLabel="Report no-show"
+                        action={reportNoShow.bind(
+                          null,
+                          jobId,
+                          row.assignment_id,
+                          worker.worker_id,
+                        )}
+                      />
+                    );
+                    if (state.startedAt || timesheet) {
                       return (
-                        <p key={row.assignment_id} className="text-sm">
-                          {day}:{" "}
-                          {state.confirmedByBusiness
-                            ? `arrival confirmed for ${formatTime(state.startedAt)}`
-                            : `clocked in ${formatTime(state.startedAt)}`}
-                          {away
-                            ? ` (${away.distance_m === null ? "no location" : `${away.distance_m} m from the site`}: "${away.reason ?? ""}")`
-                            : ""}
-                          {state.clockedOutAt
-                            ? `, out ${formatTime(state.clockedOutAt)}`
-                            : ""}
-                          .
-                        </p>
+                        <div key={row.assignment_id} className="space-y-2">
+                          <p className="text-sm">
+                            {day}:{" "}
+                            {state.startedAt
+                              ? `${
+                                  state.confirmedByBusiness
+                                    ? `arrival confirmed for ${formatTime(state.startedAt)}`
+                                    : `clocked in ${formatTime(state.startedAt)}`
+                                }${
+                                  away
+                                    ? ` (${away.distance_m === null ? "no location" : `${away.distance_m} m from the site`}: "${away.reason ?? ""}")`
+                                    : ""
+                                }${
+                                  state.clockedOutAt
+                                    ? `, out ${formatTime(state.clockedOutAt)}`
+                                    : ""
+                                }.`
+                              : "no clock-in."}
+                            {timesheet ? (
+                              <>
+                                {" "}
+                                <Link
+                                  href={`/business/timesheets/${timesheet.id}`}
+                                  className="font-medium text-primary underline underline-offset-4"
+                                >
+                                  Timesheet:{" "}
+                                  {
+                                    businessTimesheetStatuses[timesheet.status]
+                                      .label
+                                  }
+                                </Link>
+                              </>
+                            ) : null}
+                          </p>
+                          {/* Clocked in from somewhere else: were they here? */}
+                          {away && !state.clockedOutAt && !timesheet ? (
+                            <div className="flex flex-wrap gap-2">{noShow}</div>
+                          ) : null}
+                        </div>
                       );
                     }
                     return (
                       <div key={row.assignment_id} className="space-y-2">
-                        <p className="text-sm">{day}: not clocked in yet.</p>
+                        <p className="text-sm">
+                          {day}: {over ? "no clock-in." : "not clocked in yet."}
+                        </p>
                         <div className="flex flex-wrap gap-2">
-                          <ActionButton
-                            variant="outline"
-                            size="sm"
-                            action={confirmArrival.bind(
-                              null,
-                              jobId,
-                              row.assignment_id,
-                            )}
-                            pendingText="Confirming…"
-                          >
-                            They&apos;re here
-                          </ActionButton>
-                          <ConfirmAction
-                            trigger={
-                              <Button variant="outline" size="sm">
-                                Didn&apos;t turn up {day}
-                              </Button>
-                            }
-                            title={`Report ${worker.display_name} as a no-show?`}
-                            description={`For ${day}. It counts against their reliability, and repeated no-shows put their account on hold. We'll let them know.`}
-                            confirmLabel="Report no-show"
-                            action={reportNoShow.bind(
-                              null,
-                              jobId,
-                              row.assignment_id,
-                              worker.worker_id,
-                            )}
-                          />
+                          {over ? (
+                            <Button asChild variant="outline" size="sm">
+                              <Link
+                                href={`/business/timesheets/add/${row.assignment_id}`}
+                                aria-label={`Add ${worker.display_name}'s hours for ${day}`}
+                              >
+                                Add their hours
+                              </Link>
+                            </Button>
+                          ) : (
+                            <ActionButton
+                              variant="outline"
+                              size="sm"
+                              action={confirmArrival.bind(
+                                null,
+                                jobId,
+                                row.assignment_id,
+                              )}
+                              pendingText="Confirming…"
+                            >
+                              They&apos;re here
+                            </ActionButton>
+                          )}
+                          {noShow}
                         </div>
                       </div>
                     );

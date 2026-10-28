@@ -164,7 +164,7 @@ export async function clockShift(
   assignmentId: string,
   input: ClockInput,
 ): Promise<ActionState> {
-  await getMyWorker();
+  const { worker } = await getMyWorker();
   if (!UUID.test(assignmentId)) return failure("That shift isn't available.");
   const occurredAt = new Date(input.occurredAt);
   if (Number.isNaN(occurredAt.getTime())) {
@@ -198,6 +198,12 @@ export async function clockShift(
     return saveFailed(error);
   }
   refresh(jobId);
+  if (input.kind === "clock_out") {
+    // Clocking out makes the timesheet (brief §4.6), which counts towards
+    // reliability.
+    revalidatePath("/worker/timesheets");
+    await refreshReliability([worker.id]);
+  }
   const time = formatTime(occurredAt);
   const where =
     data?.inside === false

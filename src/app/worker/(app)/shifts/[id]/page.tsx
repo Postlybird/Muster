@@ -178,13 +178,25 @@ export default async function WorkerJobPage({
     .join(", ");
   // The shift on now, for clocking in and out (brief §4.6).
   const live = liveShift(booked, new Date());
-  const { data: events } = live?.assignment_id
-    ? await supabase
-        .from("attendance_events")
-        .select("kind, occurred_at")
-        .eq("assignment_id", live.assignment_id)
-    : { data: null };
+  const [{ data: events }, { data: timesheet }] = live?.assignment_id
+    ? await Promise.all([
+        supabase
+          .from("attendance_events")
+          .select("kind, occurred_at")
+          .eq("assignment_id", live.assignment_id),
+        supabase
+          .from("timesheets")
+          .select("id, status, recorded_finish")
+          .eq("assignment_id", live.assignment_id)
+          .maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }];
   const attendance = attendanceOf(events ?? []);
+  // Once the hours are in, only a clock-out completing hours made from
+  // the roster can change them (brief §4.6).
+  const canClock =
+    !timesheet ||
+    (timesheet.status === "submitted" && timesheet.recorded_finish === null);
   // Booked shifts still to start can be cancelled (brief §4.5).
   const lateHours = booked.length
     ? (await getAllSettings()).worker_late_cancel_hours
@@ -256,12 +268,26 @@ export default async function WorkerJobPage({
                 : ""}
             </p>
           ) : null}
-          {attendance.next ? (
+          {timesheet && canClock ? (
+            <p className="text-sm">
+              You didn&apos;t clock out, so your timesheet uses the rostered
+              finish. If you finished later, clock out now.
+            </p>
+          ) : null}
+          {attendance.next && canClock ? (
             <ClockCard
               jobId={id}
               assignmentId={live.assignment_id}
               next={attendance.next}
             />
+          ) : null}
+          {timesheet ? (
+            <Link
+              href={`/worker/timesheets/${timesheet.id}`}
+              className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4"
+            >
+              See your timesheet
+            </Link>
           ) : null}
         </Section>
       ) : null}

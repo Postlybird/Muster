@@ -91,6 +91,28 @@ function SetupProgress({ business }: { business: BusinessRow }) {
   );
 }
 
+/** Hours waiting for the business (brief §7: timesheets to approve). */
+async function TimesheetsToApprove() {
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("timesheets")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "submitted");
+  if (!count) return null;
+  return (
+    <Alert variant="info" className="max-w-2xl">
+      <AlertDescription>
+        {count === 1
+          ? "1 timesheet is waiting for you to approve."
+          : `${count} timesheets are waiting for you to approve.`}{" "}
+        <Link href="/business/timesheets" className="font-medium underline">
+          Check and approve
+        </Link>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 /** The next two weeks of shifts, with how many workers are booked. */
 async function UpcomingShifts({ businessId }: { businessId: string }) {
   const supabase = await createClient();
@@ -232,6 +254,7 @@ export default async function BusinessDashboardPage({
               </AlertDescription>
             </Alert>
           ) : null}
+          <TimesheetsToApprove />
           <UpcomingShifts businessId={business.id} />
         </>
       ) : (

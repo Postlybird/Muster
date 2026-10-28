@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { checkAttendance } from "@/server/attendance";
 import { finishShifts } from "@/server/reliability";
 import { sendReminders } from "@/server/reminders";
+import { runTimesheets } from "@/server/timesheets";
 
 /**
  * Scheduled jobs, run by a scheduler that sends the CRON_SECRET (plan:
@@ -14,6 +15,7 @@ const JOBS: Record<string, () => Promise<unknown>> = {
   reminders: () => sendReminders(),
   "finish-shifts": () => finishShifts(),
   attendance: () => checkAttendance(),
+  timesheets: () => runTimesheets(),
 };
 
 function allowed(request: Request): boolean {

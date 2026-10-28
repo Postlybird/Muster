@@ -11,6 +11,7 @@ import { seedJobs } from "./steps/jobs";
 import { seedMatches } from "./steps/matches";
 import { seedSettings } from "./steps/settings";
 import { seedUsers } from "./steps/users";
+import { seedWorked } from "./steps/worked";
 import { seedWorkers } from "./steps/workers";
 
 async function main() {
@@ -50,6 +51,9 @@ async function main() {
   console.log(
     `  demo applications: ${bookings.applied} new, bookings: ${bookings.booked} new`,
   );
+
+  const worked = await seedWorked(client);
+  console.log(`  worked shifts with timesheets: ${worked.shifts} added`);
 
   console.log("Done.");
 }

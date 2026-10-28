@@ -6,9 +6,9 @@
  */
 
 export type ShiftOutcome =
-  /** Worked, on time (or no clock-in to say otherwise yet). */
+  /** Worked, on time. */
   | "worked"
-  /** Worked, but clocked in after the grace period (step 1.10). */
+  /** Worked, but started after the grace period. */
   | "late_arrival"
   | "late_cancellation"
   | "no_show";
@@ -42,25 +42,23 @@ export function reliabilityScore(
 }
 
 /** What a booking counts as, if anything yet. */
-export function outcomeOf(
-  booking: {
-    status: string;
-    lateCancellation: boolean;
-    lateArrival?: boolean;
-    endsAt: Date;
-  },
-  now: Date,
-): ShiftOutcome | null {
+export function outcomeOf(booking: {
+  status: string;
+  lateCancellation: boolean;
+  /** Their hours are in: a timesheet our team hasn't rejected. */
+  worked: boolean;
+  /** Their hours started after the grace period. */
+  lateArrival: boolean;
+}): ShiftOutcome | null {
   switch (booking.status) {
     case "no_show":
       return "no_show";
     case "cancelled_by_worker":
       return booking.lateCancellation ? "late_cancellation" : null;
-    case "completed":
-      return booking.lateArrival ? "late_arrival" : "worked";
     case "confirmed":
-      // Counted once the shift is over (timesheets arrive in step 1.11).
-      if (booking.endsAt > now) return null;
+    case "completed":
+      // Counted once their hours are in, not just because the shift is over.
+      if (!booking.worked) return null;
       return booking.lateArrival ? "late_arrival" : "worked";
     default:
       return null;

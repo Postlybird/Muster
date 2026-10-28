@@ -165,3 +165,79 @@ export const shiftStatuses: Record<ShiftStatus, StatusInfo> = {
     next: "Check and approve the timesheets.",
   },
 };
+
+export type TimesheetStatus =
+  | "submitted"
+  | "approved"
+  | "auto_approved"
+  | "adjusted"
+  | "disputed"
+  | "rejected";
+
+/** A timesheet, as the worker sees it (brief §4.6). */
+export const workerTimesheetStatuses: Record<TimesheetStatus, StatusInfo> = {
+  submitted: {
+    label: "Waiting for approval",
+    tone: "info",
+    next: "The business checks your hours. If they don't in time, the hours are approved as they are.",
+  },
+  approved: {
+    label: "Approved",
+    tone: "success",
+    next: "You'll be paid in the weekly pay run.",
+  },
+  auto_approved: {
+    label: "Approved",
+    tone: "success",
+    next: "The business didn't check them in time, so they were approved as they were. You'll be paid in the weekly pay run.",
+  },
+  adjusted: {
+    label: "Changed by the business",
+    tone: "warning",
+    next: "You'll be paid for the hours shown. If they're not right, query them and our team will look into it.",
+  },
+  disputed: {
+    label: "With our team",
+    tone: "warning",
+    next: "Our team is looking into these hours and will let you know what's decided.",
+  },
+  rejected: {
+    label: "Not paid",
+    tone: "danger",
+    next: "Our team found these hours weren't worked. Contact us if you think that's wrong.",
+  },
+};
+
+/** A timesheet, as the business sees it. */
+export const businessTimesheetStatuses: Record<TimesheetStatus, StatusInfo> = {
+  submitted: {
+    label: "To approve",
+    tone: "info",
+    next: "Approve the hours, change them, or query them with our team. If nobody does in time, they're approved as they are.",
+  },
+  approved: {
+    label: "Approved",
+    tone: "success",
+    next: "They'll be on your next weekly invoice.",
+  },
+  auto_approved: {
+    label: "Approved automatically",
+    tone: "success",
+    next: "Nobody approved or queried them in time. They'll be on your next weekly invoice.",
+  },
+  adjusted: {
+    label: "Approved with changes",
+    tone: "success",
+    next: "The hours shown will be on your next weekly invoice. We've told the worker.",
+  },
+  disputed: {
+    label: "With our team",
+    tone: "warning",
+    next: "Our team is looking into these hours and will let you both know what's decided.",
+  },
+  rejected: {
+    label: "Not charged",
+    tone: "neutral",
+    next: "Our team found these hours weren't worked, so they won't be charged.",
+  },
+};

@@ -156,6 +156,7 @@ export async function reportNoShow(
   await textNoShow(workerId, jobId, !!data?.suspended);
   if (data?.suspended) await refreshWorkerMatches(workerId, { notify: false });
   revalidatePath(`/business/jobs/${jobId}`);
+  revalidatePath("/business/timesheets");
   return success("Recorded. Thanks for letting us know.");
 }
 

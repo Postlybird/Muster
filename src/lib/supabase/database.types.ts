@@ -2303,6 +2303,195 @@ export type Database = {
           },
         ];
       };
+      timesheet_costs: {
+        Row: {
+          bill_cents: number;
+          break_minutes: number;
+          cost: NonNullable<Json>;
+          costed_at: string;
+          finish_at: string;
+          margin_cents: number;
+          minutes_by_type: NonNullable<Json>;
+          on_cost_cents: number;
+          paid_minutes: number;
+          pay_cents: number;
+          start_at: string;
+          timesheet_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          bill_cents: number;
+          break_minutes: number;
+          cost: NonNullable<Json>;
+          costed_at?: string;
+          finish_at: string;
+          margin_cents: number;
+          minutes_by_type: NonNullable<Json>;
+          on_cost_cents: number;
+          paid_minutes: number;
+          pay_cents: number;
+          start_at: string;
+          timesheet_id: string;
+        };
+        Update: {
+          bill_cents?: number;
+          break_minutes?: number;
+          cost?: NonNullable<Json>;
+          costed_at?: string;
+          finish_at?: string;
+          margin_cents?: number;
+          minutes_by_type?: NonNullable<Json>;
+          on_cost_cents?: number;
+          paid_minutes?: number;
+          pay_cents?: number;
+          start_at?: string;
+          timesheet_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "timesheet_costs_timesheet_id_fkey";
+            columns: ["timesheet_id"];
+            isOneToOne: true;
+            referencedRelation: "timesheets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      timesheets: {
+        Row: {
+          adjusted_at: string | null;
+          adjusted_by: string | null;
+          approve_by: string;
+          approved_at: string | null;
+          approved_by: string | null;
+          assignment_id: string;
+          break_minutes: number;
+          business_note: string | null;
+          business_notified_at: string | null;
+          created_at: string;
+          disputed_at: string | null;
+          disputed_by: string | null;
+          finish_at: string;
+          id: string;
+          job_id: string;
+          recorded_finish: string | null;
+          recorded_start: string | null;
+          resolution: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          start_at: string;
+          status: Database["public"]["Enums"]["timesheet_status"];
+          updated_at: string;
+          worker_id: string;
+          worker_note: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          adjusted_at?: string | null;
+          adjusted_by?: string | null;
+          approve_by: string;
+          approved_at?: string | null;
+          approved_by?: string | null;
+          assignment_id: string;
+          break_minutes?: number;
+          business_note?: string | null;
+          business_notified_at?: string | null;
+          created_at?: string;
+          disputed_at?: string | null;
+          disputed_by?: string | null;
+          finish_at: string;
+          id?: string;
+          job_id: string;
+          recorded_finish?: string | null;
+          recorded_start?: string | null;
+          resolution?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          start_at: string;
+          status?: Database["public"]["Enums"]["timesheet_status"];
+          updated_at?: string;
+          worker_id: string;
+          worker_note?: string | null;
+        };
+        Update: {
+          adjusted_at?: string | null;
+          adjusted_by?: string | null;
+          approve_by?: string;
+          approved_at?: string | null;
+          approved_by?: string | null;
+          assignment_id?: string;
+          break_minutes?: number;
+          business_note?: string | null;
+          business_notified_at?: string | null;
+          created_at?: string;
+          disputed_at?: string | null;
+          disputed_by?: string | null;
+          finish_at?: string;
+          id?: string;
+          job_id?: string;
+          recorded_finish?: string | null;
+          recorded_start?: string | null;
+          resolution?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          start_at?: string;
+          status?: Database["public"]["Enums"]["timesheet_status"];
+          updated_at?: string;
+          worker_id?: string;
+          worker_note?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "timesheets_adjusted_by_fkey";
+            columns: ["adjusted_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_approved_by_fkey";
+            columns: ["approved_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: true;
+            referencedRelation: "assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_disputed_by_fkey";
+            columns: ["disputed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "jobs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_resolved_by_fkey";
+            columns: ["resolved_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "timesheets_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       work_rights: {
         Row: {
           basis: Database["public"]["Enums"]["right_to_work_basis"];
@@ -2657,11 +2846,45 @@ export type Database = {
         }[];
       };
       activate_worker: { Args: { p_worker_id: string }; Returns: undefined };
+      add_timesheet: {
+        Args: {
+          p_assignment_id: string;
+          p_break_minutes: number;
+          p_finish: string;
+          p_note?: string;
+          p_start: string;
+        };
+        Returns: string;
+      };
+      adjust_timesheet: {
+        Args: {
+          p_break_minutes: number;
+          p_finish: string;
+          p_id: string;
+          p_note: string;
+          p_start: string;
+        };
+        Returns: undefined;
+      };
       apply_for_shifts: {
         Args: { p_shift_ids: string[] };
         Returns: {
           result: string;
           shift_id: string;
+        }[];
+      };
+      approve_timesheets: {
+        Args: { p_ids: string[] };
+        Returns: {
+          timesheet_id: string;
+        }[];
+      };
+      auto_approve_timesheets: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          job_id: string;
+          timesheet_id: string;
+          worker_id: string;
         }[];
       };
       book_applicant: {
@@ -2691,6 +2914,38 @@ export type Database = {
         Args: { p_folder: string };
         Returns: boolean;
       };
+      business_timesheets: {
+        Args: { p_days?: number; p_job_id?: string };
+        Returns: {
+          adjusted_at: string;
+          approve_by: string;
+          arrival_confirmed: boolean;
+          assignment_id: string;
+          away_reasons: string[];
+          bill_cents: number;
+          break_minutes: number;
+          business_note: string;
+          category_name: string;
+          clocked_out_at: string;
+          finish_at: string;
+          job_id: string;
+          offline: boolean;
+          recorded_finish: string;
+          recorded_start: string;
+          resolution: string;
+          shift_break_minutes: number;
+          shift_ends_at: string;
+          shift_starts_at: string;
+          site_name: string;
+          start_at: string;
+          started_at: string;
+          status: Database["public"]["Enums"]["timesheet_status"];
+          timesheet_id: string;
+          worker_id: string;
+          worker_name: string;
+          worker_note: string;
+        }[];
+      };
       can_edit_job: { Args: { p_job_id: string }; Returns: boolean };
       can_see_job: { Args: { p_job_id: string }; Returns: boolean };
       can_see_site: { Args: { p_site_id: string }; Returns: boolean };
@@ -2709,6 +2964,16 @@ export type Database = {
           shift_id: string;
           worker_id: string;
         }[];
+      };
+      check_timesheet_hours: {
+        Args: {
+          p_break_minutes: number;
+          p_finish: string;
+          p_shift_end: string;
+          p_shift_start: string;
+          p_start: string;
+        };
+        Returns: undefined;
       };
       clock: {
         Args: {
@@ -2738,6 +3003,10 @@ export type Database = {
           p_token: string;
           p_token_hash: string;
         };
+        Returns: undefined;
+      };
+      dispute_timesheet: {
+        Args: { p_id: string; p_note: string };
         Returns: undefined;
       };
       distance_m: {
@@ -2906,9 +3175,47 @@ export type Database = {
           suburb: string;
         }[];
       };
+      my_timesheets: {
+        Args: { p_id?: string };
+        Returns: {
+          adjusted_at: string;
+          approve_by: string;
+          break_minutes: number;
+          business_name: string;
+          business_note: string;
+          category_name: string;
+          finish_at: string;
+          job_id: string;
+          pay_cents: number;
+          recorded_finish: string;
+          recorded_start: string;
+          resolution: string;
+          resolved_at: string;
+          shift_break_minutes: number;
+          shift_ends_at: string;
+          shift_starts_at: string;
+          site_name: string;
+          start_at: string;
+          status: Database["public"]["Enums"]["timesheet_status"];
+          timesheet_id: string;
+          worker_note: string;
+        }[];
+      };
       my_worker_id: { Args: Record<PropertyKey, never>; Returns: string };
       normalise_auth_phone: { Args: { raw: string }; Returns: string };
+      note_timesheet: {
+        Args: { p_id: string; p_note: string };
+        Returns: undefined;
+      };
       post_job: { Args: { p_job_id: string }; Returns: undefined };
+      record_missing_timesheets: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          timesheet_id: string;
+          worker_id: string;
+        }[];
+      };
+      record_timesheet: { Args: { p_assignment_id: string }; Returns: string };
       report_no_show: {
         Args: { p_assignment_id: string };
         Returns: {
@@ -2923,6 +3230,17 @@ export type Database = {
           p_photo_paths: string[];
         };
         Returns: string;
+      };
+      resolve_timesheet: {
+        Args: {
+          p_break_minutes?: number;
+          p_finish?: string;
+          p_id: string;
+          p_resolution: string;
+          p_start?: string;
+          p_worked: boolean;
+        };
+        Returns: undefined;
       };
       review_worker_credential: {
         Args: { p_approve: boolean; p_id: string; p_reason?: string };
@@ -2945,6 +3263,16 @@ export type Database = {
       submit_worker_onboarding: {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
+      };
+      timesheet_break: {
+        Args: { p_finish: string; p_rostered: number; p_start: string };
+        Returns: number;
+      };
+      timesheets_to_cost: {
+        Args: { p_limit?: number };
+        Returns: {
+          timesheet_id: string;
+        }[];
       };
       withdraw_applications: {
         Args: { p_shift_ids: string[] };
@@ -2985,6 +3313,13 @@ export type Database = {
       right_to_work_basis:
         "citizen" | "permanent_resident" | "nz_citizen" | "visa";
       shift_status: "open" | "filled" | "cancelled" | "completed";
+      timesheet_status:
+        | "submitted"
+        | "approved"
+        | "auto_approved"
+        | "adjusted"
+        | "disputed"
+        | "rejected";
       user_role: "worker" | "business_user" | "admin";
       verification_method: "manual" | "register_check" | "provider_api";
       worker_status:
@@ -3158,6 +3493,14 @@ export const Constants = {
         "visa",
       ],
       shift_status: ["open", "filled", "cancelled", "completed"],
+      timesheet_status: [
+        "submitted",
+        "approved",
+        "auto_approved",
+        "adjusted",
+        "disputed",
+        "rejected",
+      ],
       user_role: ["worker", "business_user", "admin"],
       verification_method: ["manual", "register_check", "provider_api"],
       worker_status: ["draft", "pending", "active", "suspended", "offboarded"],
