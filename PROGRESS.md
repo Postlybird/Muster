@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.16 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, built** (28/10/2026). All 17 steps are done, and the Phase 1 acceptance run passes: 3 businesses and 10 workers sign up and are approved, 20 shifts are filled and worked, and the payroll file and invoices are made, all through the app (the run only fast-forwards the week). Before real shifts, the owner items under Next are needed (hosting, scheduled jobs, the payroll template, our company details, and a lawyer's check of the documents). The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -288,6 +288,18 @@ _Last updated: 28/10/2026_
   - **Questions and answers:** for workers (who employs them, signing up, what they need, pay, shifts, cancelling, clocking in, safety) and businesses (how it works, signing up, cost, checks, speed, choosing workers, safety, cancelling, timesheets and invoices). Numbers such as cancellation windows come from the settings, so they stay right.
   - **Privacy policy** (with the collection notice that sign-up links to) **and terms of use:** plain-English drafts, marked for a lawyer to check before launch.
 
+- **1.17 Core-flow tests and the Phase 1 acceptance run** (Phase 1):
+  - **The acceptance run** (brief §11), done in the app the way people would:
+    - 3 business owners sign up, look up their ABN, add a site, accept the agreement and submit; an admin approves each one
+    - 10 workers sign up on their phones and complete the wizard; an admin checks each one's photo, right to work, ID and tickets, records their payroll ID and activates them
+    - the businesses post 20 shifts over 6 jobs, some "first in" and some "I'll choose"; workers accept or apply, the owners choose from the applicants, and every shift is filled
+    - the booked week is moved back to last week, standing in for the week going by (the only change made outside the app)
+    - the owners enter and approve everyone's hours: 25 workers' days
+    - an admin runs last week's pay: the payroll file has a line for every shift worked, and each business gets an invoice with its lines and a PDF
+  - It takes about 8 minutes, so it runs on its own: `npm run test:acceptance`, or on GitHub under **Actions → Phase 1 acceptance → Run workflow**. It also runs whenever the run itself changes.
+  - **Core flows:** every flow in the brief has browser tests; `docs/testing.md` lists which. New in this step: favourite workers get their head start on new work.
+  - Tests: 388 pgTAP, 364 unit and 208 browser tests passing, plus the acceptance run.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
@@ -297,7 +309,7 @@ _Last updated: 28/10/2026_
   - hourly: `compliance`
   - once a day, early morning: `pay-run` (it only runs on the run day)
 - **Optional, any time:** turn on push notifications (Admin → Settings → Push notifications has the steps).
-- **Phase 1, step 1.17:** core-flow browser tests and the Phase 1 acceptance run (10 workers, 3 businesses, 20 shifts through to the payroll file and invoices).
+- **Phase 2:** once you've looked over Phase 1, we'll propose the Phase 2 plan (brief §11: Stripe payments, the Employment Hero Payroll API, automated identity, police check and VEVO checks, in-app messages per shift, recurring jobs, smarter ranking and fuller reports) and wait for your OK before starting.
 
 ## Decisions
 
@@ -402,10 +414,11 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | The expiry checks run every hour, not nightly. Each warning and expiry still goes once, by date. | Brief §4.4 checks bookings again 24 hours before the start; running hourly checks each one close to that point. |
 | 28/10/2026 | Our team can take a worker off a booked shift. It doesn't count against their reliability, the business isn't charged, and the shift is offered to others. The worker is told why; the business is told without the reason. | The plan: admins decide about bookings at risk and the bookings of workers on hold. The reason may be about the worker's papers, which businesses never see. |
 | 28/10/2026 | An excused no-show is set aside like a booking our team cancelled, so it no longer counts towards reliability or a hold. Who reported it, and when, stays on record. | Brief §4.5: no-shows are reviewed by admin. |
+| 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
 
-- **The 10 questions in `docs/plan.md`.** We're using the recommendations unless the owner says otherwise. They must be settled before Phase 1 starts.
+- **The 10 questions in `docs/plan.md`.** Phase 1 uses our recommendations. Tell us if any should change.
 - **How quickly will new workers be checked?** The app tells workers "usually within two business days". Change it if that's not realistic.
 - **Employment Hero timesheet import template.** The payroll file uses draft columns until we have it.
 - **Company details for tax invoices** (legal name, ABN, address, contact and bank account). Enter them in Settings → Pay and billing; the demo shows made-up ones.

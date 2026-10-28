@@ -4,6 +4,8 @@ import {
   acceptCurrentAgreement,
   createPendingBusiness,
   expectAccessible,
+  pageAs,
+  releaseTestJob,
   serviceClient,
   signInAsDemo,
   signInWithEmailCode,
@@ -120,6 +122,109 @@ test("a template posts a week of shifts in a few clicks", async ({ page }) => {
   await page.getByRole("button", { name: "Post work" }).click();
   await expect(page).toHaveURL(/\?posted=1$/);
   await expect(page.getByText("0 of 3 booked")).toHaveCount(5);
+});
+
+test("favourite workers get a head start on new work", async ({
+  page,
+  browser,
+}) => {
+  test.setTimeout(120_000);
+  const service = serviceClient();
+  const [{ data: business }, { data: ethan }] = await Promise.all([
+    service
+      .from("businesses")
+      .select("id")
+      .eq("trading_name", "Harbour Restoration")
+      .single(),
+    service
+      .from("workers")
+      .select("id")
+      .eq("legal_first_name", "Ethan")
+      .eq("legal_last_name", "Murphy")
+      .single(),
+  ]);
+  // Other tests expect Harbour Restoration to have no favourites.
+  const unfavourite = () =>
+    service
+      .from("favourites")
+      .delete()
+      .eq("business_id", business!.id)
+      .eq("worker_id", ethan!.id);
+  await unfavourite();
+  await acceptCurrentAgreement("Harbour Restoration");
+  let jobId: string | undefined;
+  try {
+    // Ethan has worked for them before, and they make him a favourite.
+    await signInAsDemo(page, "Lisa Nguyen");
+    await page.goto("/business/workers");
+    await page
+      .getByRole("button", { name: "Add to favourites: Ethan Murphy" })
+      .click();
+    await expect(
+      page
+        .getByRole("region", { name: /^Favourites/ })
+        .getByText("Ethan Murphy", { exact: true }),
+    ).toBeVisible();
+
+    // Their flood template gives favourites an hour's head start.
+    await page.goto("/business/post");
+    await page
+      .getByRole("button", { name: "Use Flood strip-out crew" })
+      .click();
+    await expect(page).toHaveURL(/\/when$/);
+    const wednesday = upcoming(3, 120);
+    await page.getByLabel("First day").fill(wednesday);
+    await page.getByLabel("Last day").fill(plusDays(wednesday, 1));
+    await page.getByRole("button", { name: "Save and continue" }).click();
+    await expect(page).toHaveURL(/\/review$/);
+    await expect(
+      page.getByLabel("Offer it to your favourite workers first?"),
+    ).toHaveValue("60");
+    await page.getByRole("button", { name: "Post work" }).click();
+    await expect(page).toHaveURL(/\?posted=1$/);
+    jobId = new URL(page.url()).pathname.split("/").at(-1)!;
+    await expect(
+      page.getByText(
+        /Your favourites see it first, until .+; then everyone who matches\./,
+      ),
+    ).toBeVisible();
+
+    // Ethan can take it straight away.
+    const favourite = await pageAs(browser, "Ethan Murphy");
+    await favourite.goto(`/worker/shifts/${jobId}`);
+    await expect(
+      favourite.getByRole("button", { name: "Apply for 2 shifts" }),
+    ).toBeVisible();
+    await favourite.context().close();
+
+    // Liam does the same work nearby, but has to wait.
+    const other = await pageAs(browser, "Liam O'Brien");
+    await other.goto(`/worker/shifts/${jobId}`);
+    await expect(
+      other.getByRole("heading", { name: "This work isn't available" }),
+    ).toBeVisible();
+
+    // An hour on, everyone who matches sees it.
+    const { data: shifts } = await service
+      .from("shifts")
+      .select("id")
+      .eq("job_id", jobId);
+    await service
+      .from("shift_matches")
+      .update({ visible_from: new Date(Date.now() - 60_000).toISOString() })
+      .in(
+        "shift_id",
+        (shifts ?? []).map((shift) => shift.id),
+      );
+    await other.reload();
+    await expect(
+      other.getByRole("button", { name: "Apply for 2 shifts" }),
+    ).toBeVisible();
+    await other.context().close();
+  } finally {
+    await unfavourite();
+    if (jobId) await releaseTestJob(jobId);
+  }
 });
 
 test("an urgent call-out texts workers nearby who opted in", async ({

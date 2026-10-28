@@ -16,33 +16,11 @@ import {
   releaseTestJob,
   serviceClient,
   signInAsDemo,
+  undoPayRuns,
 } from "./helpers";
 
 function runWeek() {
   return lastFullWeek(sydneyDateKey(new Date()));
-}
-
-/**
- * Removes the week's run, and any later one, as if it had never been done,
- * so each test (and the next test run) can run the week again.
- */
-async function undoPayRuns(from: string) {
-  const service = serviceClient();
-  const { data: runs } = await service
-    .from("pay_runs")
-    .select("id")
-    .gte("period_start", from);
-  const ids = (runs ?? []).map((run) => run.id as string);
-  if (ids.length === 0) return;
-  const { data: invoices } = await service
-    .from("invoices")
-    .select("pdf_path")
-    .in("pay_run_id", ids);
-  const paths = (invoices ?? []).flatMap((i) => (i.pdf_path as string) ?? []);
-  if (paths.length > 0) await service.storage.from("invoices").remove(paths);
-  await service.from("pay_run_lines").delete().in("pay_run_id", ids);
-  await service.from("invoices").delete().in("pay_run_id", ids);
-  await service.from("pay_runs").delete().in("id", ids);
 }
 
 const posted: string[] = [];

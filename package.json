@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:acceptance": "playwright test -c playwright.acceptance.config.ts",
     "test:db": "supabase test db",
     "check": "npm run lint && npm run typecheck && npm run test",
     "db:start": "supabase start",

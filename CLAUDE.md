@@ -62,6 +62,7 @@ This project uses Next.js 16, which has breaking changes from older versions:
 - **Compliance:** the hourly `compliance` job (`src/server/compliance.ts`) warns about and expires tickets and visas (rules in `src/domain/expiry.ts`), tells admins about VEVO re-checks due, and flags booked shifts that no longer pass the rules as `booking_at_risk` admin flags.
 - **Uploads:** browser to private storage via `FileUpload` (`src/components/forms/file-upload.tsx`), in a folder named after the worker's id. Server actions accept a path only through `acceptedUpload()` in `src/lib/uploads.ts`.
 - **Brand:** the product name lives only in `src/config/brand.ts`.
+- **Tests:** `docs/testing.md` maps the brief's flows to the browser tests. The Phase 1 acceptance run (`e2e/acceptance/`, its own Playwright config) takes 3 businesses and 10 workers from sign-up to the payroll file and invoices through the app; its only database change is moving the booked shifts back to last week. When a flow's screens change, update its steps in `e2e/acceptance/flows.ts` too.
 - **Adapters:** each outside service lives in `src/adapters/<name>/` as a typed interface, a mock or manual implementation, and a `get<Name>()` factory.
   - Mocks for email, SMS and push write to `dev_outbox`.
   - The ABN adapter has a live implementation (free ABR service), used when `ABN_LOOKUP_GUID` is set.
@@ -69,16 +70,17 @@ This project uses Next.js 16, which has breaking changes from older versions:
 
 ## Commands
 
-| Command            | What it does                                                    |
-| ------------------ | --------------------------------------------------------------- |
-| `npm run dev`      | Next.js dev server on http://localhost:3000                     |
-| `npm run check`    | lint + typecheck + unit tests                                   |
-| `npm run test:e2e` | Playwright (starts the dev server unless `E2E_BASE_URL` is set) |
-| `npm run db:start` | Start local Supabase (Docker)                                   |
-| `npm run db:reset` | Rebuild the local database from migrations                      |
-| `npm run test:db`  | RLS/database tests (pgTAP)                                      |
-| `npm run seed`     | Load demo data (idempotent)                                     |
-| `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts`                 |
+| Command                   | What it does                                                       |
+| ------------------------- | ------------------------------------------------------------------ |
+| `npm run dev`             | Next.js dev server on http://localhost:3000                        |
+| `npm run check`           | lint + typecheck + unit tests                                      |
+| `npm run test:e2e`        | Playwright (starts the dev server unless `E2E_BASE_URL` is set)    |
+| `npm run test:acceptance` | The Phase 1 acceptance run in `e2e/acceptance/` (long; own config) |
+| `npm run db:start`        | Start local Supabase (Docker)                                      |
+| `npm run db:reset`        | Rebuild the local database from migrations                         |
+| `npm run test:db`         | RLS/database tests (pgTAP)                                         |
+| `npm run seed`            | Load demo data (idempotent)                                        |
+| `npm run db:types`        | Regenerate `src/lib/supabase/database.types.ts`                    |
 
 ## Cloud container notes
 
