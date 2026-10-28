@@ -57,6 +57,13 @@ describe("my shifts", () => {
           assignment_id: "x5",
           assignment_status: "cancelled_by_business",
         }),
+        shift({
+          shift_id: "r1",
+          job_id: "j6",
+          application_status: "booked",
+          assignment_id: "x6",
+          assignment_status: "cancelled_by_admin",
+        }),
         // Already over.
         shift({
           shift_id: "old",
@@ -77,6 +84,7 @@ describe("my shifts", () => {
     expect(groups.applied.map((j) => j.jobId)).toEqual(["j2"]);
     expect(groups.filled.map((j) => j.jobId)).toEqual(["j3"]);
     expect(groups.cancelled.map((j) => j.jobId)).toEqual(["j5"]);
+    expect(groups.removed.map((j) => j.jobId)).toEqual(["j6"]);
   });
 });
 

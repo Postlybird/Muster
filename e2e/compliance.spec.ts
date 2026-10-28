@@ -117,7 +117,11 @@ test("tickets are warned about, then expire, and a booking that needs them is fl
   undo.push(() =>
     service
       .from("admin_flags")
-      .update({ status: "resolved", resolution: "Browser test" })
+      .update({
+        status: "resolved",
+        resolution: "Browser test",
+        resolved_at: new Date().toISOString(),
+      })
       .eq("assignment_id", booking!.id),
   );
   const flags = async () =>
@@ -161,9 +165,11 @@ test("tickets are warned about, then expire, and a booking that needs them is fl
   await signInAsDemo(page, "Alex Morgan");
   await page.goto("/admin/queues");
   await expect(
-    page.getByRole("row").filter({ hasText: "Booking at risk" }).filter({
-      hasText: "Ahmed Hassan",
-    }),
+    page
+      .getByRole("region", { name: /Other open matters/ })
+      .getByRole("row")
+      .filter({ hasText: "Booking at risk" })
+      .filter({ hasText: "Ahmed Hassan" }),
   ).toBeVisible();
   await expectAccessible(page);
 });

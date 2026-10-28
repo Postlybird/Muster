@@ -269,6 +269,14 @@ _Last updated: 28/10/2026_
   - **Workers:** everyone who has signed up, 50 to a page, with their status, suburb, work types, rating, reliability, shifts and the next ticket or visa to expire. Filter by name, mobile or email, status, work type, verified ticket, suburb or postcode, and tickets or visas expiring within 30 days (the longest expiry warning).
   - **Businesses:** filter by name or ABN, status, and the suburb or postcode of any of their sites.
   - **Shift board:** posted shifts that haven't finished, in the next 24 hours, 7 days or 30 days: under way (who's on site), needing workers (booked and applied), and filled. A shift starting within 24 hours that isn't fully booked shows red, with a count at the top.
+  - **Queues:** each open matter has its own page showing what happened (the shift, clock-ins, the safety report and its photos) and what can be done, with a note kept for other admins:
+    - possible no-show: they were there (records their arrival at the start time), or they didn't come (records a no-show)
+    - no-show: it stands, or excuse it (it no longer counts against their reliability or towards a hold)
+    - account on hold: decide about each booked shift (taking them off offers it to other workers), then lift or keep the hold
+    - booking at risk: take them off the shift (offered to others; the worker gets the note and the business is told), or let it go ahead
+    - safety reports, away from the site and visa work limits: record what was done
+  - Possible no-shows settle themselves when the worker clocks in, the business confirms they arrived or reports a no-show. Recently settled matters are listed with their decisions.
+  - New messages: taken off a shift (worker, and the business without the reason), no-show excused, and hold lifted.
   - Filtered lists keep their filters in the page address, so they can be bookmarked or shared with another admin.
 
 ## Next
@@ -281,7 +289,6 @@ _Last updated: 28/10/2026_
   - once a day, early morning: `pay-run` (it only runs on the run day)
 - **Optional, any time:** turn on push notifications (Admin → Settings → Push notifications has the steps).
 - **Phase 1, step 1.15:** the rest of the admin console:
-  - acting on queue items: no-shows, safety reports, suspensions and bookings at risk
   - reports and the audit log viewer
 
 ## Decisions
@@ -385,6 +392,8 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | A booked shift is flagged as soon as we know it won't pass on the day (say a ticket it needs expires first), not only the day before. The checks look at the worker's status and papers, not travel or availability. | Brief §4.4 and §4.9. Earlier warning gives the worker time to renew and the business time to rebook. |
 | 28/10/2026 | An expired visa is marked expired, so the worker can enter their new one for a VEVO check. A ticket with a renewal already added gets no warnings. | Brief §4.9. Nobody is nagged about something they've already done. |
 | 28/10/2026 | The expiry checks run every hour, not nightly. Each warning and expiry still goes once, by date. | Brief §4.4 checks bookings again 24 hours before the start; running hourly checks each one close to that point. |
+| 28/10/2026 | Our team can take a worker off a booked shift. It doesn't count against their reliability, the business isn't charged, and the shift is offered to others. The worker is told why; the business is told without the reason. | The plan: admins decide about bookings at risk and the bookings of workers on hold. The reason may be about the worker's papers, which businesses never see. |
+| 28/10/2026 | An excused no-show is set aside like a booking our team cancelled, so it no longer counts towards reliability or a hold. Who reported it, and when, stays on record. | Brief §4.5: no-shows are reviewed by admin. |
 
 ## Open questions for the owner
 

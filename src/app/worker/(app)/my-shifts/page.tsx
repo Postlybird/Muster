@@ -21,7 +21,7 @@ function Group({
   id: string;
   title: string;
   jobs: MyJob[];
-  status: "booked" | "applied" | "filled" | "cancelled";
+  status: "booked" | "applied" | "filled" | "cancelled" | "removed";
 }) {
   if (jobs.length === 0) return null;
   return (
@@ -51,7 +51,8 @@ export default async function MyShiftsPage() {
     groups.booked.length +
       groups.applied.length +
       groups.filled.length +
-      groups.cancelled.length ===
+      groups.cancelled.length +
+      groups.removed.length ===
     0;
 
   return (
@@ -90,6 +91,12 @@ export default async function MyShiftsPage() {
             title="Cancelled by the business"
             jobs={groups.cancelled}
             status="cancelled"
+          />
+          <Group
+            id="removed"
+            title="Taken off by our team"
+            jobs={groups.removed}
+            status="removed"
           />
           <Group
             id="filled"

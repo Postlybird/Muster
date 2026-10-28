@@ -27,6 +27,8 @@ export type MyShiftGroups = {
   filled: MyJob[];
   /** Booked, then cancelled by the business. */
   cancelled: MyJob[];
+  /** Booked, then taken off by our team. */
+  removed: MyJob[];
 };
 
 function byJob(rows: readonly MyShift[]): MyJob[] {
@@ -61,6 +63,9 @@ export function groupMyShifts(
     ),
     cancelled: byJob(
       coming.filter((row) => row.assignment_status === "cancelled_by_business"),
+    ),
+    removed: byJob(
+      coming.filter((row) => row.assignment_status === "cancelled_by_admin"),
     ),
   };
 }

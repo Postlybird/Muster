@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { FLAG_KINDS } from "@/lib/admin-flags";
 import { requireAdmin } from "@/lib/auth";
 import { formatDateTime, formatDayShort } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
@@ -20,44 +21,44 @@ import { workerName } from "@/lib/timesheet-format";
 
 export const metadata: Metadata = { title: "Queues" };
 
-const FLAG_KINDS: Record<string, string> = {
-  no_show: "No-show",
-  suspension: "Suspension",
-  possible_no_show: "Possible no-show",
-  outside_site: "Away from the site",
-  safety: "Safety report",
-  work_limit: "Visa work limit",
-  booking_at_risk: "Booking at risk",
-};
-
 /**
  * What needs an admin (brief §6): timesheet queries to settle, then the
- * other open flags. Acting on the other flags arrives in step 1.15.
+ * other open matters, each settled from its own page.
  */
 export default async function QueuesPage({
   searchParams,
 }: PageProps<"/admin/queues">) {
   await requireAdmin();
-  const { resolved } = await searchParams;
+  const { resolved, settled: justSettled } = await searchParams;
   const supabase = await createClient();
-  const [{ data: queries }, { data: flags }] = await Promise.all([
-    supabase
-      .from("timesheets")
-      .select(
-        "id, disputed_at, business_note, worker_note, workers(preferred_name, legal_first_name, legal_last_name), jobs(sites(name), businesses(trading_name, legal_name)), assignments(shifts(starts_at))",
-      )
-      .eq("status", "disputed")
-      .order("disputed_at"),
-    supabase
-      .from("admin_flags")
-      .select(
-        "id, kind, summary, created_at, workers(preferred_name, legal_first_name, legal_last_name), businesses(trading_name, legal_name)",
-      )
-      .eq("status", "open")
-      .neq("kind", "timesheet_dispute")
-      .order("created_at", { ascending: false })
-      .limit(100),
-  ]);
+  const [{ data: queries }, { data: flags }, { data: settled }] =
+    await Promise.all([
+      supabase
+        .from("timesheets")
+        .select(
+          "id, disputed_at, business_note, worker_note, workers(preferred_name, legal_first_name, legal_last_name), jobs(sites(name), businesses(trading_name, legal_name)), assignments(shifts(starts_at))",
+        )
+        .eq("status", "disputed")
+        .order("disputed_at"),
+      supabase
+        .from("admin_flags")
+        .select(
+          "id, kind, summary, created_at, workers(preferred_name, legal_first_name, legal_last_name), businesses(trading_name, legal_name)",
+        )
+        .eq("status", "open")
+        .neq("kind", "timesheet_dispute")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("admin_flags")
+        .select(
+          "id, kind, resolution, resolved_at, workers(preferred_name, legal_first_name, legal_last_name)",
+        )
+        .eq("status", "resolved")
+        .neq("kind", "timesheet_dispute")
+        .order("resolved_at", { ascending: false, nullsFirst: false })
+        .limit(20),
+    ]);
 
   return (
     <div className="space-y-8">
@@ -70,6 +71,13 @@ export default async function QueuesPage({
         <Alert variant="success">
           <AlertDescription>
             Settled. We&apos;ve told the worker and the business.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+      {justSettled ? (
+        <Alert variant="success">
+          <AlertDescription>
+            Settled. Anyone affected has been told.
           </AlertDescription>
         </Alert>
       ) : null}
@@ -129,7 +137,7 @@ export default async function QueuesPage({
           Other open matters ({flags?.length ?? 0})
         </h2>
         <p className="text-sm text-muted-foreground">
-          Newest first. Actions for these arrive in step 1.15.
+          Newest first. Open one to settle it.
         </p>
         {flags?.length ? (
           <Table>
@@ -144,9 +152,12 @@ export default async function QueuesPage({
               {flags.map((flag) => (
                 <TableRow key={flag.id}>
                   <TableCell>
-                    <span className="block font-medium">
+                    <Link
+                      href={`/admin/queues/${flag.id}`}
+                      className="block font-medium underline-offset-4 hover:underline"
+                    >
                       {FLAG_KINDS[flag.kind] ?? flag.kind}
-                    </span>
+                    </Link>
                     <span className="block text-sm [overflow-wrap:anywhere] text-muted-foreground">
                       {flag.summary}
                     </span>
@@ -172,6 +183,46 @@ export default async function QueuesPage({
           <p className="text-sm">Nothing open.</p>
         )}
       </section>
+
+      {settled?.length ? (
+        <section aria-labelledby="settled" className="space-y-3">
+          <h2 id="settled" className="text-lg font-semibold">
+            Recently settled
+          </h2>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>What</TableHead>
+                <TableHead>Decision</TableHead>
+                <TableHead>Settled</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {settled.map((flag) => (
+                <TableRow key={flag.id}>
+                  <TableCell>
+                    <Link
+                      href={`/admin/queues/${flag.id}`}
+                      className="block font-medium underline-offset-4 hover:underline"
+                    >
+                      {FLAG_KINDS[flag.kind] ?? flag.kind}
+                    </Link>
+                    <span className="block text-sm text-muted-foreground">
+                      {flag.workers ? workerName(flag.workers) : null}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-sm [overflow-wrap:anywhere]">
+                    {flag.resolution}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {flag.resolved_at ? formatDateTime(flag.resolved_at) : "—"}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </section>
+      ) : null}
     </div>
   );
 }

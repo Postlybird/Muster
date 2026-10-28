@@ -164,6 +164,9 @@ export default async function WorkerJobPage({
   const cancelledByBusiness = (mine ?? []).filter(
     (s) => s.assignment_status === "cancelled_by_business",
   );
+  const removed = (mine ?? []).filter(
+    (s) => s.assignment_status === "cancelled_by_admin",
+  );
   const hourly =
     open[0]?.hourly_cents ??
     booked[0]?.hourly_cents ??
@@ -407,6 +410,20 @@ export default async function WorkerJobPage({
               .map((s) => formatDayShort(s.starts_at))
               .join(", ")}
             ).
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {removed.length > 0 ? (
+        <Alert variant="warning">
+          <AlertDescription>
+            Our team took you off{" "}
+            {removed.length === 1
+              ? "this booking"
+              : `${removed.length} of your bookings`}{" "}
+            ({removed.map((s) => formatDayShort(s.starts_at)).join(", ")}). It
+            doesn&apos;t count against your reliability. We&apos;ve sent you a
+            message saying why.
           </AlertDescription>
         </Alert>
       ) : null}

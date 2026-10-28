@@ -3339,6 +3339,14 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_cancel_booking: {
+        Args: { p_assignment_id: string; p_reason: string };
+        Returns: {
+          job_id: string;
+          shift_id: string;
+          worker_id: string;
+        }[];
+      };
       admin_shift_board: {
         Args: { p_from: string; p_to: string };
         Returns: {
@@ -3871,6 +3879,16 @@ export type Database = {
         Args: { p_default: number; p_key: string };
         Returns: number;
       };
+      settle_admin_flag: {
+        Args: { p_flag_id: string; p_note: string; p_outcome: string };
+        Returns: {
+          assignment_id: string;
+          job_id: string;
+          shift_id: string;
+          suspended: boolean;
+          worker_id: string;
+        }[];
+      };
       state_blocked: { Args: { p_state: string }; Returns: boolean };
       submit_business: { Args: Record<PropertyKey, never>; Returns: undefined };
       submit_worker_onboarding: {
@@ -3906,7 +3924,8 @@ export type Database = {
         | "cancelled_by_worker"
         | "cancelled_by_business"
         | "no_show"
-        | "completed";
+        | "completed"
+        | "cancelled_by_admin";
       attendance_kind: "clock_in" | "clock_out" | "arrival_confirmed";
       bill_method: "markup" | "fixed";
       business_role: "owner" | "manager" | "supervisor";
@@ -4081,6 +4100,7 @@ export const Constants = {
         "cancelled_by_business",
         "no_show",
         "completed",
+        "cancelled_by_admin",
       ],
       attendance_kind: ["clock_in", "clock_out", "arrival_confirmed"],
       bill_method: ["markup", "fixed"],

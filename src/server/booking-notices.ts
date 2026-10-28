@@ -39,6 +39,15 @@ function soon(shifts: readonly { starts_at: string }[]): boolean {
   return shifts.some((s) => Date.parse(s.starts_at) - Date.now() < DAY);
 }
 
+/** "Priya P.", as businesses see workers before they've met. */
+function shortName(worker: {
+  preferred_name: string | null;
+  legal_first_name: string | null;
+  legal_last_name: string | null;
+}): string {
+  return `${worker.preferred_name ?? worker.legal_first_name ?? "A worker"} ${worker.legal_last_name?.[0] ?? ""}.`;
+}
+
 /** Tells a worker the business picked them, with a link to the address. */
 export async function notifyBooked(
   workerId: string,
@@ -140,14 +149,13 @@ export async function notifyWorkerCancelled(
       .single(),
   ]);
   if (!job?.postedBy || !worker) return;
-  const name = `${worker.preferred_name ?? worker.legal_first_name ?? "A worker"} ${worker.legal_last_name?.[0] ?? ""}.`;
   const shifts = job.shifts.filter((s) => shiftIds.includes(s.id));
   if (shifts.length === 0) return;
   await notify(
     "worker_cancelled",
     job.postedBy,
     {
-      worker: name,
+      worker: shortName(worker),
       work: job.category,
       site: job.site,
       shifts: shiftSummary(shifts),
@@ -209,6 +217,71 @@ export async function notifyNoShow(
   ]);
   if (!job || !worker) return;
   await notify(suspended ? "no_show_suspended" : "no_show", worker.profile_id, {
+    business: job.business,
+    work: job.category,
+    suburb: job.suburb,
+  });
+}
+
+/**
+ * Tells a worker our team took them off shifts, and why, and whoever posted
+ * the job that we're finding someone else (without the reason, which may be
+ * about the worker's papers).
+ */
+export async function notifyRemovedFromShift(
+  jobId: string,
+  workerId: string,
+  shiftIds: readonly string[],
+  reason: string,
+) {
+  const admin = createAdminClient();
+  const [job, { data: worker }] = await Promise.all([
+    jobFacts(jobId),
+    admin
+      .from("workers")
+      .select("profile_id, preferred_name, legal_first_name, legal_last_name")
+      .eq("id", workerId)
+      .single(),
+  ]);
+  if (!job || !worker) return;
+  const shifts = job.shifts.filter((s) => shiftIds.includes(s.id));
+  if (shifts.length === 0) return;
+  const said = reason.trim();
+  await notify(
+    "removed_from_shift",
+    worker.profile_id,
+    {
+      business: job.business,
+      work: job.category,
+      suburb: job.suburb,
+      shifts: shiftSummary(shifts),
+      reason: `${said.charAt(0).toUpperCase()}${said.slice(1)}${/[.!?]$/.test(said) ? "" : "."}`,
+    },
+    { url: "/worker/my-shifts", urgent: soon(shifts) },
+  );
+  if (!job.postedBy) return;
+  await notify(
+    "worker_removed",
+    job.postedBy,
+    {
+      worker: shortName(worker),
+      work: job.category,
+      site: job.site,
+      shifts: shiftSummary(shifts),
+    },
+    { url: `/business/jobs/${jobId}`, urgent: soon(shifts) },
+  );
+}
+
+/** Tells a worker a no-show was set aside, so it doesn't count. */
+export async function notifyNoShowExcused(workerId: string, jobId: string) {
+  const admin = createAdminClient();
+  const [job, { data: worker }] = await Promise.all([
+    jobFacts(jobId),
+    admin.from("workers").select("profile_id").eq("id", workerId).single(),
+  ]);
+  if (!job || !worker) return;
+  await notify("no_show_excused", worker.profile_id, {
     business: job.business,
     work: job.category,
     suburb: job.suburb,

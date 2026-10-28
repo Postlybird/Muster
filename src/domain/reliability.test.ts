@@ -63,5 +63,7 @@ describe("reliability", () => {
         lateCancellation: true,
       }),
     ).toBeNull();
+    // Nor does our team taking them off, or excusing a no-show.
+    expect(outcomeOf({ ...base, status: "cancelled_by_admin" })).toBeNull();
   });
 });
