@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.5 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.6 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -160,16 +160,30 @@ _Last updated: 28/10/2026_
   - **Rate calculator** (`/admin/rates/calculator`): try any business, work type, level, state, date and times. It shows the split, pay, bill, GST and margin, and which card and rule were used.
   - Tests: 117 pgTAP, 202 unit and 112 browser tests passing. The engine's tests cover daylight-saving changes, other states' time zones, minimum engagement, urgent loadings, fixed bill rates and rounding.
 
+- **1.6 Posting work** (Phase 1):
+  - **Schema:** jobs and their shifts, required tickets, hazards, PPE, photos and saved templates.
+    - Owners and managers build a job as a draft; supervisors see the jobs at their sites.
+    - `post_job()` in the database checks everything before a job goes live: approval, account terms, the current services agreement, states where we'd need a licence, future shifts, and the hazard section.
+    - Once posted, the business can't change a job (cancelling arrives in step 1.9). "Post again" copies it.
+  - **Post work** (`/business/post`): carry on with a draft, repeat the last job, use a template, or start a new job. Businesses that can't post yet are told why.
+  - **Five steps**, each saved as you go:
+    1. What and where: one shift, several days, or an urgent call-out; site; type of work; number of workers.
+    2. When: a date (or a date range and weekdays for several days), start, finish and unpaid break. Overnight shifts finish the next morning. Urgent call-outs start from an hour away.
+    3. Tickets and instructions: the work type's usual tickets are ticked, the police check question, instructions, up to three photos, and who to report to.
+    4. Safety: hazards or "no known hazards", the controls in place, induction, PPE and who supplies it.
+    5. Check and post: everything on one page with "Change" links, the cost estimate with how it was worked out, how to fill the job ("I'll choose" or "First in"), favourites first, and saving it as a template.
+  - **Jobs** (`/business/jobs`): coming up, past and cancelled. Each job page shows its shifts, the estimate when posted and everything workers will see, with "Post again" and "Save as a template". The dashboard lists the next two weeks of shifts.
+  - **Demo data:** four demo businesses have posted jobs (a multi-day flood strip-out, an evening clean, an urgent make-safe and a contents pack-out), topped up whenever a business has no upcoming work.
+  - Tests: 142 pgTAP, 229 unit and 122 browser tests passing.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Phase 1, step 1.6:** the post-work wizard for businesses:
-  - single shift, multi-day, or urgent call-out
-  - site, work type, number of workers, dates and times, break, tickets, police check, instructions and photos, report-to contact
-  - site hazards and controls, PPE and who supplies it (a job can't be posted until the hazard section is done)
-  - a cost estimate before posting
-  - templates and "repeat last shift"
+- **Phase 1, step 1.7:** matching workers to shifts:
+  - eligibility rules (active, tickets verified and valid on the day, right to work, travel distance, availability, no overlapping shift, police check)
+  - ranking (favourites, past shifts with the business, rating, reliability, distance, experience)
+  - the worker's shift feed, and urgent call-outs to every eligible worker nearby
 
 ## Decisions
 
@@ -215,6 +229,14 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | A shift shorter than the minimum engagement is topped up at the rate that covered most of it. | So a short Saturday shift is topped up at the Saturday rate. |
 | 28/10/2026 | The hourly bill rate is rounded to the cent first, then multiplied by the hours. | Invoices can show "hours × rate = amount", and the sums check out. |
 | 28/10/2026 | On-costs apply to the urgent call-out allowance as well as to hours. | It's paid as wages, so super and payroll tax apply. To be checked by a payroll professional. |
+| 28/10/2026 | A job is built as a draft saved step by step, and posted by a database function that checks everything first. Once posted, the business can't change it; "Post again" copies it without the dates. | Workers make decisions on what they were shown, so posted details don't move under them. Cancellations come in step 1.9. |
+| 28/10/2026 | A job's level is the work type's default; only admins change it. | Plan question 4. Businesses don't know our levels. |
+| 28/10/2026 | Work types that need a police check always need one; a business can ask for one on other jobs. | Brief §4.1 step 7: "only required where the category or host requires it". |
+| 28/10/2026 | Jobs can be posted up to 180 days ahead, with up to 40 shifts. Shifts are up to 14 hours with breaks up to 120 minutes. A multi-day job has the same hours each day. | Sensible limits that catch typing mistakes; more can be posted as another job. |
+| 28/10/2026 | Urgent call-outs default to "First in" and an hour from now. | Brief §4.4: auto-fill is the default for urgent call-outs. |
+| 28/10/2026 | Who supplies PPE is one answer per job: us, the workers, or some of each (with a note). | Simple to answer; the note covers mixed cases. |
+| 28/10/2026 | The cost estimate is saved when a job is posted, for reference. Invoices use the hours actually worked and the rates fixed when each worker is booked (step 1.8). | Brief §4.3: the estimate is shown before posting; billing follows timesheets. |
+| 28/10/2026 | Times are entered and shown in Sydney time. | v1 places workers in Greater Sydney. The pay engine already handles other states' time zones for later. |
 | 28/10/2026 | The most specific bill rule wins: the business's rule for the category, then its rule for all categories, then the category's standard rule, then the default margin. Only one rule per business, category and start date. | Plan: a margin with per-category and per-business overrides. The pay and bill engine (step 1.5) always finds exactly one rule. |
 
 ## Open questions for the owner
@@ -223,6 +245,7 @@ _Last updated: 28/10/2026_
 - **How quickly will new workers be checked?** The app tells workers "usually within two business days". Change it if that's not realistic.
 - **Employment Hero timesheet import template.** Needed by step 1.13.
 - **Company details for tax invoices** (legal name, ABN, address, bank details). Placeholders until provided.
+- **Changing a posted job.** For now a business can't edit a job once it's posted, because workers decide on what they were shown. From step 1.9 they'll be able to cancel and post again. Should they be able to change small things, like the instructions or who to report to, after posting?
 
 ## Before launch (not now)
 

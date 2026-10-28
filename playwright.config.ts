@@ -9,6 +9,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: 1,
+  // The dev server compiles each page on its first visit, which can take
+  // longer than the default 5 seconds; CI tests a production build.
+  expect: { timeout: process.env.CI ? 5_000 : 10_000 },
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL,
