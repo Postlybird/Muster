@@ -7,8 +7,13 @@ import { ActionButton } from "@/components/forms/action-button";
 import { JobSummary } from "@/components/jobs/job-summary";
 import { StatusBadge } from "@/components/status/status-badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { formatCents, formatDateTime, formatDayShort } from "@/lib/format";
-import { jobTitle, shiftHours } from "@/lib/job-format";
+import {
+  formatCents,
+  formatDateTime,
+  formatDayShort,
+  formatTime,
+} from "@/lib/format";
+import { jobTitle, shiftHours, workersLabel } from "@/lib/job-format";
 import { jobStatuses, shiftStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
 import { canManage, getMyBusiness } from "@/server/businesses";
@@ -36,7 +41,7 @@ export default async function JobPage({
     .maybeSingle();
   if (!job) notFound();
   if (job.status === "draft") redirect(`/business/post/${job.id}`);
-  const [details, { data: template }] = await Promise.all([
+  const [details, { data: template }, { data: offeredTo }] = await Promise.all([
     loadJobDetails(job),
     supabase
       .from("job_templates")
@@ -44,9 +49,16 @@ export default async function JobPage({
       .eq("job_id", job.id)
       .is("archived_at", null)
       .maybeSingle(),
+    supabase.rpc("job_offer_count", { p_job_id: job.id }),
   ]);
   const manager = canManage(role);
   const title = jobTitle(details.categoryName, details.site?.name);
+  const favouritesUntil =
+    job.posted_at && job.favourites_first_minutes
+      ? new Date(
+          Date.parse(job.posted_at) + job.favourites_first_minutes * 60_000,
+        )
+      : null;
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -85,6 +97,16 @@ export default async function JobPage({
         <h2 id="shifts" className="text-lg font-semibold">
           Shifts
         </h2>
+        {job.status === "posted" && offeredTo !== null ? (
+          <p className="text-sm">
+            {offeredTo === 0
+              ? "No workers match yet. We'll offer it to new workers as soon as they're verified."
+              : `Offered to ${workersLabel(offeredTo)} who ${offeredTo === 1 ? "matches" : "match"}.`}
+            {favouritesUntil && favouritesUntil > new Date()
+              ? ` Your favourites see it first, until ${formatTime(favouritesUntil)}; then everyone who matches.`
+              : ""}
+          </p>
+        ) : null}
         <ul className="divide-y">
           {details.shifts.map((shift) => (
             <li

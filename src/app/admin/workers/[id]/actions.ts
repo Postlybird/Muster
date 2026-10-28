@@ -11,6 +11,7 @@ import { failure, formBoolean, success, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import { credentialBucket } from "@/lib/uploads";
 import { getAllSettings } from "@/server/settings";
+import { refreshWorkerMatches } from "@/server/matching";
 import { textPerson } from "@/server/notify";
 import { saveFailed } from "@/server/errors";
 
@@ -73,6 +74,15 @@ function done(workerId: string, message: string): ActionState {
   revalidatePath(`/admin/workers/${workerId}`);
   revalidatePath("/admin/verification");
   return success(message);
+}
+
+/** Like done(), and an active worker's offers follow their checks and levels. */
+async function doneAndRematch(
+  worker: { id: string; status: string },
+  message: string,
+): Promise<ActionState> {
+  if (worker.status === "active") await refreshWorkerMatches(worker.id);
+  return done(worker.id, message);
 }
 
 // ---------------------------------------------------------------------------
@@ -236,7 +246,7 @@ export async function reviewRightToWork(
       worker.profile_id,
       `We couldn't confirm your right to work: ${decision.reason} Open the app to fix it.`,
     );
-    return done(workerId, "Right to work rejected");
+    return doneAndRematch(worker, "Right to work rejected");
   }
 
   if (rights.basis === "citizen") {
@@ -256,8 +266,8 @@ export async function reviewRightToWork(
       })
       .eq("id", rights.id);
     if (error) return saveFailed(error);
-    return done(
-      workerId,
+    return doneAndRematch(
+      worker,
       "Citizenship confirmed. The document has been deleted.",
     );
   }
@@ -307,8 +317,8 @@ export async function reviewRightToWork(
     })
     .eq("id", rights.id);
   if (error) return saveFailed(error);
-  return done(
-    workerId,
+  return doneAndRematch(
+    worker,
     rights.status === "verified"
       ? "VEVO re-check recorded"
       : "Right to work verified",
@@ -372,8 +382,8 @@ export async function reviewTicket(
   } else if (worker.status === "active") {
     await textPerson(worker.profile_id, `Your ${name} is verified.`);
   }
-  return done(
-    workerId,
+  return doneAndRematch(
+    worker,
     decision.approve ? `${name} verified` : `${name} rejected`,
   );
 }
@@ -400,7 +410,7 @@ export async function saveLevels(
       .eq("category_id", row.category_id);
     if (error) return saveFailed(error);
   }
-  return done(workerId, "Levels saved");
+  return doneAndRematch(worker, "Levels saved");
 }
 
 const payrollSchema = z.object({
@@ -469,5 +479,6 @@ export async function activateWorker(workerId: string): Promise<ActionState> {
     worker.profile_id,
     "You're verified and ready to work. Open the app to find shifts.",
   );
+  await refreshWorkerMatches(workerId);
   return done(workerId, "Worker activated");
 }

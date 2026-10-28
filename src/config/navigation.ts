@@ -57,8 +57,7 @@ export const workerTabs: NavItem[] = [
     href: "/worker/shifts",
     label: "Find shifts",
     icon: Search,
-    description:
-      "Open shifts you're eligible for, nearest and best-matched first.",
+    description: "Work you can take, soonest first, with pay and distance.",
     step: "1.7",
   },
   {

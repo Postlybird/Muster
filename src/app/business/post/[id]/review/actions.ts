@@ -9,6 +9,7 @@ import type { StateCode } from "@/domain/pay";
 import { failure, formBoolean, type ActionState } from "@/lib/forms";
 import { saveFailed } from "@/server/errors";
 import { draftForAction, postingProblem } from "@/server/jobs";
+import { matchPostedJob } from "@/server/matching";
 import { loadPricing } from "@/server/pricing";
 
 const schema = z.object({
@@ -106,7 +107,9 @@ export async function postJob(
     .from("jobs")
     .update({
       fill_mode: parsed.data.fill_mode,
-      favourites_first_minutes: parsed.data.favourites_first_minutes,
+      // Urgent call-outs go to everyone at once (brief §4.3).
+      favourites_first_minutes:
+        job.type === "urgent" ? null : parsed.data.favourites_first_minutes,
       estimate_cents: estimate.totals.billCents,
       estimate_gst_cents: estimate.totals.gstCents,
     })
@@ -128,6 +131,7 @@ export async function postJob(
       .insert({ business_id: business.id, job_id: job.id, name: templateName });
     if (templateError) console.error("Couldn't save a template", templateError);
   }
+  await matchPostedJob(job.id);
   revalidatePath("/business", "layout");
   redirect(`/business/jobs/${job.id}?posted=1`);
 }

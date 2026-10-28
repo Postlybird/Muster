@@ -1,15 +1,17 @@
-import { CalendarCheck, Check, Circle } from "lucide-react";
+import { CalendarCheck, Check, Circle, Search } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { EmptyState } from "@/components/empty-state";
 import { Markdown } from "@/components/markdown";
 import { ScrollBox } from "@/components/scroll-box";
+import { OfferCard } from "@/components/shifts/offer-card";
 import { WhatsNext } from "@/components/status/whats-next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ONBOARDING_STEPS } from "@/domain/onboarding";
+import { groupOffers } from "@/lib/offers";
 import {
   checkStatuses,
   payrollStatuses,
@@ -217,6 +219,45 @@ async function verificationItems(worker: WorkerRow): Promise<ChecklistItem[]> {
   return items;
 }
 
+/** The newest offers (brief §4.4), with a way into the full feed. */
+async function Offers() {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("my_shift_offers");
+  const offers = groupOffers(data ?? []);
+  return (
+    <section aria-labelledby="offers" className="space-y-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 id="offers" className="text-lg font-semibold">
+          Shifts for you
+        </h2>
+        {offers.length > 2 ? (
+          <Link
+            href="/worker/shifts"
+            className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+          >
+            See all {offers.length}
+          </Link>
+        ) : null}
+      </div>
+      {offers.length === 0 ? (
+        <EmptyState
+          icon={Search}
+          title="Nothing right now"
+          description="Work that matches your work types and tickets shows here as soon as it's posted."
+        />
+      ) : (
+        <ul className="space-y-3">
+          {offers.slice(0, 2).map((offer) => (
+            <li key={offer.jobId}>
+              <OfferCard offer={offer} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 export default async function WorkerHomePage({
   searchParams,
 }: PageProps<"/worker">) {
@@ -228,7 +269,24 @@ export default async function WorkerHomePage({
     user.fullName?.split(" ")[0];
 
   const isDraft = worker.status === "draft";
+  const active = worker.status === "active";
   const started = isDraft ? await hasStartedOnboarding(user.id) : true;
+  const nextShift = (
+    <section aria-labelledby="next-shift" className="space-y-3">
+      <h2 id="next-shift" className="text-lg font-semibold">
+        Next shift
+      </h2>
+      <EmptyState
+        icon={CalendarCheck}
+        title="No shifts booked yet"
+        description={
+          active
+            ? "Shifts you're booked on show here."
+            : "Once your details are verified, shifts that match your tickets will appear under Find shifts."
+        }
+      />
+    </section>
+  );
 
   return (
     <div className="space-y-6">
@@ -258,7 +316,17 @@ export default async function WorkerHomePage({
         ) : (
           <GetStarted />
         )
-      ) : (
+      ) : null}
+
+      {/* Active workers see work first; everyone else sees their checks. */}
+      {active ? (
+        <>
+          <Offers />
+          {nextShift}
+        </>
+      ) : null}
+
+      {isDraft ? null : (
         <>
           <WhatsNext
             title="Your account"
@@ -276,20 +344,7 @@ export default async function WorkerHomePage({
         </>
       )}
 
-      <section aria-labelledby="next-shift" className="space-y-3">
-        <h2 id="next-shift" className="text-lg font-semibold">
-          Next shift
-        </h2>
-        <EmptyState
-          icon={CalendarCheck}
-          title="No shifts yet"
-          description={
-            worker.status === "active"
-              ? "Shifts that match your work types and tickets will appear under Find shifts."
-              : "Once your details are verified, shifts that match your tickets will appear under Find shifts."
-          }
-        />
-      </section>
+      {active ? null : nextShift}
     </div>
   );
 }

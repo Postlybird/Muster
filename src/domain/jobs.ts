@@ -36,6 +36,12 @@ export const FILL_MODES = {
 
 export type FillMode = keyof typeof FILL_MODES;
 
+/** How a job is filled, in a worker's words. */
+export const FILL_MODES_FOR_WORKERS: Record<FillMode, string> = {
+  pick: "The business picks from the workers who apply. We'll text you if you're booked.",
+  auto: "First in: the first eligible workers to accept are booked straight away.",
+};
+
 export const PPE_SUPPLIERS = {
   business: "We supply it",
   worker: "Workers bring their own",
@@ -43,6 +49,13 @@ export const PPE_SUPPLIERS = {
 } as const;
 
 export type PpeSupplier = keyof typeof PPE_SUPPLIERS;
+
+/** Who supplies PPE, in a worker's words. */
+export const PPE_SUPPLIERS_FOR_WORKERS: Record<PpeSupplier, string> = {
+  business: "The business supplies it.",
+  worker: "Bring your own.",
+  both: "Some is supplied and some you bring.",
+};
 
 export const POST_STEPS = [
   { key: "what", title: "What and where" },

@@ -226,6 +226,7 @@ export default async function ReviewStepPage({
           jobId={job.id}
           fillMode={job.fill_mode}
           favouritesFirst={job.favourites_first_minutes}
+          urgent={job.type === "urgent"}
           canPost={canPost}
         />
       </div>

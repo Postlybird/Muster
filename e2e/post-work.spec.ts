@@ -4,6 +4,7 @@ import {
   acceptCurrentAgreement,
   createPendingBusiness,
   expectAccessible,
+  serviceClient,
   signInAsDemo,
   signInWithEmailCode,
 } from "./helpers";
@@ -121,9 +122,27 @@ test("a template posts a week of shifts in a few clicks", async ({ page }) => {
   await expect(page.getByText("0 of 3 booked")).toHaveCount(5);
 });
 
-test("an urgent call-out books the first workers in", async ({ page }) => {
+test("an urgent call-out texts workers nearby who opted in", async ({
+  page,
+}) => {
   test.setTimeout(90_000);
   await acceptCurrentAgreement("Beaches Make Safe");
+  // Liam does strip-outs within reach of Manly and takes urgent work; he's
+  // switched on "available now", so the time of day doesn't matter.
+  const service = serviceClient();
+  const { data: liam } = await service
+    .from("profiles")
+    .select("id, phone")
+    .eq("email", "liam.obrien@demo.test")
+    .single();
+  await service
+    .from("workers")
+    .update({
+      urgent_opt_in: true,
+      available_now_until: new Date(Date.now() + 4 * 3_600_000).toISOString(),
+    })
+    .eq("profile_id", liam!.id);
+
   await signInAsDemo(page, "Craig Thompson");
   await page.goto("/business/post");
   await page.getByRole("button", { name: "Start" }).click();
@@ -149,8 +168,27 @@ test("an urgent call-out books the first workers in", async ({ page }) => {
   await expect(page.getByRole("radio", { name: /First in/ })).toBeChecked();
   await page.getByText("How we worked this out").click();
   await expect(page.getByText("Urgent call-out loading")).toBeVisible();
+  // Urgent work goes to everyone at once, with no head start for favourites.
+  await expect(
+    page.getByLabel("Offer it to your favourite workers first?"),
+  ).toHaveCount(0);
   await page.getByRole("button", { name: "Post work" }).click();
   await expect(page).toHaveURL(/\?posted=1$/);
+  await expect(
+    page.getByText(/^Offered to \d+ workers? who match/),
+  ).toBeVisible();
+
+  const jobId = new URL(page.url()).pathname.split("/").at(-1);
+  const { data: texts } = await service
+    .from("dev_outbox")
+    .select("body")
+    .eq("channel", "sms")
+    .eq("recipient", liam!.phone!)
+    .like("body", `%/worker/shifts/${jobId}`);
+  expect(texts).toHaveLength(1);
+  expect(texts![0]!.body).toMatch(
+    /Urgent work: Strip-out and demolition labourer in Manly, .* First in gets it:/,
+  );
 });
 
 test("supervisors see their sites' jobs but don't post", async ({ page }) => {

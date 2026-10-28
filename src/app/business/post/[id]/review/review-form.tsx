@@ -24,11 +24,14 @@ export function ReviewForm({
   jobId,
   fillMode,
   favouritesFirst,
+  urgent,
   canPost,
 }: {
   jobId: string;
   fillMode: string;
   favouritesFirst: number | null;
+  /** Urgent call-outs go to everyone at once, so there's no head start. */
+  urgent: boolean;
   canPost: boolean;
 }) {
   const {
@@ -54,28 +57,30 @@ export function ReviewForm({
           description: info.description,
         }))}
       />
-      <FormField
-        id="favourites_first_minutes"
-        label="Offer it to your favourite workers first?"
-        hint="They get a head start before everyone else sees it."
-        error={errors?.favourites_first_minutes}
-      >
-        {(props) => (
-          <NativeSelect
-            {...props}
-            name="favourites_first_minutes"
-            defaultValue={favouritesFirst ? String(favouritesFirst) : ""}
-            className="sm:w-72"
-          >
-            <option value="">No, offer it to everyone now</option>
-            {FAVOURITES_FIRST_OPTIONS.map((minutes) => (
-              <option key={minutes} value={String(minutes)}>
-                Yes, for {minutesLabel(minutes)}
-              </option>
-            ))}
-          </NativeSelect>
-        )}
-      </FormField>
+      {urgent ? null : (
+        <FormField
+          id="favourites_first_minutes"
+          label="Offer it to your favourite workers first?"
+          hint="They get a head start before everyone else sees it."
+          error={errors?.favourites_first_minutes}
+        >
+          {(props) => (
+            <NativeSelect
+              {...props}
+              name="favourites_first_minutes"
+              defaultValue={favouritesFirst ? String(favouritesFirst) : ""}
+              className="sm:w-72"
+            >
+              <option value="">No, offer it to everyone now</option>
+              {FAVOURITES_FIRST_OPTIONS.map((minutes) => (
+                <option key={minutes} value={String(minutes)}>
+                  Yes, for {minutesLabel(minutes)}
+                </option>
+              ))}
+            </NativeSelect>
+          )}
+        </FormField>
+      )}
       <div className="space-y-3">
         <div className="flex items-start gap-3">
           <Checkbox
