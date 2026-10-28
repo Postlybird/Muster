@@ -91,27 +91,26 @@ async function timesheetFor(assignmentId: string) {
   return data;
 }
 
-function escape(text: string) {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 test("the business approves workers' hours in one go", async ({ page }) => {
   test.setTimeout(90_000);
   const shift = await workedShift([
     { name: "Hannah Schmidt" },
     { name: "Fatima Al-Sayed" },
   ]);
+  const ours = await Promise.all(
+    shift.bookings.map(async (b) => (await timesheetFor(b.assignmentId))!.id),
+  );
   await signInAsDemo(page, "Sofia Rossi");
   await page.goto("/business/timesheets");
   await expect(page.getByRole("heading", { name: "To approve" })).toBeVisible();
   await expectAccessible(page);
 
-  // Untick anything else waiting, from earlier runs or the demo data.
-  const ours = shift.bookings.map((b) => escape(`${b.name}, ${shift.day}`));
-  const others = page.getByRole("checkbox", {
-    name: new RegExp(`^(?!(?:${ours.join("|")})$)`),
-  });
-  for (const box of await others.all()) await box.uncheck();
+  // Untick anything else waiting, from the demo data or earlier runs (the
+  // same people can have hours on the same day, so go by the timesheet).
+  for (const box of await page.getByRole("checkbox").all()) {
+    const id = (await box.getAttribute("id"))?.replace(/^timesheet-/, "");
+    if (!ours.includes(id ?? "")) await box.uncheck();
+  }
   await page.getByRole("button", { name: "Approve 2 timesheets" }).click();
   await expect(page.getByText("2 timesheets approved")).toBeVisible();
 
@@ -265,14 +264,21 @@ test("a missed clock-out uses the roster, and the business enters hours for some
 
   await signInAsDemo(page, "Sofia Rossi");
   await page.goto("/business/timesheets");
-  await expect(
-    page.getByRole("checkbox", { name: `Hannah Schmidt, ${shift.day}` }),
-  ).toBeVisible();
+  // The demo data can have the same people on the same day, so these go
+  // by the timesheet and the booking.
+  const toApprove = page.locator(`#timesheet-${fromRoster!.id}`);
+  await expect(toApprove).toBeVisible();
+  await expect(toApprove).toHaveAccessibleName(`Hannah Schmidt, ${shift.day}`);
   await expect(
     page.getByRole("heading", { name: "No hours yet" }),
   ).toBeVisible();
   await page
     .getByRole("link", { name: `Add Fatima Al-Sayed's hours for ${shift.day}` })
+    .and(
+      page.locator(
+        `[href="/business/timesheets/add/${shift.bookings[1]!.assignmentId}"]`,
+      ),
+    )
     .click();
   await expect(
     page.getByRole("heading", { name: "Add Fatima Al-Sayed's hours" }),
