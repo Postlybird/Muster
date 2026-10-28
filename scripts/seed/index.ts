@@ -6,6 +6,7 @@ import { createSeedClient, loadEnv } from "./client";
 import { seedBusinesses } from "./steps/businesses";
 import { seedCatalogues } from "./steps/catalogues";
 import { seedCompliance } from "./steps/compliance";
+import { seedJobs } from "./steps/jobs";
 import { seedSettings } from "./steps/settings";
 import { seedUsers } from "./steps/users";
 import { seedWorkers } from "./steps/workers";
@@ -36,6 +37,9 @@ async function main() {
   console.log(
     `  worker details: ${workers.workers} workers (${workers.newlySeeded} filled in)`,
   );
+
+  const jobs = await seedJobs(client);
+  console.log(`  demo jobs: ${jobs.added} posted`);
 
   console.log("Done.");
 }

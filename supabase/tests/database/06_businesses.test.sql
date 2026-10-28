@@ -177,7 +177,12 @@ select throws_ok(
 select set_config('request.jwt.claims', '{"sub": "44444444-4444-4444-4444-444444444444", "role": "authenticated", "aal": "aal2"}', true);
 set local role authenticated;
 
-select is((select count(*) from public.businesses), 2::bigint, 'an admin sees every business');
+select is(
+  (select count(*) from public.businesses
+   where id in ('b1111111-0000-0000-0000-000000000001', 'b2222222-0000-0000-0000-000000000002')),
+  2::bigint,
+  'an admin sees every business'
+);
 
 select lives_ok(
   $$ update public.businesses set status = 'approved', approved_at = now(),

@@ -848,6 +848,362 @@ export type Database = {
           },
         ];
       };
+      job_credentials: {
+        Row: {
+          created_at: string;
+          credential_type_id: string;
+          job_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          credential_type_id: string;
+          job_id: string;
+        };
+        Update: {
+          created_at?: string;
+          credential_type_id?: string;
+          job_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_credentials_credential_type_id_fkey";
+            columns: ["credential_type_id"];
+            isOneToOne: false;
+            referencedRelation: "credential_types";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_credentials_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "jobs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      job_hazards: {
+        Row: {
+          created_at: string;
+          hazard_id: string;
+          job_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          hazard_id: string;
+          job_id: string;
+        };
+        Update: {
+          created_at?: string;
+          hazard_id?: string;
+          job_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_hazards_hazard_id_fkey";
+            columns: ["hazard_id"];
+            isOneToOne: false;
+            referencedRelation: "hazards";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_hazards_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "jobs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      job_photos: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          id: string;
+          job_id: string;
+          path: string;
+          sort_order: number;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          job_id: string;
+          path: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          job_id?: string;
+          path?: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_photos_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "jobs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      job_ppe: {
+        Row: {
+          created_at: string;
+          job_id: string;
+          ppe_item_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          job_id: string;
+          ppe_item_id: string;
+        };
+        Update: {
+          created_at?: string;
+          job_id?: string;
+          ppe_item_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_ppe_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "jobs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_ppe_ppe_item_id_fkey";
+            columns: ["ppe_item_id"];
+            isOneToOne: false;
+            referencedRelation: "ppe_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      job_templates: {
+        Row: {
+          archived_at: string | null;
+          business_id: string;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          job_id: string;
+          name: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          business_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          job_id: string;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          business_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          job_id?: string;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_templates_business_id_fkey";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_templates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "job_templates_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "jobs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      jobs: {
+        Row: {
+          archived_at: string | null;
+          business_id: string;
+          cancellation_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: string | null;
+          category_id: string | null;
+          copied_from: string | null;
+          created_at: string;
+          created_by: string | null;
+          estimate_cents: number | null;
+          estimate_gst_cents: number | null;
+          favourites_first_minutes: number | null;
+          fill_mode: Database["public"]["Enums"]["fill_mode"];
+          hazard_controls: string;
+          hazard_notes: string;
+          headcount: number;
+          id: string;
+          induction: string;
+          instructions: string;
+          level: number;
+          no_known_hazards: boolean;
+          police_check_required: boolean;
+          posted_at: string | null;
+          posted_by: string | null;
+          ppe_notes: string;
+          ppe_supplied_by: Database["public"]["Enums"]["ppe_supplier"];
+          report_to_name: string | null;
+          report_to_phone: string | null;
+          site_id: string | null;
+          status: Database["public"]["Enums"]["job_status"];
+          steps: string[];
+          type: Database["public"]["Enums"]["job_type"];
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          business_id: string;
+          cancellation_reason?: string | null;
+          cancelled_at?: string | null;
+          cancelled_by?: string | null;
+          category_id?: string | null;
+          copied_from?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          estimate_cents?: number | null;
+          estimate_gst_cents?: number | null;
+          favourites_first_minutes?: number | null;
+          fill_mode?: Database["public"]["Enums"]["fill_mode"];
+          hazard_controls?: string;
+          hazard_notes?: string;
+          headcount?: number;
+          id?: string;
+          induction?: string;
+          instructions?: string;
+          level?: number;
+          no_known_hazards?: boolean;
+          police_check_required?: boolean;
+          posted_at?: string | null;
+          posted_by?: string | null;
+          ppe_notes?: string;
+          ppe_supplied_by?: Database["public"]["Enums"]["ppe_supplier"];
+          report_to_name?: string | null;
+          report_to_phone?: string | null;
+          site_id?: string | null;
+          status?: Database["public"]["Enums"]["job_status"];
+          steps?: string[];
+          type?: Database["public"]["Enums"]["job_type"];
+          updated_at?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          business_id?: string;
+          cancellation_reason?: string | null;
+          cancelled_at?: string | null;
+          cancelled_by?: string | null;
+          category_id?: string | null;
+          copied_from?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          estimate_cents?: number | null;
+          estimate_gst_cents?: number | null;
+          favourites_first_minutes?: number | null;
+          fill_mode?: Database["public"]["Enums"]["fill_mode"];
+          hazard_controls?: string;
+          hazard_notes?: string;
+          headcount?: number;
+          id?: string;
+          induction?: string;
+          instructions?: string;
+          level?: number;
+          no_known_hazards?: boolean;
+          police_check_required?: boolean;
+          posted_at?: string | null;
+          posted_by?: string | null;
+          ppe_notes?: string;
+          ppe_supplied_by?: Database["public"]["Enums"]["ppe_supplier"];
+          report_to_name?: string | null;
+          report_to_phone?: string | null;
+          site_id?: string | null;
+          status?: Database["public"]["Enums"]["job_status"];
+          steps?: string[];
+          type?: Database["public"]["Enums"]["job_type"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "jobs_business_id_fkey";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "jobs_cancelled_by_fkey";
+            columns: ["cancelled_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "jobs_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "jobs_copied_from_fkey";
+            columns: ["copied_from"];
+            isOneToOne: false;
+            referencedRelation: "jobs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "jobs_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "jobs_posted_by_fkey";
+            columns: ["posted_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "jobs_site_id_fkey";
+            columns: ["site_id"];
+            isOneToOne: false;
+            referencedRelation: "sites";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       jurisdictions: {
         Row: {
           code: string;
@@ -1165,6 +1521,67 @@ export type Database = {
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      shifts: {
+        Row: {
+          break_minutes: number;
+          cancellation_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: string | null;
+          created_at: string;
+          ends_at: string;
+          headcount: number;
+          id: string;
+          job_id: string;
+          starts_at: string;
+          status: Database["public"]["Enums"]["shift_status"];
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          break_minutes?: number;
+          cancellation_reason?: string | null;
+          cancelled_at?: string | null;
+          cancelled_by?: string | null;
+          created_at?: string;
+          ends_at: string;
+          headcount: number;
+          id?: string;
+          job_id: string;
+          starts_at: string;
+          status?: Database["public"]["Enums"]["shift_status"];
+          updated_at?: string;
+        };
+        Update: {
+          break_minutes?: number;
+          cancellation_reason?: string | null;
+          cancelled_at?: string | null;
+          cancelled_by?: string | null;
+          created_at?: string;
+          ends_at?: string;
+          headcount?: number;
+          id?: string;
+          job_id?: string;
+          starts_at?: string;
+          status?: Database["public"]["Enums"]["shift_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shifts_cancelled_by_fkey";
+            columns: ["cancelled_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "jobs";
             referencedColumns: ["id"];
           },
         ];
@@ -1592,6 +2009,8 @@ export type Database = {
         Returns: string;
       };
       activate_worker: { Args: { p_worker_id: string }; Returns: undefined };
+      can_edit_job: { Args: { p_job_id: string }; Returns: boolean };
+      can_see_job: { Args: { p_job_id: string }; Returns: boolean };
       can_see_site: { Args: { p_site_id: string }; Returns: boolean };
       dev_auth_email: {
         Args: {
@@ -1603,6 +2022,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      duplicate_job: { Args: { p_job_id: string }; Returns: string };
       hook_send_email: { Args: { event: Json }; Returns: Json };
       hook_send_sms: { Args: { event: Json }; Returns: Json };
       in_worker_folder: {
@@ -1638,6 +2058,7 @@ export type Database = {
       };
       my_worker_id: { Args: Record<PropertyKey, never>; Returns: string };
       normalise_auth_phone: { Args: { raw: string }; Returns: string };
+      post_job: { Args: { p_job_id: string }; Returns: undefined };
       review_worker_credential: {
         Args: { p_approve: boolean; p_id: string; p_reason?: string };
         Returns: undefined;
@@ -1646,6 +2067,7 @@ export type Database = {
         Args: { p_agreement_id: string };
         Returns: undefined;
       };
+      state_blocked: { Args: { p_state: string }; Returns: boolean };
       submit_business: { Args: Record<PropertyKey, never>; Returns: undefined };
       submit_worker_onboarding: {
         Args: Record<PropertyKey, never>;
@@ -1667,12 +2089,17 @@ export type Database = {
       citizenship_evidence:
         "australian_passport" | "birth_certificate" | "citizenship_certificate";
       credential_kind: "ticket" | "licence" | "police_check" | "wwcc";
+      fill_mode: "pick" | "auto";
       identity_document: "driver_licence" | "passport";
+      job_status: "draft" | "posted" | "cancelled" | "completed";
+      job_type: "single" | "multi_day" | "urgent";
       licence_class: "none" | "C" | "MR" | "HR";
       licence_status: "active" | "expired" | "suspended" | "cancelled";
       payroll_status: "not_started" | "invited" | "complete";
+      ppe_supplier: "business" | "worker" | "both";
       right_to_work_basis:
         "citizen" | "permanent_resident" | "nz_citizen" | "visa";
+      shift_status: "open" | "filled" | "cancelled" | "completed";
       user_role: "worker" | "business_user" | "admin";
       verification_method: "manual" | "register_check" | "provider_api";
       worker_status:
@@ -1822,16 +2249,21 @@ export const Constants = {
         "citizenship_certificate",
       ],
       credential_kind: ["ticket", "licence", "police_check", "wwcc"],
+      fill_mode: ["pick", "auto"],
       identity_document: ["driver_licence", "passport"],
+      job_status: ["draft", "posted", "cancelled", "completed"],
+      job_type: ["single", "multi_day", "urgent"],
       licence_class: ["none", "C", "MR", "HR"],
       licence_status: ["active", "expired", "suspended", "cancelled"],
       payroll_status: ["not_started", "invited", "complete"],
+      ppe_supplier: ["business", "worker", "both"],
       right_to_work_basis: [
         "citizen",
         "permanent_resident",
         "nz_citizen",
         "visa",
       ],
+      shift_status: ["open", "filled", "cancelled", "completed"],
       user_role: ["worker", "business_user", "admin"],
       verification_method: ["manual", "register_check", "provider_api"],
       worker_status: ["draft", "pending", "active", "suspended", "offboarded"],
