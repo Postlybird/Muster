@@ -47,9 +47,9 @@ export async function signInAsNewWorker(page: Page) {
   return mobile;
 }
 
-/** Signs up a brand-new business user with an email code. */
-export async function signInAsNewBusiness(page: Page) {
-  const email = randomEmail("owner");
+/** Signs a business user in (or up) with a code emailed to them. */
+export async function signInWithEmailCode(page: Page, email: string) {
+  await page.context().clearCookies();
   await page.goto("/login?as=business");
   await page.getByLabel("Email address").fill(email);
   await page.getByRole("button", { name: "Send code" }).click();
@@ -61,6 +61,12 @@ export async function signInAsNewBusiness(page: Page) {
     .fill(await readCodeFromOutbox(page, email));
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(/\/business$/);
+}
+
+/** Signs up a brand-new business user with an email code. */
+export async function signInAsNewBusiness(page: Page) {
+  const email = randomEmail("owner");
+  await signInWithEmailCode(page, email);
   return email;
 }
 
@@ -79,6 +85,13 @@ export async function expectAccessible(page: Page) {
       `${v.id} (${v.impact}): ${v.help} → ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`,
   );
   expect(summary, `Accessibility problems on ${page.url()}`).toEqual([]);
+  // WCAG 1.4.10 (reflow): nothing makes the page scroll sideways.
+  const overflow = await page.evaluate(
+    () =>
+      document.documentElement.scrollWidth -
+      document.documentElement.clientWidth,
+  );
+  expect(overflow, `The page scrolls sideways on ${page.url()}`).toBe(0);
 }
 
 /** Demo mode: signs in as a seeded account by name ("Alex Morgan" is an admin). */
@@ -244,4 +257,81 @@ export function randomAbn(): string {
     );
     if (sum % 89 === 0) return digits.join("");
   }
+}
+
+/** A random date far in the future (yyyy-mm-dd), so repeated runs don't clash. */
+export function randomFutureDate(): string {
+  const pick = (min: number, max: number) =>
+    min + Math.floor(Math.random() * (max - min + 1));
+  const month = String(pick(1, 12)).padStart(2, "0");
+  const day = String(pick(1, 28)).padStart(2, "0");
+  return `${pick(2040, 2099)}-${month}-${day}`;
+}
+
+/**
+ * A business that has submitted everything and is waiting for approval,
+ * created directly in the database so admin tests can be repeated. Pass an
+ * ABN to reuse one (any earlier business with it is archived first).
+ */
+export async function createPendingBusiness(options: { abn?: string } = {}) {
+  const supabase = serviceClient();
+  const abn = options.abn ?? randomAbn();
+  if (options.abn) {
+    await supabase
+      .from("businesses")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("abn", abn)
+      .is("archived_at", null);
+  }
+  const email = randomEmail("pending.owner");
+  const name = `Test Business ${Math.floor(Math.random() * 1e6)}`;
+  const { data: created, error } = await supabase.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    user_metadata: { full_name: "Robin Owner", signup_role: "business_user" },
+  });
+  if (error || !created.user) throw new Error(error?.message);
+  const ownerId = created.user.id;
+
+  const { data: business, error: businessError } = await supabase
+    .from("businesses")
+    .insert({
+      abn,
+      legal_name: `${name.toUpperCase()} PTY LTD`,
+      entity_type: "Australian Private Company",
+      abn_status: "active",
+      gst_registered: true,
+      gst_registered_from: "2015-07-01",
+      abr_state: "NSW",
+      abr_postcode: "2150",
+      abr_checked_at: new Date().toISOString(),
+      trading_name: name,
+      billing_contact_name: "Robin Owner",
+      billing_contact_phone: "+61255501234",
+      accounts_email: email,
+      onboarding_steps: ["abn", "details", "sites", "team", "agreement"],
+      status: "pending",
+      submitted_at: new Date().toISOString(),
+      created_by: ownerId,
+    })
+    .select("id")
+    .single();
+  if (businessError || !business) throw new Error(businessError?.message);
+  await supabase.from("business_users").insert({
+    business_id: business.id,
+    profile_id: ownerId,
+    role: "owner",
+    accepted_at: new Date().toISOString(),
+  });
+  await supabase.from("sites").insert({
+    business_id: business.id,
+    name: "Head office",
+    address_line1: "12 George St",
+    suburb: "Parramatta",
+    state: "NSW",
+    postcode: "2150",
+    lat: -33.8148,
+    lng: 151.0017,
+  });
+  return { businessId: business.id as string, name, ownerEmail: email };
 }

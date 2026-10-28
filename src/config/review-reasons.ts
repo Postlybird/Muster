@@ -49,3 +49,14 @@ export function reviewReasons(
       ];
   }
 }
+
+/**
+ * Ready-made reasons for declining a business or putting it on hold. Each is
+ * written to the business owner; admins can edit the wording before sending.
+ */
+export const businessHoldReasons = [
+  "We only place workers in Greater Sydney for now. We'll let you know when we cover your area.",
+  "We couldn't confirm your business details. Please contact us so we can finish setting up your account.",
+  "Your ABN is cancelled on the Australian Business Register. Contact us once it's active again.",
+  "Some invoices are overdue. Contact us to sort out payment.",
+];

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { rateCardFromRow } from "@/domain/rates";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { businessOptions } from "@/server/businesses";
 
 import { setRateArchived } from "../../actions";
 import { RateCardForm } from "../rate-card-form";
@@ -20,7 +21,7 @@ export default async function EditRateCardPage({
   await requireAdmin();
   const { id } = await params;
   const supabase = await createClient();
-  const [{ data: card }, { data: categories }] = await Promise.all([
+  const [{ data: card }, { data: categories }, businesses] = await Promise.all([
     supabase
       .from("rate_cards")
       .select("*, categories(name)")
@@ -31,6 +32,7 @@ export default async function EditRateCardPage({
       .select("id, name")
       .is("archived_at", null)
       .order("sort_order"),
+    businessOptions(),
   ]);
   if (!card) notFound();
   const archived = !!card.archived_at;
@@ -70,8 +72,10 @@ export default async function EditRateCardPage({
       </div>
       <RateCardForm
         categories={categories ?? []}
+        businesses={businesses}
         values={{
           id: card.id,
+          business_id: card.business_id ?? "",
           category_id: card.category_id,
           level: card.level,
           base_rate: (card.base_rate_cents / 100).toFixed(2),

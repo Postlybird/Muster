@@ -43,7 +43,7 @@ export function MemberRow({
   return (
     <li className="space-y-3 rounded-lg border p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
+        <div className="min-w-0 [overflow-wrap:anywhere]">
           <p className="font-medium">
             {member.name}
             {member.isMe ? (

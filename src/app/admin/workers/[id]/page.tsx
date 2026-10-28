@@ -64,9 +64,9 @@ function Section({
 
 function Detail({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[10rem_1fr] gap-2 text-sm">
+    <div className="grid grid-cols-[10rem_minmax(0,1fr)] gap-2 text-sm">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd>{value ?? "—"}</dd>
+      <dd className="[overflow-wrap:anywhere]">{value ?? "—"}</dd>
     </div>
   );
 }
@@ -186,7 +186,7 @@ export default async function WorkerReviewPage({
             <h1 className="text-2xl font-bold tracking-tight">{name}</h1>
             <StatusBadge status={workerStatuses[worker.status]} />
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm [overflow-wrap:anywhere] text-muted-foreground">
             {[
               worker.preferred_name ? `Goes by ${worker.preferred_name}` : null,
               formatAuPhone(profile?.phone),

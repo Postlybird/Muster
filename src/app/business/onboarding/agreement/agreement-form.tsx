@@ -1,26 +1,39 @@
 "use client";
 
+import { toast } from "sonner";
+
 import { ActionFeedback } from "@/components/forms/action-feedback";
+import { SubmitButton } from "@/components/forms/submit-button";
 import { useServerForm } from "@/components/forms/use-server-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { WizardActions } from "@/components/wizard/wizard-actions";
+import type { ActionState } from "@/lib/forms";
 
 import { acceptServicesAgreement } from "./actions";
 
 export function AgreementForm({
   agreementId,
   legalName,
+  context = "onboarding",
 }: {
   agreementId: string;
   legalName: string;
+  context?: "onboarding" | "page";
 }) {
+  // Toast as soon as the save returns: on Settings the form disappears once
+  // the agreement is accepted, so it can't show the message itself.
+  const accept = acceptServicesAgreement.bind(null, agreementId, context);
   const {
     state,
     onSubmit,
     pending,
     fieldErrors: errors,
-  } = useServerForm(acceptServicesAgreement.bind(null, agreementId));
+  } = useServerForm(async (prev: ActionState, formData: FormData) => {
+    const result = await accept(prev, formData);
+    if (result.status === "success") toast.success(result.message);
+    return result;
+  });
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
       <div className="space-y-1">
@@ -43,12 +56,16 @@ export function AgreementForm({
           </p>
         ) : null}
       </div>
-      <ActionFeedback state={state} />
-      <WizardActions
-        pending={pending}
-        primaryLabel="Accept and continue"
-        backHref="/business/onboarding/team"
-      />
+      <ActionFeedback state={state} successToast={false} />
+      {context === "onboarding" ? (
+        <WizardActions
+          pending={pending}
+          primaryLabel="Accept and continue"
+          backHref="/business/onboarding/team"
+        />
+      ) : (
+        <SubmitButton pending={pending}>Accept</SubmitButton>
+      )}
     </form>
   );
 }

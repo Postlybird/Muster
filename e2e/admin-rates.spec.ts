@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { expectAccessible, signInAsDemo } from "./helpers";
+import { expectAccessible, randomFutureDate, signInAsDemo } from "./helpers";
 
 test.describe("admin rates", () => {
   test.beforeEach(async ({ page }) => {
@@ -56,10 +56,18 @@ test.describe("admin rates", () => {
     page,
   }) => {
     await page.goto("/admin/rates/bill-rules/new");
-    await page.getByLabel("Work category").click();
-    await page.getByRole("option", { name: "Trades assistant" }).click();
+    await page.getByRole("button", { name: "Add bill rule" }).click();
+    await expect(
+      page.getByText(
+        "Choose a category, or a business for a rule that covers all",
+      ),
+    ).toBeVisible();
+    await page
+      .getByLabel("Work category")
+      .selectOption({ label: "Trades assistant" });
     await page.getByLabel("Fixed bill rates").check();
-    await page.getByLabel("Applies from").fill("2031-02-01");
+    // A unique start date: one rule per category from a given date.
+    await page.getByLabel("Applies from").fill(randomFutureDate());
     await page.getByRole("button", { name: "Add bill rule" }).click();
     await expect(page.getByText("Enter a rate").first()).toBeVisible();
 

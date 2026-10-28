@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { EmptyState } from "@/components/empty-state";
 import { Markdown } from "@/components/markdown";
+import { ScrollBox } from "@/components/scroll-box";
 import { WhatsNext } from "@/components/status/whats-next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -59,9 +60,12 @@ async function GetStarted() {
           <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-medium text-primary underline-offset-4 hover:underline">
             How we handle your information
           </summary>
-          <div className="max-h-96 overflow-y-auto border-t px-3 py-3">
+          <ScrollBox
+            label="How we handle your information"
+            className="max-h-96 border-t px-3 py-3"
+          >
             <Markdown>{notice.body_md}</Markdown>
-          </div>
+          </ScrollBox>
         </details>
       ) : null}
       <p className="text-sm text-muted-foreground">

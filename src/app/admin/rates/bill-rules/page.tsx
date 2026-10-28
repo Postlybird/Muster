@@ -16,6 +16,7 @@ import {
 import { requireAdmin } from "@/lib/auth";
 import { formatCalendarDate, formatCents } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { businessName } from "@/server/businesses";
 import { getAllSettings } from "@/server/settings";
 
 export const metadata: Metadata = { title: "Bill rules" };
@@ -26,7 +27,7 @@ export default async function BillRulesPage() {
   const [{ data: rules }, settings] = await Promise.all([
     supabase
       .from("bill_rate_rules")
-      .select("*, categories(name)")
+      .select("*, categories(name), businesses(legal_name, trading_name)")
       .is("archived_at", null)
       .order("effective_from", { ascending: false }),
     getAllSettings(),
@@ -47,9 +48,10 @@ export default async function BillRulesPage() {
           <Link href="/admin/settings" className="underline">
             settings
           </Link>
-          ) plus a {settings.margin_pct}% margin. A rule here overrides that for
-          a category: a different margin, or fixed bill rates. Rules for a
-          single business arrive with business accounts.
+          ) plus a {settings.margin_pct}% margin. A rule here overrides that: a
+          different margin, or fixed bill rates. The most specific rule wins: a
+          business&apos;s rule for the category, then its rule for all
+          categories, then the category&apos;s standard rule.
         </p>
         <Button asChild>
           <Link href="/admin/rates/bill-rules/new">
@@ -70,6 +72,7 @@ export default async function BillRulesPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Category</TableHead>
+              <TableHead>Applies to</TableHead>
               <TableHead>Rule</TableHead>
               <TableHead>From</TableHead>
               <TableHead>Until</TableHead>
@@ -85,6 +88,11 @@ export default async function BillRulesPage() {
                   >
                     {rule.categories?.name ?? "All categories"}
                   </Link>
+                </TableCell>
+                <TableCell>
+                  {rule.businesses
+                    ? businessName(rule.businesses)
+                    : "Every business"}
                 </TableCell>
                 <TableCell>
                   {rule.method === "markup" ? (

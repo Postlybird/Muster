@@ -1,12 +1,18 @@
 "use server";
 
-import { formBoolean, failure, type ActionState } from "@/lib/forms";
+import { revalidatePath } from "next/cache";
+
+import { formBoolean, failure, success, type ActionState } from "@/lib/forms";
 import { currentAgreement, recordAcceptances } from "@/server/agreements";
 import { finishBusinessStep, getMyBusiness } from "@/server/businesses";
 
-/** Accepts the current Labour Hire Services Agreement for the business. */
+/**
+ * Accepts the current Labour Hire Services Agreement for the business:
+ * during setup, or from Settings when we publish a new version.
+ */
 export async function acceptServicesAgreement(
   agreementId: string,
+  context: "onboarding" | "page",
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
@@ -27,5 +33,8 @@ export async function acceptServicesAgreement(
   }
   const problem = await recordAcceptances(user.id, [current.id], business.id);
   if (problem) return failure(problem);
-  return finishBusinessStep(business, "agreement");
+  if (context === "onboarding")
+    return finishBusinessStep(business, "agreement");
+  revalidatePath("/business", "layout");
+  return success("Agreement accepted");
 }

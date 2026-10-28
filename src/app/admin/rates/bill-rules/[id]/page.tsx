@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DAY_TYPES } from "@/domain/rates";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { businessName, businessOptions } from "@/server/businesses";
 
 import { setRateArchived } from "../../actions";
 import { BillRuleForm } from "../bill-rule-form";
@@ -20,10 +21,10 @@ export default async function EditBillRulePage({
   await requireAdmin();
   const { id } = await params;
   const supabase = await createClient();
-  const [{ data: rule }, { data: categories }] = await Promise.all([
+  const [{ data: rule }, { data: categories }, businesses] = await Promise.all([
     supabase
       .from("bill_rate_rules")
-      .select("*, categories(name)")
+      .select("*, categories(name), businesses(legal_name, trading_name)")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -31,6 +32,7 @@ export default async function EditBillRulePage({
       .select("id, name")
       .is("archived_at", null)
       .order("sort_order"),
+    businessOptions(),
   ]);
   if (!rule) notFound();
   const archived = !!rule.archived_at;
@@ -49,6 +51,7 @@ export default async function EditBillRulePage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">
           {rule.categories?.name ?? "All categories"}
+          {rule.businesses ? `, ${businessName(rule.businesses)}` : ""}
           {archived ? " (archived)" : ""}
         </h2>
         <ConfirmAction
@@ -77,8 +80,10 @@ export default async function EditBillRulePage({
       </div>
       <BillRuleForm
         categories={categories ?? []}
+        businesses={businesses}
         values={{
           id: rule.id,
+          business_id: rule.business_id ?? "",
           category_id: rule.category_id ?? "",
           method: rule.method,
           margin_pct:

@@ -4,9 +4,9 @@ import {
   expectAccessible,
   randomAbn,
   randomEmail,
-  readCodeFromOutbox,
   signInAsDemo,
   signInAsNewBusiness,
+  signInWithEmailCode,
 } from "./helpers";
 
 test("a business owner sets up their account and submits it", async ({
@@ -91,15 +91,7 @@ test("a business owner sets up their account and submits it", async ({
   await expect(page.getByText("Awaiting approval")).toBeVisible();
 
   // The invited manager signs in and joins.
-  await page.context().clearCookies();
-  await page.goto("/login?as=business");
-  await page.getByLabel("Email address").fill(managerEmail);
-  await page.getByRole("button", { name: "Send code" }).click();
-  await page
-    .getByLabel("6-digit code")
-    .fill(await readCodeFromOutbox(page, managerEmail));
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/business$/);
+  await signInWithEmailCode(page, managerEmail);
   await expect(
     page.getByRole("heading", { name: `Demo Business ${abn.slice(-4)}` }),
   ).toBeVisible();

@@ -38,8 +38,12 @@ const multiplier = requiredNumber("Enter a multiplier").pipe(
   z.number().min(0.5, "Too low").max(5, "Too high"),
 );
 
+/** Empty means the standard rates that every business gets. */
+const businessId = z.uuid("Choose a business").nullable();
+
 const rateCardSchema = z
   .object({
+    business_id: businessId,
     category_id: z.uuid("Choose a category"),
     level: requiredNumber("Enter a level").pipe(
       z.number().int().min(1).max(10),
@@ -74,6 +78,7 @@ export async function saveRateCard(
   const user = await requireAdmin();
   const cents = dollarsToCents(formData.get("base_rate"));
   const parsed = rateCardSchema.safeParse({
+    business_id: optionalText(formData.get("business_id")),
     category_id: formData.get("category_id"),
     level: formData.get("level"),
     base_rate_cents: cents === null || Number.isNaN(cents) ? undefined : cents,
@@ -99,8 +104,9 @@ export async function saveRateCard(
   }
 
   const supabase = await createClient();
-  const duplicate =
-    "There's already a rate card for this category and level starting on that date.";
+  const duplicate = parsed.data.business_id
+    ? "This business already has a rate card for this category and level starting on that date."
+    : "There's already a rate card for this category and level starting on that date.";
   if (id) {
     const { error } = await supabase
       .from("rate_cards")
@@ -108,6 +114,7 @@ export async function saveRateCard(
       .eq("id", id);
     if (error) return failure(friendlyDbError(error, duplicate));
     revalidatePath("/admin/rates/rate-cards");
+    revalidatePath("/admin/businesses", "layout");
     return success("Rate card saved");
   }
   const { data, error } = await supabase
@@ -117,6 +124,7 @@ export async function saveRateCard(
     .single();
   if (error) return failure(friendlyDbError(error, duplicate));
   revalidatePath("/admin/rates/rate-cards");
+  revalidatePath("/admin/businesses", "layout");
   redirect(`/admin/rates/rate-cards/${data.id}?saved=1`);
 }
 
@@ -133,7 +141,9 @@ const centsField = (label: string) =>
 
 const billRuleSchema = z
   .object({
-    category_id: z.uuid("Choose a category"),
+    business_id: businessId,
+    // Empty for a business's rule that covers every category.
+    category_id: z.uuid("Choose a category").nullable(),
     method: z.enum(["markup", "fixed"]),
     margin_pct: z.number().min(0).max(500).nullable(),
     fixed_ordinary_cents: centsField("ordinary").nullable(),
@@ -147,6 +157,13 @@ const billRuleSchema = z
     notes: z.string().trim().max(1000),
   })
   .superRefine((v, ctx) => {
+    if (!v.business_id && !v.category_id) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["category_id"],
+        message: "Choose a category, or a business for a rule that covers all",
+      });
+    }
     if (v.effective_to && v.effective_to < v.effective_from) {
       ctx.addIssue({
         code: "custom",
@@ -195,7 +212,8 @@ export async function saveBillRule(
     }),
   );
   const parsed = billRuleSchema.safeParse({
-    category_id: formData.get("category_id"),
+    business_id: optionalText(formData.get("business_id")),
+    category_id: optionalText(formData.get("category_id")),
     method,
     margin_pct: method === "markup" && margin !== null ? Number(margin) : null,
     ...fixed,
@@ -216,7 +234,8 @@ export async function saveBillRule(
   }
 
   const supabase = await createClient();
-  const duplicate = "A rule like this already exists.";
+  const duplicate =
+    "There's already a rule for this business and category starting on that date.";
   if (id) {
     const { error } = await supabase
       .from("bill_rate_rules")
@@ -224,6 +243,7 @@ export async function saveBillRule(
       .eq("id", id);
     if (error) return failure(friendlyDbError(error, duplicate));
     revalidatePath("/admin/rates/bill-rules");
+    revalidatePath("/admin/businesses", "layout");
     return success("Bill rule saved");
   }
   const { data, error } = await supabase
@@ -233,6 +253,7 @@ export async function saveBillRule(
     .single();
   if (error) return failure(friendlyDbError(error, duplicate));
   revalidatePath("/admin/rates/bill-rules");
+  revalidatePath("/admin/businesses", "layout");
   redirect(`/admin/rates/bill-rules/${data.id}?saved=1`);
 }
 
@@ -262,6 +283,7 @@ export async function setRateArchived(
       friendlyDbError(error, "That would clash with another active entry."),
     );
   revalidatePath("/admin/rates", "layout");
+  revalidatePath("/admin/businesses", "layout");
   return success(archived ? "Archived" : "Restored");
 }
 

@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(20);
+select plan(24);
 
 insert into auth.users (id, email, email_confirmed_at, raw_user_meta_data) values
   ('11111111-1111-1111-1111-111111111111', 'worker@pgtap.test', now(), '{}'),
@@ -14,6 +14,10 @@ insert into auth.users (id, email, email_confirmed_at, raw_user_meta_data) value
   ('65555555-5555-5555-5555-555555555555', 'other.owner@pgtap.test', now(), '{"signup_role": "business_user"}'),
   ('44444444-4444-4444-4444-444444444444', 'admin@pgtap.test', now(), '{}');
 update public.profiles set role = 'admin' where id = '44444444-4444-4444-4444-444444444444';
+
+-- Sites need their state (demo data loads the rest; CI tests run before it).
+insert into public.jurisdictions (code, name) values ('NSW', 'New South Wales')
+on conflict (code) do nothing;
 
 -- Written by the server after an ABN lookup.
 insert into public.businesses (id, abn, legal_name, abn_status, abr_checked_at, created_by) values
@@ -167,6 +171,36 @@ select throws_ok(
      where id = 'b2222222-0000-0000-0000-000000000002' $$,
   '23514', null,
   'a business with a cancelled ABN cannot be approved'
+);
+
+-- An admin (signed in with their authenticator app) approves it.
+select set_config('request.jwt.claims', '{"sub": "44444444-4444-4444-4444-444444444444", "role": "authenticated", "aal": "aal2"}', true);
+set local role authenticated;
+
+select is((select count(*) from public.businesses), 2::bigint, 'an admin sees every business');
+
+select lives_ok(
+  $$ update public.businesses set status = 'approved', approved_at = now(),
+       approved_by = '44444444-4444-4444-4444-444444444444', account_terms_approved = true,
+       payment_terms_days = 14
+     where id = 'b1111111-0000-0000-0000-000000000001' $$,
+  'an admin can approve a business with account terms'
+);
+
+select set_config('request.jwt.claims', '{"sub": "44444444-4444-4444-4444-444444444444", "role": "authenticated", "aal": "aal1"}', true);
+select is_empty(
+  $$ select id from public.businesses $$,
+  'an admin who has not used their authenticator app sees no businesses'
+);
+
+reset role;
+insert into public.bill_rate_rules (business_id, method, margin_pct, effective_from)
+values ('b1111111-0000-0000-0000-000000000001', 'markup', 15, '2026-07-01');
+select throws_ok(
+  $$ insert into public.bill_rate_rules (business_id, method, margin_pct, effective_from)
+     values ('b1111111-0000-0000-0000-000000000001', 'markup', 12, '2026-07-01') $$,
+  '23505', null,
+  'a business has one bill rule per category from a given date'
 );
 
 select * from finish();

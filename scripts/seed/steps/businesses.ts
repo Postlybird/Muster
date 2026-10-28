@@ -173,6 +173,19 @@ export async function seedBusinesses(client: SeedClient) {
         "services agreement",
       );
     }
+    if (business.marginPct !== undefined) {
+      check(
+        await client.from("bill_rate_rules").insert({
+          business_id: created.id,
+          method: "markup",
+          margin_pct: business.marginPct,
+          effective_from: "2026-07-01",
+          notes: "Volume discount (demo data)",
+          created_by: adminId,
+        }),
+        "business margin",
+      );
+    }
     added++;
   }
 

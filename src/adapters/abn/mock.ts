@@ -71,6 +71,15 @@ export const DEMO_ABNS: Record<string, AbnDetails> = {
       statusEffectiveFrom: "2023-06-30",
     },
   ),
+  "41824754014": company(
+    "41824754014",
+    "SHUTTERED SERVICES PTY LTD",
+    ["Shuttered Services"],
+    {
+      status: "cancelled",
+      statusEffectiveFrom: "2024-03-31",
+    },
+  ),
 };
 
 /**

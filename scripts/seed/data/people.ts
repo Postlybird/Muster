@@ -32,6 +32,8 @@ export type SeedBusiness = {
     /** Supervisors: the sites (by name) they look after. */
     sites?: string[];
   }[];
+  /** Their own margin on every category (a bill rule), e.g. a volume discount. */
+  marginPct?: number;
   /** Street address plus suburb, as typed into the address picker. */
   sites: {
     name: string;
@@ -49,6 +51,7 @@ export const BUSINESSES: SeedBusiness[] = [
     status: "approved",
     accountsEmail: "accounts.harbour@demo.test",
     phone: "+61255500101",
+    marginPct: 15,
     people: [
       {
         fullName: "Mark Davies",

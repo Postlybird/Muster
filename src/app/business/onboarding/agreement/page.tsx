@@ -2,6 +2,7 @@ import { CheckCircle2 } from "lucide-react";
 import type { Metadata } from "next";
 
 import { Markdown } from "@/components/markdown";
+import { ScrollBox } from "@/components/scroll-box";
 import { formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { currentAgreement } from "@/server/agreements";
@@ -37,7 +38,10 @@ export default async function AgreementStepPage() {
     >
       {agreement ? (
         <div className="max-w-2xl space-y-6">
-          <div className="max-h-[28rem] overflow-y-auto rounded-lg border p-4">
+          <ScrollBox
+            label={agreement.title}
+            className="max-h-[28rem] rounded-lg border p-4"
+          >
             <h2 className="mb-3 font-semibold">
               {agreement.title}{" "}
               <span className="font-normal text-muted-foreground">
@@ -45,7 +49,7 @@ export default async function AgreementStepPage() {
               </span>
             </h2>
             <Markdown>{agreement.body_md}</Markdown>
-          </div>
+          </ScrollBox>
           {acceptedAt ? (
             <>
               <p className="flex items-center gap-2 text-sm">

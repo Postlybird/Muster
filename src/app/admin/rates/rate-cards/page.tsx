@@ -22,6 +22,7 @@ import {
 import { requireAdmin } from "@/lib/auth";
 import { formatCalendarDate, formatCents } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { businessName } from "@/server/businesses";
 
 export const metadata: Metadata = { title: "Pay rate cards" };
 
@@ -30,12 +31,17 @@ export default async function RateCardsPage() {
   const supabase = await createClient();
   const { data: cards } = await supabase
     .from("rate_cards")
-    .select("*, categories(name)")
+    .select("*, categories(name), businesses(legal_name, trading_name)")
     .is("archived_at", null)
     .order("effective_from", { ascending: false });
 
+  // Standard cards first, then each business's own.
   const sorted = (cards ?? []).sort(
     (a, b) =>
+      Number(!!a.businesses) - Number(!!b.businesses) ||
+      (a.businesses ? businessName(a.businesses) : "").localeCompare(
+        b.businesses ? businessName(b.businesses) : "",
+      ) ||
       (a.categories?.name ?? "").localeCompare(b.categories?.name ?? "") ||
       a.level - b.level ||
       b.effective_from.localeCompare(a.effective_from),
@@ -48,7 +54,8 @@ export default async function RateCardsPage() {
         <p className="max-w-2xl text-muted-foreground">
           Hourly pay by work category and level. The base rate excludes casual
           loading; each multiplier includes it. For a shift, the card with the
-          latest start date on or before the shift date applies.
+          latest start date on or before the shift date applies, and a
+          business&apos;s own card wins over the standard one.
         </p>
         <Button asChild>
           <Link href="/admin/rates/rate-cards/new">
@@ -94,9 +101,9 @@ export default async function RateCardsPage() {
                   >
                     {card.categories?.name}
                   </Link>
-                  {card.business_id ? (
+                  {card.businesses ? (
                     <Badge variant="info" className="ml-2">
-                      Business rate
+                      {businessName(card.businesses)}
                     </Badge>
                   ) : null}
                 </TableCell>

@@ -2,6 +2,7 @@
 
 import { CheckCircle2 } from "lucide-react";
 
+import { ScrollBox } from "@/components/scroll-box";
 import { ActionFeedback } from "@/components/forms/action-feedback";
 import { useServerForm } from "@/components/forms/use-server-form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -54,9 +55,12 @@ export function PaperworkForm({
                 <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-medium text-primary underline-offset-4 hover:underline">
                   Read it
                 </summary>
-                <div className="max-h-96 overflow-y-auto border-t px-3 py-3">
+                <ScrollBox
+                  label={document.title}
+                  className="max-h-96 border-t px-3 py-3"
+                >
                   {document.body}
-                </div>
+                </ScrollBox>
               </details>
               {document.acceptedOn ? (
                 <p className="flex items-center gap-2 text-sm">

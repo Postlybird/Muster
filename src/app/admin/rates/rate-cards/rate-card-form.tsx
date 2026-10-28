@@ -7,6 +7,7 @@ import { FormField } from "@/components/forms/form-field";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { useServerForm } from "@/components/forms/use-server-form";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   Select,
   SelectContent,
@@ -27,6 +28,8 @@ import { saveRateCard } from "../actions";
 
 export type RateCardFormValues = {
   id: string | null;
+  /** Empty for the standard card. */
+  business_id: string;
   category_id: string;
   level: number;
   base_rate: string;
@@ -41,9 +44,11 @@ export type RateCardFormValues = {
 export function RateCardForm({
   values,
   categories,
+  businesses,
 }: {
   values: RateCardFormValues;
   categories: { id: string; name: string }[];
+  businesses: { id: string; name: string }[];
 }) {
   const { state, onSubmit, pending, fieldErrors } = useServerForm(
     saveRateCard.bind(null, values.id),
@@ -61,6 +66,28 @@ export function RateCardForm({
 
   return (
     <form onSubmit={onSubmit} noValidate className="max-w-3xl space-y-6">
+      <FormField
+        id="business_id"
+        label="Applies to"
+        hint="A business's own card (for example under a 'same job, same pay' order) wins over the standard one."
+        error={fieldErrors?.business_id}
+      >
+        {(props) => (
+          <NativeSelect
+            {...props}
+            name="business_id"
+            defaultValue={values.business_id}
+            className="sm:w-96"
+          >
+            <option value="">Every business (standard rates)</option>
+            {businesses.map((business) => (
+              <option key={business.id} value={business.id}>
+                {business.name}
+              </option>
+            ))}
+          </NativeSelect>
+        )}
+      </FormField>
       <div className="grid gap-6 sm:grid-cols-3">
         <FormField
           id="category_id"

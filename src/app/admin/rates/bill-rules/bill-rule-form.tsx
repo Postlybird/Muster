@@ -8,14 +8,8 @@ import { SubmitButton } from "@/components/forms/submit-button";
 import { useServerForm } from "@/components/forms/use-server-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { DAY_TYPES, dayTypeLabels, type DayType } from "@/domain/rates";
 
@@ -23,6 +17,9 @@ import { saveBillRule } from "../actions";
 
 export type BillRuleFormValues = {
   id: string | null;
+  /** Empty for a rule that applies to every business. */
+  business_id: string;
+  /** Empty for a business's rule that covers every category. */
   category_id: string;
   method: "markup" | "fixed";
   margin_pct: string;
@@ -35,40 +32,66 @@ export type BillRuleFormValues = {
 export function BillRuleForm({
   values,
   categories,
+  businesses,
 }: {
   values: BillRuleFormValues;
   categories: { id: string; name: string }[];
+  businesses: { id: string; name: string }[];
 }) {
   const { state, onSubmit, pending, fieldErrors } = useServerForm(
     saveBillRule.bind(null, values.id),
   );
   const [method, setMethod] = useState(values.method);
+  const [business, setBusiness] = useState(values.business_id);
 
   return (
     <form onSubmit={onSubmit} noValidate className="max-w-3xl space-y-6">
-      <FormField
-        id="category_id"
-        label="Work category"
-        error={fieldErrors?.category_id}
-      >
-        {(props) => (
-          <Select
-            name="category_id"
-            defaultValue={values.category_id || undefined}
-          >
-            <SelectTrigger {...props} className="sm:w-96">
-              <SelectValue placeholder="Choose a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <FormField
+          id="business_id"
+          label="Applies to"
+          hint="A business's own rule wins over the standard ones."
+          error={fieldErrors?.business_id}
+        >
+          {(props) => (
+            <NativeSelect
+              {...props}
+              name="business_id"
+              value={business}
+              onChange={(event) => setBusiness(event.target.value)}
+            >
+              <option value="">Every business</option>
+              {businesses.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
               ))}
-            </SelectContent>
-          </Select>
-        )}
-      </FormField>
+            </NativeSelect>
+          )}
+        </FormField>
+        <FormField
+          id="category_id"
+          label="Work category"
+          error={fieldErrors?.category_id}
+        >
+          {(props) => (
+            <NativeSelect
+              {...props}
+              name="category_id"
+              defaultValue={values.category_id}
+            >
+              <option value="">
+                {business ? "All categories" : "Choose a category"}
+              </option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </NativeSelect>
+          )}
+        </FormField>
+      </div>
 
       <fieldset className="space-y-3">
         <legend className="text-sm font-medium">

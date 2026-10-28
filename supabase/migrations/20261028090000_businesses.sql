@@ -114,6 +114,14 @@ alter table public.bill_rate_rules
 alter table public.agreement_acceptances
   add constraint agreement_acceptances_business_fk foreign key (business_id) references public.businesses (id);
 
+-- One bill rule per business and category from a given date, so the rule
+-- for a shift is never ambiguous (rate cards already have the same index).
+create unique index bill_rate_rules_one_per_start on public.bill_rate_rules (
+  coalesce(business_id, '00000000-0000-0000-0000-000000000000'::uuid),
+  coalesce(category_id, '00000000-0000-0000-0000-000000000000'::uuid),
+  effective_from
+) where archived_at is null;
+
 -- ---------------------------------------------------------------------------
 -- Who's who
 -- ---------------------------------------------------------------------------

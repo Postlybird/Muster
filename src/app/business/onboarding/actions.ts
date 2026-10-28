@@ -15,6 +15,7 @@ import {
   businessSnapshot,
   finishBusinessStep,
   getMyBusiness,
+  registerColumns,
 } from "@/server/businesses";
 import { saveFailed } from "@/server/errors";
 
@@ -121,17 +122,7 @@ export async function createBusiness(input: string): Promise<ActionState> {
     .from("businesses")
     .insert({
       abn: d.abn,
-      legal_name: d.entityName,
-      entity_type_code: d.entityTypeCode,
-      entity_type: d.entityTypeName,
-      abn_status: d.status,
-      abn_status_from: d.statusEffectiveFrom,
-      gst_registered: !!d.gstRegisteredFrom,
-      gst_registered_from: d.gstRegisteredFrom,
-      acn: d.acn,
-      abr_state: d.state,
-      abr_postcode: d.postcode,
-      abr_checked_at: new Date().toISOString(),
+      ...registerColumns(d),
       trading_name: d.businessNames[0] ?? null,
       onboarding_steps: ["abn"],
       created_by: user.id,

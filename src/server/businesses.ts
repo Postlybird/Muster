@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
+import type { AbnDetails } from "@/adapters/abn";
 import {
   nextBusinessStep,
   type BusinessStepKey,
@@ -65,6 +66,40 @@ export function businessName(
   business: Pick<BusinessRow, "trading_name" | "legal_name">,
 ): string {
   return business.trading_name || business.legal_name;
+}
+
+/** Every business by name, for admins choosing one (e.g. for its own rates). */
+export async function businessOptions(): Promise<
+  { id: string; name: string }[]
+> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("businesses")
+    .select("id, legal_name, trading_name")
+    .is("archived_at", null);
+  return (data ?? [])
+    .map((business) => ({ id: business.id, name: businessName(business) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * The columns that come from the Australian Business Register. Only the
+ * server writes them, straight after a lookup.
+ */
+export function registerColumns(details: AbnDetails) {
+  return {
+    legal_name: details.entityName,
+    entity_type_code: details.entityTypeCode,
+    entity_type: details.entityTypeName,
+    abn_status: details.status,
+    abn_status_from: details.statusEffectiveFrom,
+    gst_registered: !!details.gstRegisteredFrom,
+    gst_registered_from: details.gstRegisteredFrom,
+    acn: details.acn,
+    abr_state: details.state,
+    abr_postcode: details.postcode,
+    abr_checked_at: new Date().toISOString(),
+  };
 }
 
 /** Everything needed to know which steps are still missing. */

@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
 
 import {
+  createPendingBusiness,
   expectAccessible,
   randomEmail,
-  readCodeFromOutbox,
   signInAsDemo,
+  signInWithEmailCode,
 } from "./helpers";
 
 test("an owner adds, changes and removes a site", async ({ page }) => {
@@ -76,15 +77,7 @@ test("an owner invites a supervisor, who sees only their site", async ({
   await expectAccessible(page);
 
   // They sign in with that email and join Harbour Restoration.
-  await page.context().clearCookies();
-  await page.goto("/login?as=business");
-  await page.getByLabel("Email address").fill(email);
-  await page.getByRole("button", { name: "Send code" }).click();
-  await page
-    .getByLabel("6-digit code")
-    .fill(await readCodeFromOutbox(page, email));
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/business$/);
+  await signInWithEmailCode(page, email);
 
   await page.goto("/business/sites");
   await expect(
@@ -152,4 +145,22 @@ test("an owner sees their account details and agreement", async ({ page }) => {
   await expectAccessible(page);
   await page.getByRole("button", { name: "Save details" }).click();
   await expect(page.getByText("Details saved")).toBeVisible();
+});
+
+test("an owner accepts the current agreement from Settings", async ({
+  page,
+}) => {
+  const business = await createPendingBusiness();
+  await signInWithEmailCode(page, business.ownerEmail);
+  await page.goto("/business/settings");
+  await expect(page.getByText(/hasn't been accepted yet/)).toBeVisible();
+  await expectAccessible(page);
+  await page.getByRole("button", { name: "Accept" }).click();
+  await expect(
+    page.getByText("Tick the box to accept the agreement").first(),
+  ).toBeVisible();
+  await page.getByLabel(/I accept this agreement/).check();
+  await page.getByRole("button", { name: "Accept" }).click();
+  await expect(page.getByText("Agreement accepted")).toBeVisible();
+  await expect(page.getByText(/accepted .* by Robin Owner/)).toBeVisible();
 });

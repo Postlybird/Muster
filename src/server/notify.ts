@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getEmailSender } from "@/adapters/email";
 import { getSmsSender } from "@/adapters/sms";
 import { brand } from "@/config/brand";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -24,5 +25,33 @@ export async function textPerson(profileId: string, message: string) {
     });
   } catch (error) {
     console.error("Couldn't send a text", error);
+  }
+}
+
+/**
+ * Emails the owners of a business about their account (approval, holds).
+ * Like texts to workers, these always go.
+ */
+export async function emailBusinessOwners(
+  businessId: string,
+  message: { subject: string; text: string },
+) {
+  const admin = createAdminClient();
+  const { data: owners } = await admin
+    .from("business_users")
+    .select("profiles!business_users_profile_id_fkey(email)")
+    .eq("business_id", businessId)
+    .eq("role", "owner")
+    .is("archived_at", null)
+    .not("profile_id", "is", null);
+  const emails = (owners ?? [])
+    .map((owner) => owner.profiles?.email)
+    .filter((email): email is string => !!email);
+  for (const to of emails) {
+    try {
+      await getEmailSender().send({ to, ...message, tag: "business-account" });
+    } catch (error) {
+      console.error("Couldn't send an email", error);
+    }
   }
 }

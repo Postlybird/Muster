@@ -12,6 +12,7 @@ import { BUSINESS_STEPS } from "@/domain/business-onboarding";
 import { businessStatuses } from "@/lib/statuses";
 import {
   businessName,
+  businessSnapshot,
   getMyBusiness,
   type BusinessRow,
 } from "@/server/businesses";
@@ -93,6 +94,13 @@ export default async function BusinessDashboardPage({
   const { business, role } = await getMyBusiness();
   const { submitted } = await searchParams;
   const approved = business?.status === "approved";
+  // Posting needs approval and account terms (v1 has no card payments).
+  const canPost = approved && !!business?.account_terms_approved;
+  // A new version of the services agreement needs accepting.
+  const agreementOutdated =
+    approved && business
+      ? !(await businessSnapshot(business)).agreementAccepted
+      : false;
 
   return (
     <div className="space-y-6">
@@ -104,7 +112,7 @@ export default async function BusinessDashboardPage({
             : undefined
         }
         actions={
-          approved ? (
+          canPost ? (
             <Button asChild>
               <Link href="/business/post">
                 <Plus aria-hidden />
@@ -141,6 +149,19 @@ export default async function BusinessDashboardPage({
         )
       ) : business.status === "approved" ? (
         <>
+          {agreementOutdated ? (
+            <Alert variant="warning" className="max-w-2xl">
+              <AlertDescription className="text-foreground">
+                We&apos;ve updated the Labour Hire Services Agreement.{" "}
+                <Link href="/business/settings#agreement" className="underline">
+                  {role === "owner"
+                    ? "Read and accept it in Settings"
+                    : "Read it in Settings"}
+                </Link>
+                .
+              </AlertDescription>
+            </Alert>
+          ) : null}
           {!business.account_terms_approved ? (
             <Alert variant="info" className="max-w-2xl">
               <AlertDescription>
