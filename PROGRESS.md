@@ -265,6 +265,11 @@ _Last updated: 28/10/2026_
     - admins are emailed a week before a VEVO re-check is due (**Verification** lists them from two weeks before)
   - Tests: 332 pgTAP, 348 unit and 178 browser tests passing.
 
+- **1.15 The rest of the admin console** (Phase 1, in progress):
+  - **Workers:** everyone who has signed up, 50 to a page, with their status, suburb, work types, rating, reliability, shifts and the next ticket or visa to expire. Filter by name, mobile or email, status, work type, verified ticket, suburb or postcode, and tickets or visas expiring within 30 days (the longest expiry warning).
+  - **Businesses:** filter by name or ABN, status, and the suburb or postcode of any of their sites.
+  - Filtered lists keep their filters in the page address, so they can be bookmarked or shared with another admin.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
@@ -275,7 +280,6 @@ _Last updated: 28/10/2026_
   - once a day, early morning: `pay-run` (it only runs on the run day)
 - **Optional, any time:** turn on push notifications (Admin → Settings → Push notifications has the steps).
 - **Phase 1, step 1.15:** the rest of the admin console:
-  - workers and businesses lists with filters (category, ticket, suburb, status, expiring soon)
   - the shift board (open, filled, in progress; unfilled shifts within 24 hours in red)
   - acting on queue items: no-shows, safety reports, suspensions and bookings at risk
   - reports and the audit log viewer

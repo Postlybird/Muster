@@ -3339,6 +3339,34 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_worker_list: {
+        Args: {
+          p_category_id?: string;
+          p_credential_type_id?: string;
+          p_expiring_within_days?: number;
+          p_limit?: number;
+          p_offset?: number;
+          p_search?: string;
+          p_status?: Database["public"]["Enums"]["worker_status"];
+          p_suburb?: string;
+        };
+        Returns: {
+          categories: string[];
+          home_postcode: string;
+          home_suburb: string;
+          legal_first_name: string;
+          legal_last_name: string;
+          next_expiry: string;
+          next_expiry_what: string;
+          preferred_name: string;
+          rating_avg: number;
+          reliability_score: number;
+          shifts_completed: number;
+          status: Database["public"]["Enums"]["worker_status"];
+          total_count: number;
+          worker_id: string;
+        }[];
+      };
       apply_for_shifts: {
         Args: { p_shift_ids: string[] };
         Returns: {
