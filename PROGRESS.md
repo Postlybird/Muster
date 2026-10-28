@@ -60,9 +60,18 @@ _Last updated: 28/10/2026_
   - **Payments:** account terms (pay by bank transfer).
   - 70 unit tests in total.
 
+- **0.6 Demo data** (`npm run seed`, safe to run repeatedly; refuses remote databases unless `SEED_ALLOW_REMOTE=true`):
+  - 25 policy settings. Values marked PLACEHOLDER need the owner's confirmation, and on-costs need a payroll professional.
+  - The appendix catalogues: 8 categories with required tickets and default PPE, 17 ticket types, 10 hazards, 12 PPE items.
+  - 41 demo logins: 2 admins; 9 people across 5 fictional businesses (one awaiting approval); 30 workers in Sydney suburbs.
+  - Workers are active, pending, draft or suspended, with verified, pending, rejected, expired and soon-to-expire tickets.
+  - Worker visas: citizens, permanent residents, a New Zealand citizen, a bridging visa with no expiry, and a student visa with a work-hours condition.
+  - Worker details and tickets are defined now and get loaded into Phase 1 tables as those tables are built.
+  - Data integrity tests; e2e tests for "Sign in as" each role.
+
 ## Next
 
-- **0.6** Seed script. **0.7** CI, DB deploy workflow, Vercel.
+- **0.7** CI, DB deploy workflow, Vercel.
 
 ## Decisions
 
@@ -80,6 +89,8 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | Users may update only their own name and notification preferences on `profiles` (column-level grant). Email and phone are copied from Supabase Auth, where they're verified. | Stops anyone changing their own role or contact details without verification. |
 | 28/10/2026 | Sign-in uses a 6-digit code for both SMS and email (the email also has a link). Businesses don't get a password option for now. | On iPhone an emailed link opens Safari, not the installed app, so a typed code works everywhere. No passwords means no reset flow. The brief allows passwords for businesses; we can add them if the owner wants. |
 | 28/10/2026 | "Sign in as" works only for `@demo.test` accounts and only when `DEMO_MODE=true`. | `.test` is a reserved domain, so it can never match a real person's account. |
+| 28/10/2026 | Demo people are fictional: `.test` emails, mobiles from ACMA's 0491 57x range reserved for fiction, landlines from 02 5550 xxxx, and made-up business names with valid-checksum ABNs. | No real person or business can be contacted or misrepresented by demo data. |
+| 28/10/2026 | Seeded minimum engagement hours (3–4 h by category) and all money settings are placeholders. | Brief §4.8 and §12: rate cards and rules are set by admin and checked by a payroll professional. |
 
 ## Open questions for the owner
 
