@@ -33,7 +33,9 @@ test.describe("sign-in", () => {
 
     await expect(page).toHaveURL(/\/worker$/);
     await expect(page.getByRole("heading", { name: "Welcome" })).toBeVisible();
-    await expect(page.getByText("Not submitted")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Let's get you set up" }),
+    ).toBeVisible();
   });
 
   test("a new business signs up with an email code and lands in the business area", async ({
