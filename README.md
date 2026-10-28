@@ -42,7 +42,7 @@ npm run test:e2e   # browser tests (needs local Supabase + seed)
 ```
 
 ```bash
-npm run test:acceptance   # the Phase 1 acceptance run (long; needs local Supabase + seed)
+npm run test:acceptance   # the Phase 1 acceptance run (needs local Supabase + seed)
 ```
 
 `docs/testing.md` lists what the tests cover.
@@ -54,7 +54,7 @@ npm run test:acceptance   # the Phase 1 acceptance run (long; needs local Supaba
   - lint, type check, formatting and unit tests
   - a throwaway local Supabase for the database rule tests
   - demo data, a production build and the browser tests on phone and desktop sizes
-- **Acceptance run:** `.github/workflows/acceptance.yml` runs the Phase 1 acceptance run when it changes, or by hand (Actions → Phase 1 acceptance → Run workflow).
+  - the Phase 1 acceptance run: 10 workers, 3 businesses and 20 shifts, through to the payroll file and invoices
 - **Database:** `.github/workflows/db-deploy.yml` applies new migrations and the demo data to the Supabase project `muster-dev`. It uses the repository secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_ID` and `SUPABASE_SECRET_KEY`.
 - **App:** Vercel, with functions pinned to Sydney (`syd1`, see `vercel.json`). Set these environment variables in Vercel:
 

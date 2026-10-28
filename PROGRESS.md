@@ -296,7 +296,7 @@ _Last updated: 28/10/2026_
     - the booked week is moved back to last week, standing in for the week going by (the only change made outside the app)
     - the owners enter and approve everyone's hours: 25 workers' days
     - an admin runs last week's pay: the payroll file has a line for every shift worked, and each business gets an invoice with its lines and a PDF
-  - It takes about 8 minutes, so it runs on its own: `npm run test:acceptance`, or on GitHub under **Actions → Phase 1 acceptance → Run workflow**. It also runs whenever the run itself changes.
+  - It runs on every push next to the other checks, taking about 2 minutes on GitHub, and locally with `npm run test:acceptance`.
   - **Core flows:** every flow in the brief has browser tests; `docs/testing.md` lists which. New in this step: favourite workers get their head start on new work.
   - Tests: 388 pgTAP, 364 unit and 208 browser tests passing, plus the acceptance run.
 

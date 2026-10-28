@@ -10,6 +10,8 @@ Every push to GitHub runs the checks in `.github/workflows/ci.yml`:
   cancel, clock, approve and pay.
 - **Browser tests** (`npm run test:e2e`, in `e2e/`): people using the app, at
   phone and desktop sizes, including accessibility checks (WCAG 2.1 AA).
+- **The Phase 1 acceptance run** (`npm run test:acceptance`), described
+  below.
 
 ## The core flows (brief §4 to §7)
 
@@ -51,7 +53,6 @@ exactly that, the way people would in the app:
 7. An admin runs last week's pay: the payroll file has a line per worker
    per shift, and each business has an invoice with its lines and a PDF.
 
-It takes a while, so it isn't part of every push. Run it with
-`npm run test:acceptance`, or on GitHub from **Actions → Phase 1
-acceptance → Run workflow**. It also runs on GitHub whenever the run itself
-changes. It works on the demo data and can run again on the same database.
+It runs on every push, next to the other checks (about 2 minutes on
+GitHub), and locally with `npm run test:acceptance`. It works on the demo
+data and can run again on the same database.

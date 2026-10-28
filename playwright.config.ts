@@ -5,7 +5,7 @@ const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: "./e2e",
-  // The acceptance run is long, so it has its own config.
+  // The acceptance run has its own config (playwright.acceptance.config.ts).
   testIgnore: "**/acceptance/**",
   // Messages are checked as they're sent, whatever the time of day.
   globalSetup: "./e2e/global-setup.ts",
