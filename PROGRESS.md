@@ -78,11 +78,22 @@ _Last updated: 28/10/2026_
   - `/dev` tools are checked for demo mode on every request.
   - Fix found by the production-build tests: sign-in links in emails now open a "Sign in" button page. Before, simply opening the link (as Next.js prefetching, link previews and email security scanners do) used up the one-time code. 46 browser tests pass against the production build.
 
+- **1.1 Admin catalogues, settings, rates, agreements and licences** (Phase 1):
+  - **Schema:** rate cards (category × level; base rate plus a multiplier per day type), bill rules (markup or fixed), NSW public holidays 2026–27, licensing rules by state and our licences, versioned agreements (frozen once published, one current version) with immutable acceptance records. Money and compliance changes are audited.
+  - **Screens:**
+    - catalogues (categories with required tickets and default PPE, tickets, hazards, PPE)
+    - settings, generated from the registry in `src/config/settings.ts`. Placeholders show a badge until saved.
+    - rate cards with a live hourly preview and "checked by"; bill rules; public holidays
+    - agreements: draft, preview, publish, make current
+    - licences, with a warning listing the states where jobs are blocked
+  - Hourly pay calculation (`src/domain/rates.ts`) using whole-number maths.
+  - Tests: 41 pgTAP, 117 unit and 70 browser tests passing.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Phase 1, step 1.1** (in progress): admin screens for catalogues, settings, rate cards, bill rules, public holidays, agreements and licences.
+- **Phase 1, step 1.2:** the worker onboarding wizard.
 
 ## Decisions
 
@@ -102,6 +113,9 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | "Sign in as" works only for `@demo.test` accounts and only when `DEMO_MODE=true`. | `.test` is a reserved domain, so it can never match a real person's account. |
 | 28/10/2026 | Demo people are fictional: `.test` emails, mobiles from ACMA's 0491 57x range reserved for fiction, landlines from 02 5550 xxxx, and made-up business names with valid-checksum ABNs. | No real person or business can be contacted or misrepresented by demo data. |
 | 28/10/2026 | Seeded minimum engagement hours (3–4 h by category) and all money settings are placeholders. | Brief §4.8 and §12: rate cards and rules are set by admin and checked by a payroll professional. |
+| 28/10/2026 | Business-specific rate cards and bill rules have the column now; the screens to set them arrive with business accounts (step 1.4). | The businesses table doesn't exist until 1.4. |
+| 28/10/2026 | On-costs (super, workers' comp, payroll tax, insurance) apply to all hours, including overtime. | Simple and conservative for billing. Super isn't payable on overtime, so margin is slightly understated on overtime hours. Revisit with a payroll professional. |
+| 28/10/2026 | Admin forms submit without React's automatic form reset. | Otherwise a validation error wipes what the admin typed. |
 
 ## Open questions for the owner
 

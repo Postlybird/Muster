@@ -826,6 +826,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_role"];
       };
       normalise_auth_phone: { Args: { raw: string }; Returns: string };
+      set_current_agreement: {
+        Args: { p_agreement_id: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       agreement_kind:
