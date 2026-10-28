@@ -1,10 +1,10 @@
 /**
- * Payroll export (brief §4.8). v1: a CSV of approved timesheets for the
+ * Payroll export (brief §4.8). v1: a CSV of a pay run's timesheets for the
  * payroll provider's timesheet import; the provider applies the award.
  * Phase 2: push timesheets through the Employment Hero Payroll API.
  *
- * The columns below are a working draft and will be matched to the owner's
- * Employment Hero import template in step 1.13.
+ * The columns below are a working draft until we have the owner's
+ * Employment Hero timesheet import template (see PROGRESS.md).
  */
 export type PayrollTimesheetLine = {
   payrollEmployeeId: string;
@@ -18,6 +18,8 @@ export type PayrollTimesheetLine = {
   workType: string;
   location: string;
   allowances: { name: string; amountCents: number }[];
+  /** Where the pay isn't just the hours worked, e.g. a minimum engagement. */
+  notes: string;
 };
 
 export type PayrollExport = {
@@ -58,6 +60,7 @@ export class CsvPayrollExporter implements PayrollExporter {
       "Work type",
       "Location",
       "Allowances",
+      "Notes",
     ];
     const rows = lines.map((line) =>
       [
@@ -72,6 +75,7 @@ export class CsvPayrollExporter implements PayrollExporter {
         line.allowances
           .map((a) => `${a.name}: ${(a.amountCents / 100).toFixed(2)}`)
           .join("; "),
+        line.notes,
       ]
         .map(csvField)
         .join(","),

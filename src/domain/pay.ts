@@ -325,7 +325,7 @@ function forMinutes(hourlyCents: number, minutes: number): number {
 }
 
 /** The rate type with the most minutes (ties go to the higher-priority type). */
-function mainType(minutes: MinutesByType): DayType {
+export function mainType(minutes: MinutesByType): DayType {
   let best: DayType | null = null;
   for (const type of RATE_PRECEDENCE) {
     if (best === null || minutes[type] > minutes[best]) best = type;

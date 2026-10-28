@@ -22,6 +22,7 @@ describe("payroll CSV", () => {
           workType: "restoration_labourer",
           location: "Harbour Restoration – Parramatta",
           allowances: [{ name: "Urgent call-out", amountCents: 2500 }],
+          notes: "Minimum engagement: pay 3 h",
         },
       ],
       "2026-10-26_2026-11-01",
@@ -29,7 +30,7 @@ describe("payroll CSV", () => {
     const [header, row] = result.body.trim().split("\r\n");
     expect(header).toMatch(/^Employee ID,Employee,Date,Start,End/);
     expect(row).toBe(
-      'EH-1001,"Smith, Jo",28/10/2026,07:00,15:30,30,restoration_labourer,Harbour Restoration – Parramatta,Urgent call-out: 25.00',
+      'EH-1001,"Smith, Jo",28/10/2026,07:00,15:30,30,restoration_labourer,Harbour Restoration – Parramatta,Urgent call-out: 25.00,Minimum engagement: pay 3 h',
     );
     expect(result.filename).toBe("timesheets-2026-10-26_2026-11-01.csv");
     expect(result.lineCount).toBe(1);

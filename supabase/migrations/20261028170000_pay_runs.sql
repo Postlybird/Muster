@@ -68,7 +68,8 @@ create table public.pay_run_lines (
   start_at timestamptz,
   finish_at timestamptz,
   break_minutes smallint,
-  -- Paid hours, minimum engagement included.
+  -- Hours charged (and, for hours worked, paid), minimum engagement
+  -- included. Payroll reads the times.
   hours numeric(6, 2) not null,
   work_type text not null,
   site_name text not null,

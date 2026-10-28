@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.12 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.13 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -240,14 +240,26 @@ _Last updated: 28/10/2026_
   - **Demo data:** Harbour Restoration rated Ethan Murphy for last week's shift, and he rated the site.
   - Tests: 292 pgTAP, 313 unit and 162 browser tests passing.
 
+- **1.13 Weekly pay and billing run** (Phase 1):
+  - **The run:** each week, Monday to Sunday, is run once, on the run day (a setting, Monday for now) by a scheduled job, or by an admin from the new **Pay runs** page once the week is over. It takes every approved hour not yet paid from that week or before, plus late cancellations by businesses, and makes:
+    - a **payroll file** (CSV) with each shift's start, finish, break, work type, site and any urgent allowance, for the payroll provider's timesheet import (draft columns until we have the Employment Hero template)
+    - **one tax invoice per business**, a line per worker per shift, with GST, due on the business's account terms (14 days for now). Each is saved as a PDF and emailed to the business's accounts email with the PDF attached.
+  - **Before running,** the page shows the week's lines, pay, invoices and totals, and what's left out: hours still waiting for the business (they go in a later run), queried hours, and workers with no payroll employee ID.
+  - **Late cancellations:** the hours charged when the business cancelled, at the rate that would have covered most of the shift. A worker who had already arrived is paid, and the business charged, at least the minimum engagement.
+  - **Paid hours are locked:** once hours are in a run, nobody can change them.
+  - **Invoices:** the admin **Invoices** page lists what's owed (overdue first) and what's paid. Admins mark an invoice paid with the date and bank reference, or take that back if it was the wrong one. Businesses' owners and managers see theirs on **Invoices**, line by line, with the PDF and how to pay.
+  - **Settings:** our details for invoices (legal name, ABN, address, contact) and bank account, and the invoice number prefix. The run won't go ahead without the legal name, ABN and bank account. The demo data fills them with made-up details.
+  - Tests: 316 pgTAP, 328 unit and 166 browser tests passing.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Once the site has an address:** schedule the `reminders`, `finish-shifts`, `attendance` and `timesheets` jobs (every 10 minutes) with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET`. Vercel's free plan only runs scheduled jobs once a day.
-- **Phase 1, step 1.13:** the weekly pay and billing run:
-  - the prior week's approved hours make a payroll export (draft columns until we have the Employment Hero template) and one invoice per business, with GST and a PDF emailed to the accounts contact
-  - late cancellation charges on invoices; approved hours lock once they're in a run
+- **Once the site has an address:** schedule the `reminders`, `finish-shifts`, `attendance` and `timesheets` jobs (every 10 minutes), and `pay-run` (once a day, early morning; it only runs on the run day), with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET`. Vercel's free plan only runs scheduled jobs once a day.
+- **Phase 1, step 1.14:** the expiry engine, VEVO re-checks, notifications and push:
+  - nightly checks warn workers before tickets and visas expire, and remove eligibility on expiry, alerting the worker and admins about booked shifts that no longer pass
+  - re-checking bookings 24 hours before the shift
+  - the notifications system: templates, preferences, quiet hours, and web push for the installed app
 
 ## Decisions
 
@@ -332,13 +344,23 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | Anyone at the business who can see the job rates the worker, supervisors included. Only owners and managers add favourites or block workers. | Supervisors approve hours at their sites (brief §2); favourites and blocks apply to the whole account. |
 | 28/10/2026 | Neither side sees what the other wrote or tagged: workers see a business's average across all its sites, businesses see each worker's average. | Brief §4.7 and the plan default (not per site). |
 | 28/10/2026 | Blocking a worker stops new offers and takes them off the favourites, but keeps bookings they already have. | Cancelling has its own rules and charges (step 1.9); the business can still cancel. |
+| 28/10/2026 | Each week is run once, and weeks are run in order. A run takes everything owed from that week or before, so hours approved late go in the next run. | Nothing is paid twice or missed, and a missed week is caught up by the next run. |
+| 28/10/2026 | The weekly run goes ahead by itself on the run day, and an admin can run the week early from Pay runs once it's over. It needs our legal name, ABN and bank account in Settings first. | Brief §4.8 and §8: a scheduled weekly run, which admins manage. Every tax invoice needs our name and ABN, and businesses need to know where to pay. |
+| 28/10/2026 | Payroll and invoice lines are one table: each line is one booking, with the pay and the charge. Businesses see only the charge and what it's for, through a database function. | The plan listed separate invoice lines. One line per booking means the payroll file and the invoices always agree. |
+| 28/10/2026 | A late cancellation is charged at the rate that would have covered most of the shift. A worker who had arrived is paid, and the business charged, at least the minimum engagement. | Plan question 8 and brief §4.5. A late Saturday cancellation is charged at the Saturday rate. |
+| 28/10/2026 | GST is worked out once on each invoice's total. Invoices are numbered INV-1001 onwards (the prefix is a setting); a run that fails part way can leave a gap in the numbers. | The usual way to show GST on a tax invoice. Numbers only have to identify each invoice, not run without gaps. |
+| 28/10/2026 | An invoice is due on the business's own payment terms if it has them, otherwise the setting (14 days). | Account terms are approved per business (step 1.4). |
+| 28/10/2026 | Invoices are marked paid by hand, with the date and the bank's reference, and can be marked unpaid again. | v1 is bank transfer on account terms; Stripe arrives in Phase 2. Undo covers a payment matched to the wrong invoice. |
+| 28/10/2026 | Invoice PDFs use the PDF format's built-in Helvetica font, so no font files are bundled. Letters it can't show are written without their accents (Nguyễn becomes Nguyen). | Smaller and simpler. Names keep their accents on screen and in emails. |
+| 28/10/2026 | The payroll file lists people by legal name ("Last, First") with their payroll employee ID, and adds a notes column for minimum engagement top-ups and paid cancellations. | Payroll works from legal names. The notes explain pay that isn't just the hours worked. |
 
 ## Open questions for the owner
 
 - **The 10 questions in `docs/plan.md`.** We're using the recommendations unless the owner says otherwise. They must be settled before Phase 1 starts.
 - **How quickly will new workers be checked?** The app tells workers "usually within two business days". Change it if that's not realistic.
-- **Employment Hero timesheet import template.** Needed by step 1.13.
-- **Company details for tax invoices** (legal name, ABN, address, bank details). Placeholders until provided.
+- **Employment Hero timesheet import template.** The payroll file uses draft columns until we have it.
+- **Company details for tax invoices** (legal name, ABN, address, contact and bank account). Enter them in Settings → Pay and billing; the demo shows made-up ones.
+- **The weekly run day.** It's Monday for now. Businesses have 48 hours to approve hours, so weekend shifts are usually still waiting on Monday and get paid a week later. Running on Wednesday would catch them. Which day suits you?
 - **Texts for bookings and reminders.** The brief keeps texts for login codes and urgent work. Until the app can send push notifications (step 1.14), we text workers when a business books them and for reminders. Once push is available, should these still go by text to workers who haven't installed the app? Each text costs a few cents once Twilio is set up.
 - **Late cancellations by a business.** Each booking is charged 3 hours for now (a placeholder setting). Should the worker also be paid those hours if they hadn't arrived yet? (Workers who have arrived are always paid at least the minimum engagement, brief §4.5.) The setting is off for now.
 - **Early starts and late finishes.** Paid time starts at the rostered start even if a worker clocks in early, and a late finish is paid as clocked unless the business changes it. Is that the rule you want, or should both follow the roster unless the business approves extra time?
@@ -351,6 +373,7 @@ _Last updated: 28/10/2026_
 - Point the Supabase Auth SMS and email hooks at our adapters (Twilio, Resend). These are paid services: ask the owner first.
 - Turn on CAPTCHA for code requests (Cloudflare Turnstile is free) to stop SMS-pumping fraud once real texts cost money.
 - Upgrade to Vercel Pro and Supabase Pro (commercial use, backups, no pausing). Ask the owner first.
+- Enter our real company and bank details in Settings → Pay and billing (the dev project's demo data has made-up ones).
 
 ## Owner setup checklist
 

@@ -1,3 +1,5 @@
+import { isOverdue } from "@/domain/pay-runs";
+
 /**
  * Status labels in plain words, each with a visible "what happens next"
  * (brief §2). Keys match the database statuses in BRIEF.md §9; Phase 1
@@ -239,5 +241,54 @@ export const businessTimesheetStatuses: Record<TimesheetStatus, StatusInfo> = {
     label: "Not charged",
     tone: "neutral",
     next: "Our team found these hours weren't worked, so they won't be charged.",
+  },
+};
+
+export type InvoiceStatus = "issued" | "overdue" | "paid";
+
+/** Issued invoices are overdue once their due date has passed. */
+export function invoiceStatus(
+  invoice: { status: string; due_on: string },
+  today: string,
+): InvoiceStatus {
+  if (invoice.status === "paid") return "paid";
+  return isOverdue(invoice, today) ? "overdue" : "issued";
+}
+
+/** An invoice, as the business sees it (brief §4.8: account terms). */
+export const businessInvoiceStatuses: Record<InvoiceStatus, StatusInfo> = {
+  issued: {
+    label: "To pay",
+    tone: "info",
+    next: "Pay by bank transfer by the due date, with the invoice number as the reference.",
+  },
+  overdue: {
+    label: "Overdue",
+    tone: "danger",
+    next: "Please pay it now by bank transfer, with the invoice number as the reference. Contact us if something on it isn't right.",
+  },
+  paid: {
+    label: "Paid",
+    tone: "success",
+    next: "Nothing to do. Thank you.",
+  },
+};
+
+/** An invoice, as our team sees it. */
+export const adminInvoiceStatuses: Record<InvoiceStatus, StatusInfo> = {
+  issued: {
+    label: "Unpaid",
+    tone: "info",
+    next: "Mark it paid when the money arrives.",
+  },
+  overdue: {
+    label: "Overdue",
+    tone: "danger",
+    next: "Follow up with the business's accounts contact.",
+  },
+  paid: {
+    label: "Paid",
+    tone: "success",
+    next: "Nothing to do.",
   },
 };
