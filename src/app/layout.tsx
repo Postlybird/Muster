@@ -3,6 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
 
+import { DemoBanner } from "@/components/layout/demo-banner";
 import { Toaster } from "@/components/ui/sonner";
 import { brand } from "@/config/brand";
 
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       style={brandVariables}
     >
       <body className="flex min-h-full flex-col font-sans">
+        <DemoBanner />
         {children}
         <Toaster />
       </body>

@@ -24,10 +24,23 @@ _Last updated: 28/10/2026_
   - Supabase Auth hooks send SMS and email login codes to the demo outbox.
   - 27 pgTAP tests: RLS on every table, anon can't write anything or call any function, profile isolation, no self-promotion to admin, settings visibility, audit log is immutable.
   - TypeScript types generated.
+- **0.3 Sign-in:**
+  - Mobile (SMS code) or email (code plus link); no passwords. New accounts are created on first sign-in; the "Find work" and "Hire workers" paths set the role.
+  - Session refresh in `src/proxy.ts`. Access checks live in `src/lib/auth.ts` (`requireRole`), backed by RLS.
+  - Role areas `/worker`, `/business` and `/admin` are guarded; users are sent to their own area.
+  - Demo mode: a banner on every page, the `/dev/outbox` page, and "Sign in as" for seeded `@demo.test` accounts.
+  - Australian phone and date/money helpers with unit tests.
+  - Playwright tests (mobile and desktop):
+    - worker SMS sign-up
+    - business email sign-up
+    - email link
+    - wrong code
+    - non-Australian number
+    - role redirects
+    - sign-out
 
 ## Next
 
-- **0.3** Sign-in: SMS code, email code/link, demo "sign in as", role routing.
 - **0.4** Design system and layouts. **0.5** Adapters and mocks. **0.6** Seed script. **0.7** CI, DB deploy workflow, Vercel.
 
 ## Decisions
@@ -44,12 +57,21 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | Login codes (SMS and email) go through Supabase Auth hooks into `dev_outbox` while in demo mode. A placeholder Twilio provider is switched on locally because Supabase disables phone login without one; the hook intercepts every message first. | Demo and tests work with no SMS/email accounts. Production will point the hooks at our SMS/email adapters (Twilio/Resend), with the owner's OK. |
 | 28/10/2026 | Join tables (`category_credentials`, `category_ppe`) use composite primary keys instead of a UUID id; append-only tables (`audit_log`, `dev_outbox`) have `created_at` but no `updated_at`. | Small, deliberate exception to "every table has a UUID id and created/updated timestamps" (brief §9): these rows are never edited. |
 | 28/10/2026 | Users may update only their own name and notification preferences on `profiles` (column-level grant). Email and phone are copied from Supabase Auth, where they're verified. | Stops anyone changing their own role or contact details without verification. |
+| 28/10/2026 | Sign-in uses a 6-digit code for both SMS and email (the email also has a link). Businesses don't get a password option for now. | On iPhone an emailed link opens Safari, not the installed app, so a typed code works everywhere. No passwords means no reset flow. The brief allows passwords for businesses; we can add them if the owner wants. |
+| 28/10/2026 | "Sign in as" works only for `@demo.test` accounts and only when `DEMO_MODE=true`. | `.test` is a reserved domain, so it can never match a real person's account. |
 
 ## Open questions for the owner
 
 - **The 10 questions in `docs/plan.md`.** We're using the recommendations unless the owner says otherwise. They must be settled before Phase 1 starts.
 - **Employment Hero timesheet import template.** Needed by step 1.13.
 - **Company details for tax invoices** (legal name, ABN, address, bank details). Placeholders until provided.
+
+## Before launch (not now)
+
+- Set `DEMO_MODE=false` in production; seed demo data into the dev project only.
+- Point the Supabase Auth SMS and email hooks at our adapters (Twilio, Resend). These are paid services: ask the owner first.
+- Turn on CAPTCHA for code requests (Cloudflare Turnstile is free) to stop SMS-pumping fraud once real texts cost money.
+- Upgrade to Vercel Pro and Supabase Pro (commercial use, backups, no pausing). Ask the owner first.
 
 ## Owner setup checklist
 
