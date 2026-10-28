@@ -64,3 +64,6 @@ npm run test:acceptance   # the Phase 1 acceptance run (needs local Supabase + s
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → Project Settings → API Keys → publishable key |
 | `SUPABASE_SECRET_KEY` | Supabase → Project Settings → API Keys → secret key (mark it Sensitive) |
 | `DEMO_MODE` | `true` while we're building; `false` in production |
+| `CRON_SECRET` | A long random string (a password manager can make one; mark it Sensitive). Add the same value as the GitHub Actions secret `CRON_SECRET`, which the scheduled jobs use |
+
+The app works out its own address from each request, so `NEXT_PUBLIC_SITE_URL` isn't needed on Vercel.

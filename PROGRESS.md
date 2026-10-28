@@ -302,9 +302,9 @@ _Last updated: 28/10/2026_
 
 ## Next
 
-- **Owner:** set up Vercel (steps in the README), then send the site address.
+- **Owner:** set up Vercel (steps in the README), with a `CRON_SECRET` that also goes in GitHub as an Actions secret, then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Once the site has an address:** schedule the jobs with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET` (Vercel's free plan only runs scheduled jobs once a day):
+- **Once the site has an address:** schedule the jobs with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET` (Vercel's free plan only runs scheduled jobs once a day). A workflow will copy the secret from GitHub into Supabase's vault, so nobody handles it:
   - every 10 minutes: `reminders`, `finish-shifts`, `attendance`, `timesheets` and `notifications`
   - hourly: `compliance`
   - once a day, early morning: `pay-run` (it only runs on the run day)
@@ -445,5 +445,6 @@ _Last updated: 28/10/2026_
 - [x] GitHub Actions secrets: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_ID`, `SUPABASE_SECRET_KEY`.
 - [ ] ABN Lookup GUID requested at abr.business.gov.au. When it arrives, add `ABN_LOOKUP_GUID` to Vercel and to the cloud environment's variables.
 - [ ] Vercel project imported from GitHub, environment variables added (steps in README).
+- [ ] `CRON_SECRET` made, added to Vercel and as a GitHub Actions secret (the same value).
 - [ ] Decide whether the GitHub repository should be private. It's public now, so anyone can read the code and BRIEF.md.
 - [ ] Optional: allow `ui.shadcn.com` and `abr.business.gov.au` in the cloud environment's network settings, so the shadcn CLI and the live ABN lookup work from the build container.
