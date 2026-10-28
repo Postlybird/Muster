@@ -262,7 +262,7 @@ _Last updated: 28/10/2026_
     - workers are warned 30, 14 and 7 days (a setting) before a ticket, police check or visa runs out, unless they've already added a renewal
     - on expiry it's marked expired, and they stop being offered work that needs it
     - any booked shift that won't pass the rules on the day (account, tickets, right to work, police check) is flagged in admin **Queues**, and the worker and admins are told, once
-    - VEVO re-checks due within a week are listed in **Queues** and emailed to admins
+    - admins are emailed a week before a VEVO re-check is due (**Verification** lists them from two weeks before)
   - Tests: 332 pgTAP, 348 unit and 178 browser tests passing.
 
 ## Next

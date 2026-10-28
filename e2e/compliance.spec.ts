@@ -206,7 +206,10 @@ test("admins are told when a VEVO re-check is due", async ({
   );
 
   await signInAsDemo(page, "Alex Morgan");
-  await page.goto("/admin/queues");
-  const row = page.getByRole("row").filter({ hasText: "Aisha Rahman" });
+  await page.goto("/admin/verification");
+  const row = page
+    .getByRole("region", { name: /Visa re-checks due/ })
+    .getByRole("row")
+    .filter({ hasText: "Aisha Rahman" });
   await expect(row.getByText(formatCalendarDate(due))).toBeVisible();
 });

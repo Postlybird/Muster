@@ -9,7 +9,6 @@ import {
 } from "@/domain/eligibility";
 import { bookingProblems } from "@/domain/expiry";
 import { STATE_TIME_ZONES, type StateCode } from "@/domain/pay";
-import { addDays } from "@/domain/pay-runs";
 
 import { allRows } from "./supabase/all-rows";
 import type { Database } from "./supabase/database.types";
@@ -127,24 +126,4 @@ export async function bookingsAtRiskWith(
       },
     ];
   });
-}
-
-/**
- * Visa holders whose VEVO re-check is due within a week (brief §4.1),
- * soonest first: listed in the queues, and emailed to admins by the
- * compliance job.
- */
-export async function rechecksDueWith(client: Client, today: string) {
-  const { data, error } = await client
-    .from("work_rights")
-    .select(
-      "id, worker_id, next_check_due, visa_expiry, workers!inner(preferred_name, legal_first_name, legal_last_name, status)",
-    )
-    .eq("basis", "visa")
-    .eq("status", "verified")
-    .lte("next_check_due", addDays(today, 7))
-    .neq("workers.status", "offboarded")
-    .order("next_check_due");
-  if (error) throw new Error(`Couldn't load re-checks: ${error.message}`);
-  return data ?? [];
 }

@@ -3,11 +3,7 @@ import "server-only";
 import type { IneligibleReason } from "@/domain/eligibility";
 import { isExpired, validUntil, warningDue } from "@/domain/expiry";
 import { addDays } from "@/domain/pay-runs";
-import {
-  bookingsAtRiskWith,
-  rechecksDueWith,
-  type BookingAtRisk,
-} from "@/lib/compliance";
+import { bookingsAtRiskWith, type BookingAtRisk } from "@/lib/compliance";
 import {
   formatCalendarDate,
   formatDayShort,
@@ -230,8 +226,20 @@ async function checkVisas(
   return { warned, expired };
 }
 
+/**
+ * Admins are emailed a week before each VEVO re-check is due (brief §4.1);
+ * Verification lists them from two weeks before.
+ */
 async function vevoRechecksDue(admin: Admin, today: string) {
-  const due = await rechecksDueWith(admin, today);
+  const { data: due, error } = await admin
+    .from("work_rights")
+    .select(
+      "id, worker_id, next_check_due, workers!inner(preferred_name, legal_first_name, legal_last_name, status)",
+    )
+    .eq("status", "verified")
+    .lte("next_check_due", addDays(today, 7))
+    .neq("workers.status", "offboarded");
+  if (error) throw new Error(`Couldn't load re-checks: ${error.message}`);
   for (const rights of due) {
     await notifyAdmins(
       "vevo_recheck_due",
@@ -240,7 +248,7 @@ async function vevoRechecksDue(admin: Admin, today: string) {
         date: formatCalendarDate(rights.next_check_due!),
       },
       {
-        url: `/admin/workers/${rights.worker_id}`,
+        url: `/admin/workers/${rights.worker_id}#right-to-work`,
         dedupeKey: `vevo_recheck:${rights.id}:${rights.next_check_due}`,
       },
     );

@@ -14,13 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { requireAdmin } from "@/lib/auth";
-import { rechecksDueWith } from "@/lib/compliance";
-import {
-  formatCalendarDate,
-  formatDateTime,
-  formatDayShort,
-  sydneyDateKey,
-} from "@/lib/format";
+import { formatDateTime, formatDayShort } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { workerName } from "@/lib/timesheet-format";
 
@@ -37,8 +31,8 @@ const FLAG_KINDS: Record<string, string> = {
 };
 
 /**
- * What needs an admin (brief §6): timesheet queries to settle, VEVO
- * re-checks coming due, then the other open flags. Acting on the other flags arrives in step 1.15.
+ * What needs an admin (brief §6): timesheet queries to settle, then the
+ * other open flags. Acting on the other flags arrives in step 1.15.
  */
 export default async function QueuesPage({
   searchParams,
@@ -46,7 +40,7 @@ export default async function QueuesPage({
   await requireAdmin();
   const { resolved } = await searchParams;
   const supabase = await createClient();
-  const [{ data: queries }, { data: flags }, rechecks] = await Promise.all([
+  const [{ data: queries }, { data: flags }] = await Promise.all([
     supabase
       .from("timesheets")
       .select(
@@ -63,7 +57,6 @@ export default async function QueuesPage({
       .neq("kind", "timesheet_dispute")
       .order("created_at", { ascending: false })
       .limit(100),
-    rechecksDueWith(supabase, sydneyDateKey(new Date())),
   ]);
 
   return (
@@ -128,53 +121,6 @@ export default async function QueuesPage({
             title="No queries"
             description="When a business or worker queries some hours, it shows here."
           />
-        )}
-      </section>
-
-      <section aria-labelledby="rechecks" className="space-y-3">
-        <h2 id="rechecks" className="text-lg font-semibold">
-          VEVO re-checks due ({rechecks.length})
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Visa holders to check again in ImmiAccount within the week. Record the
-          result on their page.
-        </p>
-        {rechecks.length ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Worker</TableHead>
-                <TableHead>Due</TableHead>
-                <TableHead>Visa expires</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rechecks.map((rights) => (
-                <TableRow key={rights.worker_id}>
-                  <TableCell className="font-medium">
-                    <Link
-                      href={`/admin/workers/${rights.worker_id}`}
-                      className="underline-offset-4 hover:underline"
-                    >
-                      {workerName(rights.workers)}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {rights.next_check_due
-                      ? formatCalendarDate(rights.next_check_due)
-                      : "—"}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {rights.visa_expiry
-                      ? formatCalendarDate(rights.visa_expiry)
-                      : "No end date"}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <p className="text-sm">None due this week.</p>
         )}
       </section>
 
