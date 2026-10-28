@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.6 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.7 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -176,14 +176,26 @@ _Last updated: 28/10/2026_
   - **Demo data:** four demo businesses have posted jobs (a multi-day flood strip-out, an evening clean, an urgent make-safe and a contents pack-out), topped up whenever a business has no upcoming work.
   - Tests: 142 pgTAP, 229 unit and 122 browser tests passing.
 
+- **1.7 Matching workers to shifts** (Phase 1):
+  - **Rules** (`src/domain/eligibility.ts`): a worker can take a shift when they're active, not blocked by the business, do that type of work at the job's level, hold every required ticket (verified and current on the day), have their right to work confirmed for the day, have a current police check if needed, live within their travel distance, haven't blocked out the day, and aren't booked at the same time (bookings arrive in step 1.8). Visa work-hour limits are flagged for admin, not blocked.
+  - **Ranking:** favourites first, then past shifts with the business, rating, reliability, distance and experience. New workers count as 4 stars and 80% reliable. The business will see applicants in this order (step 1.8).
+  - **When it runs:** when a job is posted, when an admin activates a worker or decides one of their checks or levels, and when a worker opens Find shifts (so changes to their work types, travel distance or blocked dates show straight away). Each worker's result is saved with the reasons they can't take a shift, for admin views later.
+  - **Find shifts** (`/worker/shifts`): the jobs a worker can take, soonest first, one card per job, with the suburb and distance, hourly pay and an estimate, and hazards. The home screen shows the first two.
+  - **Shift details** (`/worker/shifts/[id]`): each day with its estimate, pay, hazards and controls, induction, PPE and who supplies it, tickets and instructions, and how the job is filled. The street address, who to report to and the photos stay hidden until they're booked (step 1.8). Applying arrives in step 1.8.
+  - **Urgent call-outs:** texted straight away to every worker who can take one, opted in to urgent work, and is available at the start time (weekly hours or "available now"). One text per worker per job, with the pay and a link.
+  - **Favourites first:** favourites see new work first for the time the business chose. If none of its favourites can take it, everyone sees it straight away. Urgent call-outs have no head start.
+  - **Businesses** see how many workers can see each posted job (never who), and blocks and suspensions take effect at once.
+  - Tests: 158 pgTAP, 253 unit and 126 browser tests passing.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Phase 1, step 1.7:** matching workers to shifts:
-  - eligibility rules (active, tickets verified and valid on the day, right to work, travel distance, availability, no overlapping shift, police check)
-  - ranking (favourites, past shifts with the business, rating, reliability, distance, experience)
-  - the worker's shift feed, and urgent call-outs to every eligible worker nearby
+- **Phase 1, step 1.8:** taking work:
+  - workers apply (pick mode) or accept (first in), for all days of a job or chosen days
+  - businesses pick from applicants in ranked order, seeing photo, preferred name, rating, reliability, verified ticket names and shifts completed
+  - pay, bill and margin fixed on each booking, then the address and report-to details revealed
+  - a calendar file, and reminders 24 hours and 2 hours before
 
 ## Decisions
 
@@ -237,6 +249,11 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | Who supplies PPE is one answer per job: us, the workers, or some of each (with a note). | Simple to answer; the note covers mixed cases. |
 | 28/10/2026 | The cost estimate is saved when a job is posted, for reference. Invoices use the hours actually worked and the rates fixed when each worker is booked (step 1.8). | Brief §4.3: the estimate is shown before posting; billing follows timesheets. |
 | 28/10/2026 | Times are entered and shown in Sydney time. | v1 places workers in Greater Sydney. The pay engine already handles other states' time zones for later. |
+| 28/10/2026 | Matches are worked out by the server and saved per shift and worker, with the reasons someone can't take a shift. Workers see only their own offers, through database functions that hide the address; businesses see only a count. | Brief §4.4: eligibility is checked when a job is posted, and again when a worker accepts (step 1.8) and 24 hours before (step 1.14). Saved reasons let admins see why someone wasn't offered work. |
+| 28/10/2026 | The shift feed lists work soonest first, one card per job. Ranking orders applicants for the business, not the worker's feed. | Workers look for work by day. A multi-day job is one decision ("Accept all days", plan defaults). |
+| 28/10/2026 | Workers see the ordinary hourly rate (casual loading included) and an estimate for each shift with penalty rates and any urgent loading, worked out when the job is posted. The rate is fixed when they're booked (step 1.8). | Brief §4.4: workers see hourly pay before they accept. |
+| 28/10/2026 | Job photos are shown to workers once they're booked, with the address. | Photos can show the property; the brief keeps location details until confirmation. |
+| 28/10/2026 | "Favourites first" lets no one in early when none of the business's favourites can take the work, and doesn't apply to urgent call-outs. | Holding work back for nobody only delays it. Urgent call-outs go to every eligible worker nearby (brief §4.3). |
 | 28/10/2026 | The most specific bill rule wins: the business's rule for the category, then its rule for all categories, then the category's standard rule, then the default margin. Only one rule per business, category and start date. | Plan: a margin with per-category and per-business overrides. The pay and bill engine (step 1.5) always finds exactly one rule. |
 
 ## Open questions for the owner
