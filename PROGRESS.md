@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, started.** The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 and 1.2 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -89,11 +89,30 @@ _Last updated: 28/10/2026_
   - Hourly pay calculation (`src/domain/rates.ts`) using whole-number maths.
   - Tests: 41 pgTAP, 117 unit and 70 browser tests passing.
 
+- **1.2 Worker onboarding** (Phase 1):
+  - **Schema:** workers, right to work, ID checks, work types, tickets, weekly availability and blocked dates, plus three private storage buckets. Workers edit their own records; statuses, levels, verification results and payroll details are admin-only, enforced in the database. Files must sit in the worker's own folder. Changes to worker records are audited against the worker, with passport and visa grant numbers kept out of the log.
+  - **Wizard** (`/worker/onboarding`), ten steps that can be left and resumed:
+    1. About you: legal and preferred name, date of birth (minimum age setting), face photo.
+    2. Contact details: the mobile or email the worker didn't sign up with, confirmed by a code.
+    3. Getting to work: suburb picker, travel distance, car, licence, public transport.
+    4. Right to work: citizens upload proof; everyone else gives passport and visa details and consents to a VEVO check.
+    5. Photo ID: driver licence or passport, plus a selfie.
+    6. Work types, experience and a short bio.
+    7. Tickets, with what each work type needs, and the police check (issued within the maximum age setting).
+    8. Availability: weekly pattern and urgent call-outs.
+    9. Employment paperwork: casual contract, Fair Work Information Statement and Casual Employment Information Statement, plus how payroll setup works.
+    10. Check and submit.
+  - Starting records that the worker read the privacy collection notice. Acceptances are recorded by the server with time, IP address and browser.
+  - **Worker home:** a start screen, then setup progress, then (after submitting) each check's status with the reason and a fix link when something is rejected.
+  - **Profile** and **Availability** pages (weekly pattern, "available now" for verified workers, blocked-out dates). The step pages double as edit pages after submitting, and lock what has been verified.
+  - **Demo data:** all 30 demo workers filled in, with placeholder photos and documents stamped as demo data. Draft workers stop part-way through.
+  - Tests: 77 pgTAP, 161 unit and 78 browser tests passing, including the full phone sign-up to submission.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Phase 1, step 1.2:** the worker onboarding wizard.
+- **Phase 1, step 1.3:** the verification queue: admins check photos, ID, right to work and tickets (document beside the details), record VEVO results, delete ID images after checking, and activate workers. Admin sign-in gets an authenticator app (MFA).
 
 ## Decisions
 
@@ -116,10 +135,20 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | Business-specific rate cards and bill rules have the column now; the screens to set them arrive with business accounts (step 1.4). | The businesses table doesn't exist until 1.4. |
 | 28/10/2026 | On-costs (super, workers' comp, payroll tax, insurance) apply to all hours, including overtime. | Simple and conservative for billing. Super isn't payable on overtime, so margin is slightly understated on overtime hours. Revisit with a payroll professional. |
 | 28/10/2026 | Admin forms submit without React's automatic form reset. | Otherwise a validation error wipes what the admin typed. |
+| 28/10/2026 | The worker wizard has ten steps. The police check is part of the Tickets step, "Contact details" is a step of its own, and "About you" and "Getting to work" are separate. | Same content as brief §4.1, in short screens with one main button each. The police check is a ticket in the catalogue, so it's managed like one. |
+| 28/10/2026 | Workers confirm both a mobile and an email with a code before submitting. Changing a mobile or email now needs a code sent to the new one (Supabase confirmations on, as on the hosted project). | Urgent work and reminders go by text; payroll setup invites go by email. Without codes, anyone could put someone else's number on their account. |
+| 28/10/2026 | Photos are shrunk in the browser before upload, and files go straight from the phone to private storage in the worker's own folder. | Faster on mobile data, and re-drawing the photo drops the GPS location phones embed in pictures. Large files never pass through our server. |
+| 28/10/2026 | Police certificates are stored like ID images: workers can upload but not view them again, and they're deleted after checking. Ticket copies are kept. | Open question 2 in the plan. |
+| 28/10/2026 | A worker can have one renewed ticket waiting to be checked while the current one still counts. | Renewing doesn't cost them shifts. Verifying the renewal archives the old ticket (step 1.3). |
+| 28/10/2026 | Legal name and date of birth lock once ID has been checked; the worker contacts us to change them. | The ID check would mean nothing otherwise. |
+| 28/10/2026 | Availability is one window per day (overnight allowed). "Available now" lasts 4 hours and is only for verified workers. | Simple to set on a phone. Covers the brief's weekly pattern, "available now" switch and blocked-out dates. |
+| 28/10/2026 | Agreement acceptances are written by the server with the service-role key. | The IP address and browser come from the request, so a user can't forge or change them. The records can't be edited afterwards. |
+| 28/10/2026 | The worker app uses the phone's own pickers (native selects) for lists. | Easier on phones, and the chosen value shows before the page's scripts load. |
 
 ## Open questions for the owner
 
 - **The 10 questions in `docs/plan.md`.** We're using the recommendations unless the owner says otherwise. They must be settled before Phase 1 starts.
+- **How quickly will new workers be checked?** The app tells workers "usually within two business days". Change it if that's not realistic.
 - **Employment Hero timesheet import template.** Needed by step 1.13.
 - **Company details for tax invoices** (legal name, ABN, address, bank details). Placeholders until provided.
 
