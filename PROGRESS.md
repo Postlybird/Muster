@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.15 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.16 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -283,6 +283,11 @@ _Last updated: 28/10/2026_
   - Filtered lists keep their filters in the page address, so they can be bookmarked or shared with another admin.
   - Tests: 388 pgTAP, 364 unit and 196 browser tests passing.
 
+- **1.16 Public pages** (Phase 1):
+  - **Home:** the two paths, "Find work" and "Hire workers", with how each works in four steps, what we promise (every worker checked, we're the employer, safety on every job), and links to the answers and contact.
+  - **Questions and answers:** for workers (who employs them, signing up, what they need, pay, shifts, cancelling, clocking in, safety) and businesses (how it works, signing up, cost, checks, speed, choosing workers, safety, cancelling, timesheets and invoices). Numbers such as cancellation windows come from the settings, so they stay right.
+  - **Privacy policy** (with the collection notice that sign-up links to) **and terms of use:** plain-English drafts, marked for a lawyer to check before launch.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
@@ -292,8 +297,7 @@ _Last updated: 28/10/2026_
   - hourly: `compliance`
   - once a day, early morning: `pay-run` (it only runs on the run day)
 - **Optional, any time:** turn on push notifications (Admin → Settings → Push notifications has the steps).
-- **Phase 1, step 1.16:** the public pages: the landing page with "Find work" and "Hire workers", how it works for each, FAQ, privacy, terms and contact (legal text marked for review).
-- **Then step 1.17:** core-flow browser tests and the Phase 1 acceptance run (10 workers, 3 businesses, 20 shifts through to the payroll file and invoices).
+- **Phase 1, step 1.17:** core-flow browser tests and the Phase 1 acceptance run (10 workers, 3 businesses, 20 shifts through to the payroll file and invoices).
 
 ## Decisions
 
@@ -419,6 +423,7 @@ _Last updated: 28/10/2026_
 - Turn on CAPTCHA for code requests (Cloudflare Turnstile is free) to stop SMS-pumping fraud once real texts cost money.
 - Upgrade to Vercel Pro and Supabase Pro (commercial use, backups, no pausing). Ask the owner first.
 - Enter our real company and bank details in Settings → Pay and billing (the dev project's demo data has made-up ones).
+- Have a lawyer check the privacy policy, terms of use, casual employment contract, information statements and the labour hire services agreement. The public pages are marked as drafts until then.
 - Before we pass about 1,000 active workers, or 1,000 shifts in a week: the matching engine and the weekly pay run read at most 1,000 rows at a time, so they need to read in pages, as the expiry checks already do.
 
 ## Owner setup checklist

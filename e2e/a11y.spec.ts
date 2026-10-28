@@ -12,6 +12,8 @@ test.describe("accessibility (WCAG 2.1 AA)", () => {
     "/login",
     "/login?as=business",
     "/privacy",
+    "/terms",
+    "/faq",
     "/contact",
     "/dev/ui",
     "/dev/ui/wizard",

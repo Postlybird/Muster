@@ -1,6 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-/** Public pages whose final wording is still to come (plan step 1.16). */
+/** Public pages with legal wording a lawyer hasn't checked yet (plan step 1.16). */
 export function DraftPage({
   title,
   children,
@@ -14,8 +14,8 @@ export function DraftPage({
       <Alert variant="warning">
         <AlertTitle>Draft</AlertTitle>
         <AlertDescription>
-          This page is being written and will be checked by a lawyer before
-          launch.
+          A lawyer will check this wording before launch. Until then it
+          isn&apos;t final.
         </AlertDescription>
       </Alert>
       {children}
