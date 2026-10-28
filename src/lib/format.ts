@@ -53,6 +53,12 @@ export function formatCents(cents: number): string {
   return audFormatter.format(cents / 100);
 }
 
+/** Minutes as hours: 456 → "7.6 h", 480 → "8 h", 225 → "3.75 h". */
+export function formatHours(minutes: number): string {
+  const hours = Math.round((minutes / 60) * 100) / 100;
+  return `${hours.toLocaleString("en-AU", { maximumFractionDigits: 2 })} h`;
+}
+
 /** A calendar date with no time ("2026-07-01") as 01/07/2026. No time zone involved. */
 export function formatCalendarDate(isoDate: string): string {
   const [year, month, day] = isoDate.split("-");

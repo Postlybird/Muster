@@ -77,3 +77,87 @@ export function rateCardFromRow(row: {
     },
   };
 }
+
+// ---------------------------------------------------------------------------
+// Which card and bill rule apply to a shift
+// ---------------------------------------------------------------------------
+
+type Dated = { effective_from: string; effective_to: string | null };
+
+function inEffect(row: Dated, date: string): boolean {
+  return (
+    row.effective_from <= date &&
+    (!row.effective_to || row.effective_to >= date)
+  );
+}
+
+/** The row with the latest start date, or null. */
+function latest<T extends Dated>(rows: T[]): T | null {
+  return (
+    [...rows].sort((a, b) =>
+      b.effective_from.localeCompare(a.effective_from),
+    )[0] ?? null
+  );
+}
+
+/**
+ * The pay rate card for a shift on `date` (yyyy-mm-dd): the business's own
+ * card for the category and level if one is in effect (brief §4.8 host
+ * overrides), otherwise the standard card. The latest start date wins.
+ * Null means there's no rate for that work, so it can't be posted.
+ */
+export function pickRateCard<
+  T extends Dated & {
+    business_id: string | null;
+    category_id: string;
+    level: number;
+  },
+>(
+  cards: readonly T[],
+  shift: {
+    businessId: string;
+    categoryId: string;
+    level: number;
+    date: string;
+  },
+): T | null {
+  const matching = cards.filter(
+    (card) =>
+      card.category_id === shift.categoryId &&
+      card.level === shift.level &&
+      inEffect(card, shift.date),
+  );
+  return (
+    latest(matching.filter((card) => card.business_id === shift.businessId)) ??
+    latest(matching.filter((card) => card.business_id === null))
+  );
+}
+
+/**
+ * The bill rule for a shift: the most specific in effect wins (the
+ * business's rule for the category, then its rule for all categories, then
+ * the category's standard rule), and the latest start date within that.
+ * Null means the default margin applies.
+ */
+export function pickBillRule<
+  T extends Dated & { business_id: string | null; category_id: string | null },
+>(
+  rules: readonly T[],
+  shift: { businessId: string; categoryId: string; date: string },
+): T | null {
+  const inForce = rules.filter((rule) => inEffect(rule, shift.date));
+  const tiers: ((rule: T) => boolean)[] = [
+    (rule) =>
+      rule.business_id === shift.businessId &&
+      rule.category_id === shift.categoryId,
+    (rule) =>
+      rule.business_id === shift.businessId && rule.category_id === null,
+    (rule) =>
+      rule.business_id === null && rule.category_id === shift.categoryId,
+  ];
+  for (const tier of tiers) {
+    const found = latest(inForce.filter(tier));
+    if (found) return found;
+  }
+  return null;
+}

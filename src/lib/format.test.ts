@@ -48,6 +48,16 @@ describe("Australian formats", () => {
   });
 });
 
+describe("formatHours", () => {
+  it("shows minutes as hours, without trailing zeros", async () => {
+    const { formatHours } = await import("./format");
+    expect(formatHours(456)).toBe("7.6 h");
+    expect(formatHours(480)).toBe("8 h");
+    expect(formatHours(225)).toBe("3.75 h");
+    expect(formatHours(20)).toBe("0.33 h");
+  });
+});
+
 describe("formatCalendarDate", () => {
   it("formats a date-only value without shifting the day", async () => {
     const { formatCalendarDate } = await import("./format");

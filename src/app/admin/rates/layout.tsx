@@ -5,6 +5,7 @@ const tabs = [
   { href: "/admin/rates/rate-cards", label: "Pay rate cards" },
   { href: "/admin/rates/bill-rules", label: "Bill rules" },
   { href: "/admin/rates/holidays", label: "Public holidays" },
+  { href: "/admin/rates/calculator", label: "Calculator" },
 ];
 
 export default function RatesLayout({ children }: LayoutProps<"/admin/rates">) {

@@ -29,12 +29,13 @@ This project uses Next.js 16, which has breaking changes from older versions:
 - **Records:** archive (`archived_at`), never hard-delete personal or employment records.
 - **Money:** integer cents.
 - **Time:** `timestamptz` in UTC; convert with the helpers in `src/lib/format.ts`.
-- **Business rules** (eligibility, pay/bill, hours, expiry, reliability) live in `src/domain/` as pure functions with Vitest tests next to them.
+- **Business rules** (eligibility, pay/bill, hours, expiry, reliability) live in `src/domain/` as pure functions with Vitest tests next to them. Price shifts with `loadPricing()` (`src/server/pricing.ts`), which feeds `splitShift()` and `costShift()` in `src/domain/pay.ts`.
 - **Data access:** user-initiated reads and writes use the signed-in user's Supabase client, so RLS applies. Use the service-role client only in:
   - cron jobs, seeding and audited admin actions
   - recording agreement acceptances (`src/server/agreements.ts`, so the IP address comes from the server)
   - creating a business from the ABN register's details, and checking an ABN isn't already registered (`src/app/business/onboarding/actions.ts`)
   - looking up who to text or email about their account (`src/server/notify.ts`)
+  - reading rate cards and bill rules to price shifts (`src/server/pricing.ts`); callers only get the result
 - **UI:** shadcn/ui-style components in `src/components/ui/`, written by hand on Radix (`radix-ui` package) because the shadcn registry is blocked from the cloud container. Mobile-first for workers, large tap targets, one main action per screen. Worker forms use `NativeSelect` rather than the Radix select.
 - **Long text** (agreements, contracts) scrolls inside `ScrollBox` (`src/components/scroll-box.tsx`), which keyboard users can reach. `expectAccessible()` in browser tests also fails a page that scrolls sideways, so let long emails wrap (`[overflow-wrap:anywhere]`).
 - **Worker area:** `src/app/worker/(app)/` has the tabbed app; `src/app/worker/onboarding/` is the wizard, whose step pages also serve as edit pages once a worker has submitted (`StepFrame`, `StepActions`).

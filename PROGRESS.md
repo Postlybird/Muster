@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.4 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.5 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -147,16 +147,29 @@ _Last updated: 28/10/2026_
   - **Accessibility:** long documents scroll in a box that can be reached by keyboard. Long email addresses wrap on phones. The browser checks now also fail any page that scrolls sideways (WCAG reflow).
   - Tests: 117 pgTAP, 173 unit and 110 browser tests passing.
 
+- **1.5 Pay, bill and estimate engine** (Phase 1):
+  - **Hours split** (`src/domain/pay.ts`): each worked minute takes the first rate that applies, in the plan's order: public holiday, Sunday, Saturday, overtime, night, ordinary.
+    - Days and night hours follow the site's local time, so shifts over midnight or a daylight-saving change are split correctly (other states' time zones too).
+    - Daily overtime counts from the start of the shift.
+  - **Pay and bill:**
+    - Pay is hours × the rate card. The bill is pay plus on-costs plus the margin, or fixed bill rates.
+    - A shorter shift is topped up to the work type's minimum engagement.
+    - Urgent call-outs add the urgent loading to pay (as an allowance) and to the bill.
+    - Each shift gets GST and our margin. Estimates add up shifts and workers, and apply GST once.
+  - **Which rates apply:** the business's own rate card for the work type and level if it has one, otherwise the standard card; the most specific bill rule; in each case the latest start date on or before the shift.
+  - **Rate calculator** (`/admin/rates/calculator`): try any business, work type, level, state, date and times. It shows the split, pay, bill, GST and margin, and which card and rule were used.
+  - Tests: 117 pgTAP, 202 unit and 112 browser tests passing. The engine's tests cover daylight-saving changes, other states' time zones, minimum engagement, urgent loadings, fixed bill rates and rounding.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Phase 1, step 1.5:** the pay, bill and cost-estimate engine, as tested pure functions:
-  - the rate card for a shift (business, category, level and date)
-  - day types: weekday, Saturday, Sunday, public holiday, night and overtime
-  - minimum engagement
-  - on-costs plus margin, or fixed bill rates
-  - GST
+- **Phase 1, step 1.6:** the post-work wizard for businesses:
+  - single shift, multi-day, or urgent call-out
+  - site, work type, number of workers, dates and times, break, tickets, police check, instructions and photos, report-to contact
+  - site hazards and controls, PPE and who supplies it (a job can't be posted until the hazard section is done)
+  - a cost estimate before posting
+  - templates and "repeat last shift"
 
 ## Decisions
 
@@ -197,6 +210,11 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | Declining a business puts it "On hold" with the reason. There's no separate "rejected" status, and an admin can approve it later. | The owner sees the same thing either way: they can't post work, and they see why. |
 | 28/10/2026 | A business can post work only once it's approved **and** on account terms. | Plan decision on posting rights. v1 has no card payments (Stripe is Phase 2). |
 | 28/10/2026 | When we publish a new Labour Hire Services Agreement, owners are asked to accept it. Posting work (step 1.6) will need the current version accepted. | The agreement covers every placement. Each acceptance records the version, time and IP address. |
+| 28/10/2026 | When we only know how long the unpaid break is, it's placed in the middle of the shift. Recorded break times (step 1.10) are used where we have them. | Where the break falls changes the split for shifts over midnight or into night hours. The middle is a fair, predictable assumption. |
+| 28/10/2026 | Overtime is counted per shift from its start; two shifts on one day aren't added together. | Plan question 5: daily overtime only. Payroll does the final award interpretation. |
+| 28/10/2026 | A shift shorter than the minimum engagement is topped up at the rate that covered most of it. | So a short Saturday shift is topped up at the Saturday rate. |
+| 28/10/2026 | The hourly bill rate is rounded to the cent first, then multiplied by the hours. | Invoices can show "hours × rate = amount", and the sums check out. |
+| 28/10/2026 | On-costs apply to the urgent call-out allowance as well as to hours. | It's paid as wages, so super and payroll tax apply. To be checked by a payroll professional. |
 | 28/10/2026 | The most specific bill rule wins: the business's rule for the category, then its rule for all categories, then the category's standard rule, then the default margin. Only one rule per business, category and start date. | Plan: a margin with per-category and per-business overrides. The pay and bill engine (step 1.5) always finds exactly one rule. |
 
 ## Open questions for the owner

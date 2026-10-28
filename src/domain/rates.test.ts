@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   hourlyPayCents,
   hourlyPayTable,
+  pickBillRule,
+  pickRateCard,
   rateCardFromRow,
   type RateCard,
 } from "./rates";
@@ -63,5 +65,81 @@ describe("hourly pay", () => {
       night_multiplier: "1.400",
     });
     expect(fromRow).toEqual(card);
+  });
+});
+
+describe("choosing the rate card for a shift", () => {
+  const card = (
+    id: string,
+    business_id: string | null,
+    level: number,
+    effective_from: string,
+    effective_to: string | null = null,
+  ) => ({
+    id,
+    business_id,
+    category_id: "cleaner",
+    level,
+    effective_from,
+    effective_to,
+  });
+  const cards = [
+    card("standard-jan", null, 1, "2026-01-01"),
+    card("standard-jul", null, 1, "2026-07-01"),
+    card("host-b", "b", 1, "2026-09-01", "2026-12-31"),
+    card("standard-level-2", null, 2, "2026-01-01"),
+  ];
+  const pick = (businessId: string, date: string, level = 1) =>
+    pickRateCard(cards, { businessId, categoryId: "cleaner", level, date })
+      ?.id ?? null;
+
+  it("uses the latest standard card in effect", () => {
+    expect(pick("a", "2026-03-01")).toBe("standard-jan");
+    expect(pick("a", "2026-08-01")).toBe("standard-jul");
+  });
+
+  it("uses the business's own card while it's in effect", () => {
+    expect(pick("b", "2026-10-01")).toBe("host-b");
+    expect(pick("b", "2027-01-05")).toBe("standard-jul");
+  });
+
+  it("finds nothing for a level or date without a card", () => {
+    expect(pick("a", "2026-08-01", 3)).toBeNull();
+    expect(pick("a", "2025-12-31")).toBeNull();
+    expect(pick("a", "2026-08-01", 2)).toBe("standard-level-2");
+  });
+});
+
+describe("choosing the bill rule for a shift", () => {
+  const rule = (
+    id: string,
+    business_id: string | null,
+    category_id: string | null,
+    effective_from: string,
+    effective_to: string | null = null,
+  ) => ({ id, business_id, category_id, effective_from, effective_to });
+  const rules = [
+    rule("category", null, "cleaner", "2026-01-01"),
+    rule("business-all", "b", null, "2026-01-01"),
+    rule("business-cleaner", "b", "cleaner", "2026-06-01"),
+    rule("business-cleaner-spring", "b", "cleaner", "2026-09-01", "2026-10-31"),
+  ];
+  const pick = (businessId: string, categoryId: string, date: string) =>
+    pickBillRule(rules, { businessId, categoryId, date })?.id ?? null;
+
+  it("prefers the most specific rule in effect", () => {
+    expect(pick("a", "cleaner", "2026-05-01")).toBe("category");
+    expect(pick("b", "cleaner", "2026-05-01")).toBe("business-all");
+    expect(pick("b", "cleaner", "2026-07-01")).toBe("business-cleaner");
+    expect(pick("b", "labourer", "2026-07-01")).toBe("business-all");
+  });
+
+  it("takes the latest start date, and drops rules that have ended", () => {
+    expect(pick("b", "cleaner", "2026-10-15")).toBe("business-cleaner-spring");
+    expect(pick("b", "cleaner", "2026-11-15")).toBe("business-cleaner");
+  });
+
+  it("falls back to the default margin when nothing applies", () => {
+    expect(pick("a", "labourer", "2026-07-01")).toBeNull();
   });
 });

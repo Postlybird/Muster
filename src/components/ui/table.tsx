@@ -2,11 +2,21 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+/**
+ * A table that scrolls sideways when it's too wide. Give tables of plain
+ * text a `label`: the scroll area then takes keyboard focus, so it can be
+ * scrolled without a mouse (tables with links already can).
+ */
+function Table({
+  className,
+  label,
+  ...props
+}: React.ComponentProps<"table"> & { label?: string }) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className="relative w-full overflow-x-auto outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      {...(label ? { role: "region", "aria-label": label, tabIndex: 0 } : {})}
     >
       <table
         data-slot="table"
@@ -32,6 +42,19 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
     <tbody
       data-slot="table-body"
       className={cn("[&_tr:last-child]:border-0", className)}
+      {...props}
+    />
+  );
+}
+
+function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
+  return (
+    <tfoot
+      data-slot="table-footer"
+      className={cn(
+        "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+        className,
+      )}
       {...props}
     />
   );
@@ -94,6 +117,7 @@ export {
   TableBody,
   TableCaption,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
