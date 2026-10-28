@@ -4,6 +4,8 @@ import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
 
 import { DemoBanner } from "@/components/layout/demo-banner";
+import { isDemoMode } from "@/lib/env";
+import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { brand } from "@/config/brand";
 
@@ -38,7 +40,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${GeistSans.variable} ${GeistMono.variable} h-full`}
       style={brandVariables}
     >
-      <body className="flex min-h-full flex-col font-sans">
+      <body
+        className={cn(
+          "flex min-h-full flex-col font-sans",
+          isDemoMode() && "[--banner-h:1.75rem]",
+        )}
+      >
         <DemoBanner />
         {children}
         <Toaster />

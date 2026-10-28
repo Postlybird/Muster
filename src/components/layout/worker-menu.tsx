@@ -1,0 +1,62 @@
+"use client";
+
+import { Menu } from "lucide-react";
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { workerMenu } from "@/config/navigation";
+import type { SessionUser } from "@/lib/auth";
+
+import { NavLink } from "./nav-link";
+import { SignOutButton } from "./sign-out-button";
+import { UserSummary } from "./user-summary";
+
+export function WorkerMenu({ user }: { user: SessionUser }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label="Open menu">
+          <Menu className="size-6" aria-hidden />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right">
+        <SheetHeader>
+          <SheetTitle>Menu</SheetTitle>
+          <SheetDescription className="sr-only">
+            Your account and other pages
+          </SheetDescription>
+        </SheetHeader>
+        <div className="px-4">
+          <UserSummary user={user} />
+        </div>
+        <Separator />
+        <nav aria-label="More">
+          <ul className="space-y-1 px-2">
+            {workerMenu.map((item) => (
+              <li key={item.href}>
+                <NavLink
+                  item={item}
+                  onNavigate={() => setOpen(false)}
+                  className="flex min-h-12 items-center gap-3 rounded-md px-3 text-base hover:bg-muted"
+                  activeClassName="bg-accent font-medium text-accent-foreground"
+                />
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <Separator />
+        <SignOutButton className="px-2" />
+      </SheetContent>
+    </Sheet>
+  );
+}

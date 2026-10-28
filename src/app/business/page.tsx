@@ -1,21 +1,44 @@
+import { Briefcase, Plus } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import { SignOutButton } from "@/components/layout/sign-out-button";
+import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
+import { WhatsNext } from "@/components/status/whats-next";
+import { Button } from "@/components/ui/button";
 import { requireRole } from "@/lib/auth";
+import { businessStatuses } from "@/lib/statuses";
 
-export const metadata: Metadata = { title: "Business home" };
+export const metadata: Metadata = { title: "Dashboard" };
 
-export default async function BusinessHomePage() {
-  const user = await requireRole("business_user");
+export default async function BusinessDashboardPage() {
+  await requireRole("business_user");
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 space-y-4 px-4 py-8">
-      <h1 className="text-2xl font-bold">
-        Hello{user.fullName ? `, ${user.fullName}` : ""}
-      </h1>
-      <p className="text-muted-foreground">
-        You&apos;re signed in to the business area.
-      </p>
-      <SignOutButton />
-    </main>
+    <div className="space-y-6">
+      <PageHeader
+        title="Dashboard"
+        description="Today's shifts, fill status and timesheets to approve."
+        actions={
+          <Button asChild>
+            <Link href="/business/post">
+              <Plus aria-hidden />
+              Post work
+            </Link>
+          </Button>
+        }
+      />
+
+      {/* Phase 1 (step 1.4) replaces this with the real business status. */}
+      <WhatsNext
+        title="Your business account"
+        status={businessStatuses.draft}
+      />
+
+      <EmptyState
+        icon={Briefcase}
+        title="No shifts today"
+        description="Shifts you post will show here with how many workers are confirmed."
+      />
+    </div>
   );
 }

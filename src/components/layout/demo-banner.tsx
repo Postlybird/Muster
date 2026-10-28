@@ -6,12 +6,14 @@ import { isDemoMode } from "@/lib/env";
 export function DemoBanner() {
   if (!isDemoMode()) return null;
   return (
-    <div className="bg-highlight px-4 py-1.5 text-center text-xs font-medium text-highlight-foreground">
-      Demo mode: texts and emails go to the{" "}
-      <Link href="/dev/outbox" className="underline underline-offset-2">
-        demo outbox
-      </Link>
-      , not real people.
+    <div className="sticky top-0 z-40 flex h-(--banner-h) items-center justify-center bg-highlight px-4 text-xs font-medium whitespace-nowrap text-highlight-foreground">
+      <p className="truncate">
+        Demo mode: messages go to the{" "}
+        <Link href="/dev/outbox" className="underline underline-offset-2">
+          outbox
+        </Link>
+        , not real people
+      </p>
     </div>
   );
 }

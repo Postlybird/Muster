@@ -9,6 +9,8 @@
  * Every foreground/background pair meets WCAG 2.1 AA contrast.
  */
 :root {
+  /* Height of the demo-mode banner; sticky headers sit below it. */
+  --banner-h: 0px;
   --radius: 0.625rem;
 
   --background: #ffffff;

@@ -38,10 +38,22 @@ _Last updated: 28/10/2026_
     - non-Australian number
     - role redirects
     - sign-out
+- **0.4 Design system and layouts:**
+  - Hand-written UI components: buttons, inputs, selects, checkboxes, radios, switches, tabs, dialogs, slide-out sheets, alerts, badges, cards, tables, avatars, progress.
+  - Status wording with "what happens next" for worker, ticket/check and business statuses.
+  - Building blocks: page header, empty state, wizard layout (progress, step list, sticky "Save and continue", "Finish later").
+  - Layouts:
+    - public header and footer
+    - worker app with bottom tabs and a menu
+    - business and admin areas with a sidebar on desktop and a slide-out menu on phones
+  - Every page in the plan is reachable. Unbuilt pages say which Phase 1 step builds them.
+  - Demo-only `/dev/ui` (UI kit) and `/dev/ui/wizard` for design review.
+  - Draft privacy, terms, FAQ and contact pages, marked for legal review.
+  - Automated accessibility checks (axe, WCAG 2.1 AA) on public pages, the UI kit, the wizard and the worker and business areas: zero violations. 36 browser tests pass on phone and desktop sizes.
 
 ## Next
 
-- **0.4** Design system and layouts. **0.5** Adapters and mocks. **0.6** Seed script. **0.7** CI, DB deploy workflow, Vercel.
+- **0.5** Adapters and mocks. **0.6** Seed script. **0.7** CI, DB deploy workflow, Vercel.
 
 ## Decisions
 

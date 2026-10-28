@@ -1,8 +1,9 @@
+import { WorkerShell } from "@/components/layout/worker-shell";
 import { requireRole } from "@/lib/auth";
 
 export default async function WorkerLayout({
   children,
 }: LayoutProps<"/worker">) {
-  await requireRole("worker");
-  return children;
+  const user = await requireRole("worker");
+  return <WorkerShell user={user}>{children}</WorkerShell>;
 }
