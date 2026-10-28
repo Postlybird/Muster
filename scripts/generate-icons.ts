@@ -24,7 +24,12 @@ async function main() {
   const browser = await chromium.launch();
   const page = await browser.newPage();
 
-  const outputs: { path: string; size: number; maskable?: boolean; rounded?: boolean }[] = [
+  const outputs: {
+    path: string;
+    size: number;
+    maskable?: boolean;
+    rounded?: boolean;
+  }[] = [
     { path: "public/icons/icon-192.png", size: 192 },
     { path: "public/icons/icon-512.png", size: 512 },
     { path: "public/icons/maskable-512.png", size: 512, maskable: true },
@@ -37,7 +42,9 @@ async function main() {
     await page.setContent(
       `<html><body style="margin:0;background:transparent">${svg(out.size, out)}</body></html>`,
     );
-    await page.locator("svg").screenshot({ path: out.path, omitBackground: true });
+    await page
+      .locator("svg")
+      .screenshot({ path: out.path, omitBackground: true });
     console.log("wrote", out.path);
   }
   await browser.close();

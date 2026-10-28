@@ -115,12 +115,10 @@ export async function seedCatalogues(client: SeedClient) {
     })),
   );
   check(
-    await client
-      .from("category_ppe")
-      .upsert(categoryPpe, {
-        onConflict: "category_id,ppe_item_id",
-        ignoreDuplicates: true,
-      }),
+    await client.from("category_ppe").upsert(categoryPpe, {
+      onConflict: "category_id,ppe_item_id",
+      ignoreDuplicates: true,
+    }),
     "category PPE",
   );
 
