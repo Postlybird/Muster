@@ -168,6 +168,75 @@ export type Database = {
         };
         Relationships: [];
       };
+      availability_blocks: {
+        Row: {
+          created_at: string;
+          date: string;
+          id: string;
+          note: string | null;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          date: string;
+          id?: string;
+          note?: string | null;
+          worker_id: string;
+        };
+        Update: {
+          created_at?: string;
+          date?: string;
+          id?: string;
+          note?: string | null;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "availability_blocks_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      availability_weekly: {
+        Row: {
+          created_at: string;
+          end_time: string;
+          id: string;
+          start_time: string;
+          weekday: number;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          end_time: string;
+          id?: string;
+          start_time: string;
+          weekday: number;
+          worker_id: string;
+        };
+        Update: {
+          created_at?: string;
+          end_time?: string;
+          id?: string;
+          start_time?: string;
+          weekday?: number;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "availability_weekly_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       bill_rate_rules: {
         Row: {
           archived_at: string | null;
@@ -487,6 +556,70 @@ export type Database = {
         };
         Relationships: [];
       };
+      identity_checks: {
+        Row: {
+          created_at: string;
+          document_path: string | null;
+          document_reference: string | null;
+          document_type: Database["public"]["Enums"]["identity_document"];
+          id: string;
+          images_deleted_at: string | null;
+          rejection_reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          selfie_path: string | null;
+          status: Database["public"]["Enums"]["check_status"];
+          updated_at: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          document_path?: string | null;
+          document_reference?: string | null;
+          document_type: Database["public"]["Enums"]["identity_document"];
+          id?: string;
+          images_deleted_at?: string | null;
+          rejection_reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          selfie_path?: string | null;
+          status?: Database["public"]["Enums"]["check_status"];
+          updated_at?: string;
+          worker_id: string;
+        };
+        Update: {
+          created_at?: string;
+          document_path?: string | null;
+          document_reference?: string | null;
+          document_type?: Database["public"]["Enums"]["identity_document"];
+          id?: string;
+          images_deleted_at?: string | null;
+          rejection_reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          selfie_path?: string | null;
+          status?: Database["public"]["Enums"]["check_status"];
+          updated_at?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "identity_checks_reviewed_by_fkey";
+            columns: ["reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "identity_checks_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: true;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       jurisdictions: {
         Row: {
           code: string;
@@ -801,6 +934,343 @@ export type Database = {
           },
         ];
       };
+      work_rights: {
+        Row: {
+          basis: Database["public"]["Enums"]["right_to_work_basis"];
+          checked_by: string | null;
+          citizenship_evidence:
+            Database["public"]["Enums"]["citizenship_evidence"] | null;
+          created_at: string;
+          evidence_deleted_at: string | null;
+          evidence_path: string | null;
+          id: string;
+          next_check_due: string | null;
+          passport_country: string | null;
+          passport_number: string | null;
+          rejection_reason: string | null;
+          status: Database["public"]["Enums"]["check_status"];
+          updated_at: string;
+          vevo_checked_at: string | null;
+          vevo_consent_at: string | null;
+          vevo_reference: string | null;
+          visa_conditions: string | null;
+          visa_expiry: string | null;
+          visa_grant_number: string | null;
+          visa_subclass: string | null;
+          work_limit_flag: boolean;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          basis: Database["public"]["Enums"]["right_to_work_basis"];
+          checked_by?: string | null;
+          citizenship_evidence?:
+            Database["public"]["Enums"]["citizenship_evidence"] | null;
+          created_at?: string;
+          evidence_deleted_at?: string | null;
+          evidence_path?: string | null;
+          id?: string;
+          next_check_due?: string | null;
+          passport_country?: string | null;
+          passport_number?: string | null;
+          rejection_reason?: string | null;
+          status?: Database["public"]["Enums"]["check_status"];
+          updated_at?: string;
+          vevo_checked_at?: string | null;
+          vevo_consent_at?: string | null;
+          vevo_reference?: string | null;
+          visa_conditions?: string | null;
+          visa_expiry?: string | null;
+          visa_grant_number?: string | null;
+          visa_subclass?: string | null;
+          work_limit_flag?: boolean;
+          worker_id: string;
+        };
+        Update: {
+          basis?: Database["public"]["Enums"]["right_to_work_basis"];
+          checked_by?: string | null;
+          citizenship_evidence?:
+            Database["public"]["Enums"]["citizenship_evidence"] | null;
+          created_at?: string;
+          evidence_deleted_at?: string | null;
+          evidence_path?: string | null;
+          id?: string;
+          next_check_due?: string | null;
+          passport_country?: string | null;
+          passport_number?: string | null;
+          rejection_reason?: string | null;
+          status?: Database["public"]["Enums"]["check_status"];
+          updated_at?: string;
+          vevo_checked_at?: string | null;
+          vevo_consent_at?: string | null;
+          vevo_reference?: string | null;
+          visa_conditions?: string | null;
+          visa_expiry?: string | null;
+          visa_grant_number?: string | null;
+          visa_subclass?: string | null;
+          work_limit_flag?: boolean;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "work_rights_checked_by_fkey";
+            columns: ["checked_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_rights_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: true;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      worker_categories: {
+        Row: {
+          category_id: string;
+          created_at: string;
+          level: number;
+          worker_id: string;
+          years_experience: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          category_id: string;
+          created_at?: string;
+          level?: number;
+          worker_id: string;
+          years_experience?: number;
+        };
+        Update: {
+          category_id?: string;
+          created_at?: string;
+          level?: number;
+          worker_id?: string;
+          years_experience?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "worker_categories_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "worker_categories_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      worker_credentials: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          credential_type_id: string;
+          document_deleted_at: string | null;
+          document_path: string | null;
+          expires_on: string | null;
+          id: string;
+          issued_on: string | null;
+          last_expiry_warning_days: number | null;
+          number: string | null;
+          rejection_reason: string | null;
+          status: Database["public"]["Enums"]["check_status"];
+          updated_at: string;
+          verified_at: string | null;
+          verified_by: string | null;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          credential_type_id: string;
+          document_deleted_at?: string | null;
+          document_path?: string | null;
+          expires_on?: string | null;
+          id?: string;
+          issued_on?: string | null;
+          last_expiry_warning_days?: number | null;
+          number?: string | null;
+          rejection_reason?: string | null;
+          status?: Database["public"]["Enums"]["check_status"];
+          updated_at?: string;
+          verified_at?: string | null;
+          verified_by?: string | null;
+          worker_id: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          credential_type_id?: string;
+          document_deleted_at?: string | null;
+          document_path?: string | null;
+          expires_on?: string | null;
+          id?: string;
+          issued_on?: string | null;
+          last_expiry_warning_days?: number | null;
+          number?: string | null;
+          rejection_reason?: string | null;
+          status?: Database["public"]["Enums"]["check_status"];
+          updated_at?: string;
+          verified_at?: string | null;
+          verified_by?: string | null;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "worker_credentials_credential_type_id_fkey";
+            columns: ["credential_type_id"];
+            isOneToOne: false;
+            referencedRelation: "credential_types";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "worker_credentials_verified_by_fkey";
+            columns: ["verified_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "worker_credentials_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      workers: {
+        Row: {
+          activated_at: string | null;
+          archived_at: string | null;
+          available_now_until: string | null;
+          bio: string | null;
+          created_at: string;
+          date_of_birth: string | null;
+          has_car: boolean | null;
+          home_lat: number | null;
+          home_lng: number | null;
+          home_postcode: string | null;
+          home_state: string;
+          home_suburb: string | null;
+          id: string;
+          legal_first_name: string | null;
+          legal_last_name: string | null;
+          licence_class: Database["public"]["Enums"]["licence_class"] | null;
+          onboarding_steps: string[];
+          payroll_employee_id: string | null;
+          payroll_status: Database["public"]["Enums"]["payroll_status"];
+          photo_path: string | null;
+          photo_rejection_reason: string | null;
+          photo_status: Database["public"]["Enums"]["check_status"] | null;
+          preferred_name: string | null;
+          profile_id: string;
+          rating_avg: number | null;
+          rating_count: number;
+          reliability_score: number | null;
+          shifts_completed: number;
+          status: Database["public"]["Enums"]["worker_status"];
+          status_reason: string | null;
+          submitted_at: string | null;
+          travel_radius_km: number;
+          updated_at: string;
+          urgent_opt_in: boolean;
+          uses_public_transport: boolean | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          activated_at?: string | null;
+          archived_at?: string | null;
+          available_now_until?: string | null;
+          bio?: string | null;
+          created_at?: string;
+          date_of_birth?: string | null;
+          has_car?: boolean | null;
+          home_lat?: number | null;
+          home_lng?: number | null;
+          home_postcode?: string | null;
+          home_state?: string;
+          home_suburb?: string | null;
+          id?: string;
+          legal_first_name?: string | null;
+          legal_last_name?: string | null;
+          licence_class?: Database["public"]["Enums"]["licence_class"] | null;
+          onboarding_steps?: string[];
+          payroll_employee_id?: string | null;
+          payroll_status?: Database["public"]["Enums"]["payroll_status"];
+          photo_path?: string | null;
+          photo_rejection_reason?: string | null;
+          photo_status?: Database["public"]["Enums"]["check_status"] | null;
+          preferred_name?: string | null;
+          profile_id: string;
+          rating_avg?: number | null;
+          rating_count?: number;
+          reliability_score?: number | null;
+          shifts_completed?: number;
+          status?: Database["public"]["Enums"]["worker_status"];
+          status_reason?: string | null;
+          submitted_at?: string | null;
+          travel_radius_km?: number;
+          updated_at?: string;
+          urgent_opt_in?: boolean;
+          uses_public_transport?: boolean | null;
+        };
+        Update: {
+          activated_at?: string | null;
+          archived_at?: string | null;
+          available_now_until?: string | null;
+          bio?: string | null;
+          created_at?: string;
+          date_of_birth?: string | null;
+          has_car?: boolean | null;
+          home_lat?: number | null;
+          home_lng?: number | null;
+          home_postcode?: string | null;
+          home_state?: string;
+          home_suburb?: string | null;
+          id?: string;
+          legal_first_name?: string | null;
+          legal_last_name?: string | null;
+          licence_class?: Database["public"]["Enums"]["licence_class"] | null;
+          onboarding_steps?: string[];
+          payroll_employee_id?: string | null;
+          payroll_status?: Database["public"]["Enums"]["payroll_status"];
+          photo_path?: string | null;
+          photo_rejection_reason?: string | null;
+          photo_status?: Database["public"]["Enums"]["check_status"] | null;
+          preferred_name?: string | null;
+          profile_id?: string;
+          rating_avg?: number | null;
+          rating_count?: number;
+          reliability_score?: number | null;
+          shifts_completed?: number;
+          status?: Database["public"]["Enums"]["worker_status"];
+          status_reason?: string | null;
+          submitted_at?: string | null;
+          travel_radius_km?: number;
+          updated_at?: string;
+          urgent_opt_in?: boolean;
+          uses_public_transport?: boolean | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workers_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -808,6 +1278,10 @@ export type Database = {
     Functions: {
       hook_send_email: { Args: { event: Json }; Returns: Json };
       hook_send_sms: { Args: { event: Json }; Returns: Json };
+      in_worker_folder: {
+        Args: { p_path: string; p_worker_id: string };
+        Returns: boolean;
+      };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       log_access_event: {
         Args: {
@@ -825,9 +1299,14 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: Database["public"]["Enums"]["user_role"];
       };
+      my_worker_id: { Args: Record<PropertyKey, never>; Returns: string };
       normalise_auth_phone: { Args: { raw: string }; Returns: string };
       set_current_agreement: {
         Args: { p_agreement_id: string };
+        Returns: undefined;
+      };
+      submit_worker_onboarding: {
+        Args: Record<PropertyKey, never>;
         Returns: undefined;
       };
     };
@@ -840,10 +1319,20 @@ export type Database = {
         | "privacy_collection_notice"
         | "worker_supply_notice";
       bill_method: "markup" | "fixed";
+      check_status: "pending" | "verified" | "rejected" | "expired";
+      citizenship_evidence:
+        "australian_passport" | "birth_certificate" | "citizenship_certificate";
       credential_kind: "ticket" | "licence" | "police_check" | "wwcc";
+      identity_document: "driver_licence" | "passport";
+      licence_class: "none" | "C" | "MR" | "HR";
       licence_status: "active" | "expired" | "suspended" | "cancelled";
+      payroll_status: "not_started" | "invited" | "complete";
+      right_to_work_basis:
+        "citizen" | "permanent_resident" | "nz_citizen" | "visa";
       user_role: "worker" | "business_user" | "admin";
       verification_method: "manual" | "register_check" | "provider_api";
+      worker_status:
+        "draft" | "pending" | "active" | "suspended" | "offboarded";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -980,10 +1469,26 @@ export const Constants = {
         "worker_supply_notice",
       ],
       bill_method: ["markup", "fixed"],
+      check_status: ["pending", "verified", "rejected", "expired"],
+      citizenship_evidence: [
+        "australian_passport",
+        "birth_certificate",
+        "citizenship_certificate",
+      ],
       credential_kind: ["ticket", "licence", "police_check", "wwcc"],
+      identity_document: ["driver_licence", "passport"],
+      licence_class: ["none", "C", "MR", "HR"],
       licence_status: ["active", "expired", "suspended", "cancelled"],
+      payroll_status: ["not_started", "invited", "complete"],
+      right_to_work_basis: [
+        "citizen",
+        "permanent_resident",
+        "nz_citizen",
+        "visa",
+      ],
       user_role: ["worker", "business_user", "admin"],
       verification_method: ["manual", "register_check", "provider_api"],
+      worker_status: ["draft", "pending", "active", "suspended", "offboarded"],
     },
   },
 } as const;
