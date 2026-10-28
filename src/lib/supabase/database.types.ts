@@ -3339,6 +3339,36 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_audit_log: {
+        Args: {
+          p_from?: string;
+          p_kind?: string;
+          p_limit?: number;
+          p_offset?: number;
+          p_people_only?: boolean;
+          p_person?: string;
+          p_subject?: string;
+          p_table?: string;
+          p_to?: string;
+        };
+        Returns: {
+          action: string;
+          actor_id: string;
+          actor_name: string;
+          actor_role: string;
+          after: Json;
+          before: Json;
+          context: Json;
+          created_at: string;
+          id: string;
+          record_id: string;
+          subject_name: string;
+          subject_profile_id: string;
+          subject_worker_id: string;
+          table_name: string;
+          total_count: number;
+        }[];
+      };
       admin_cancel_booking: {
         Args: { p_assignment_id: string; p_reason: string };
         Returns: {

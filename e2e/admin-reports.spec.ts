@@ -47,3 +47,58 @@ test("an admin sees how filling work is going, and the money behind it", async (
     page.getByText("Choose a start date before the end date"),
   ).toBeVisible();
 });
+
+test("an admin sees who has looked at a worker's records", async ({ page }) => {
+  await signInAsDemo(page, "Alex Morgan");
+  await page.goto("/admin/workers?q=Ahmed+Hassan");
+  await page.getByRole("link", { name: "Ahmed Hassan" }).click();
+  await page
+    .getByRole("link", { name: "Who has viewed or changed their records" })
+    .click();
+  await expect(
+    page.getByText("Only records about Ahmed Hassan."),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("region", { name: /entr(y|ies)$/ })
+      .getByRole("row")
+      .nth(1),
+  ).toContainText("Alex Morgan");
+  await expect(
+    page
+      .getByRole("region", { name: /entr(y|ies)$/ })
+      .getByRole("row")
+      .nth(1),
+  ).toContainText("Viewed documents: Worker details");
+  await expectAccessible(page);
+
+  await page
+    .getByLabel("What was done")
+    .selectOption("Added or changed records");
+  await page.getByRole("button", { name: "Show entries" }).click();
+  await expect(page).toHaveURL(/kind=changes/);
+  await expect(
+    page.getByText("Only records about Ahmed Hassan."),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("region", { name: /entr(y|ies)$/ })
+      .getByRole("row")
+      .nth(1),
+  ).toContainText(/Added|Changed/);
+});
+
+test("the dashboard shows what needs attention, linking to where it's done", async ({
+  page,
+}) => {
+  await signInAsDemo(page, "Alex Morgan");
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expectAccessible(page);
+  await page
+    .getByRole("link", { name: /Unfilled shifts starting within 24 hours/ })
+    .click();
+  await expect(page).toHaveURL(/\/admin\/shifts\?next=24h$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Shift board" }),
+  ).toBeVisible();
+});

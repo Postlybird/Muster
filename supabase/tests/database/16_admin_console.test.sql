@@ -1,9 +1,9 @@
--- The admin console (brief §6): the workers list and its filters, and the
--- shift board, for admins only.
+-- The admin console (brief §6): the workers list and its filters, the
+-- shift board, and the audit log viewer, for admins only.
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(15);
+select plan(22);
 
 insert into public.categories (id, code, name) values
   ('e1611111-0000-0000-0000-000000000001', 'pgtap_list_cleaner', 'PGTAP list cleaner');
@@ -81,6 +81,11 @@ insert into public.applications (shift_id, worker_id) values
 insert into public.attendance_events (assignment_id, kind, occurred_at, inside_geofence) values
   ('91622222-0000-0000-0000-000000000002', 'clock_in', now() - interval '55 minutes', true);
 
+-- An admin looked at A's documents.
+insert into public.audit_log (actor_id, actor_role, action, table_name, record_id, subject_profile_id, context)
+values ('16444444-4444-4444-4444-444444444444', 'admin', 'view_documents', 'workers', :'worker_a',
+  '16111111-1111-1111-1111-111111111111', '{"documents": ["photo"]}');
+
 set local role authenticated;
 
 -- Workers and businesses see nobody.
@@ -91,6 +96,7 @@ select is(
   0::bigint,
   'workers can''t see the shift board'
 );
+select is((select count(*) from public.admin_audit_log()), 0::bigint, 'or the audit log');
 
 select set_config('request.jwt.claims', '{"sub": "16444444-4444-4444-4444-444444444444", "role": "authenticated", "aal": "aal2"}', true);
 
@@ -159,6 +165,40 @@ select is(
    where business_id = 'b1611111-0000-0000-0000-000000000001'),
   1::bigint,
   'finished shifts drop off the board'
+);
+
+-- The audit log: who did what to whose record.
+select results_eq(
+  $$ select action, actor_name, subject_name, context
+     from public.admin_audit_log(p_subject => '16111111-1111-1111-1111-111111111111', p_kind => 'views') $$,
+  $$ values ('view_documents', 'list.admin@pgtap.test', 'Ace Listone', '{"documents": ["photo"]}'::jsonb) $$,
+  'views of a worker''s documents, with who looked'
+);
+select ok(
+  (select bool_and(action in ('insert', 'update', 'delete') and subject_name = 'Ace Listone')
+   from public.admin_audit_log(p_subject => '16111111-1111-1111-1111-111111111111', p_kind => 'changes')),
+  'changes to their records'
+);
+select ok(
+  (select count(*) > 0 and bool_and(subject_name = 'Pgtapb Listtwo' or actor_name = 'Pgtapb Listtwo')
+   from public.admin_audit_log(p_person => 'LIST.B@pgtap')),
+  'found by a person''s email, either way round'
+);
+select is(
+  (select count(*) from public.admin_audit_log(p_people_only => true, p_limit => 200)
+   where subject_profile_id is null),
+  0::bigint,
+  'just entries about people when asked'
+);
+select ok(
+  (select count(*) > 0 and bool_and(table_name = 'jobs')
+   from public.admin_audit_log(p_table => 'jobs', p_person => null, p_from => now() - interval '1 minute')),
+  'or one kind of record'
+);
+select is(
+  (select count(*) from public.admin_audit_log(p_from => now() + interval '1 day')),
+  0::bigint,
+  'and between dates'
 );
 
 -- Archived workers are left out.

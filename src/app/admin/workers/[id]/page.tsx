@@ -148,11 +148,11 @@ export default async function WorkerReviewPage({
   return (
     <div className="space-y-6">
       <Link
-        href="/admin/verification"
+        href="/admin/workers"
         className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground underline-offset-4 hover:underline"
       >
         <ArrowLeft className="size-4" aria-hidden />
-        Verification
+        Workers
       </Link>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -174,6 +174,12 @@ export default async function WorkerReviewPage({
               .filter(Boolean)
               .join(" · ")}
           </p>
+          <Link
+            href={`/admin/audit?subject=${worker.profile_id}`}
+            className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Who has viewed or changed their records
+          </Link>
         </div>
         {worker.status === "pending" ? (
           blockers.length === 0 ? (

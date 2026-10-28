@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.14 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.15 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -265,7 +265,7 @@ _Last updated: 28/10/2026_
     - admins are emailed a week before a VEVO re-check is due (**Verification** lists them from two weeks before)
   - Tests: 332 pgTAP, 348 unit and 178 browser tests passing.
 
-- **1.15 The rest of the admin console** (Phase 1, in progress):
+- **1.15 The rest of the admin console** (Phase 1):
   - **Workers:** everyone who has signed up, 50 to a page, with their status, suburb, work types, rating, reliability, shifts and the next ticket or visa to expire. Filter by name, mobile or email, status, work type, verified ticket, suburb or postcode, and tickets or visas expiring within 30 days (the longest expiry warning).
   - **Businesses:** filter by name or ABN, status, and the suburb or postcode of any of their sites.
   - **Shift board:** posted shifts that haven't finished, in the next 24 hours, 7 days or 30 days: under way (who's on site), needing workers (booked and applied), and filled. A shift starting within 24 hours that isn't fully booked shows red, with a count at the top.
@@ -278,6 +278,8 @@ _Last updated: 28/10/2026_
   - Possible no-shows settle themselves when the worker clocks in, the business confirms they arrived or reports a no-show. Recently settled matters are listed with their decisions.
   - New messages: taken off a shift (worker, and the business without the reason), no-show excused, and hold lifted.
   - **Reports:** for shifts starting in a period (last 7 or 30 days, this month, last month, or chosen dates): the fill rate (places booked of places posted), the typical time from posting to booking, the no-show rate, active workers and how many worked, then hours, revenue, cost and gross margin by work type and by business, from approved hours before GST.
+  - **Audit log:** who viewed, changed or verified personal records, and when, newest first, with what changed. Filter by person (name, email or mobile), what was done, the kind of record and dates; jobs, shifts and settings only when asked for. Each worker's page links to the entries about them.
+  - **Dashboard:** what needs attention today, each linking to where it's done: unfilled shifts starting within 24 hours and open safety reports (red when there are any), hours queried, other queue matters, workers to check, VEVO re-checks due, businesses to approve and overdue invoices.
   - Filtered lists keep their filters in the page address, so they can be bookmarked or shared with another admin.
 
 ## Next
@@ -289,7 +291,8 @@ _Last updated: 28/10/2026_
   - hourly: `compliance`
   - once a day, early morning: `pay-run` (it only runs on the run day)
 - **Optional, any time:** turn on push notifications (Admin → Settings → Push notifications has the steps).
-- **Phase 1, step 1.15:** the rest of the admin console: the audit log viewer and the admin dashboard.
+- **Phase 1, step 1.16:** the public pages: the landing page with "Find work" and "Hire workers", how it works for each, FAQ, privacy, terms and contact (legal text marked for review).
+- **Then step 1.17:** core-flow browser tests and the Phase 1 acceptance run (10 workers, 3 businesses, 20 shifts through to the payroll file and invoices).
 
 ## Decisions
 
