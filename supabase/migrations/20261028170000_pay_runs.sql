@@ -86,6 +86,7 @@ create table public.pay_run_lines (
 
 create index pay_run_lines_run_idx on public.pay_run_lines (pay_run_id);
 create index pay_run_lines_invoice_idx on public.pay_run_lines (invoice_id);
+create index invoices_business_idx on public.invoices (business_id, issued_on desc);
 
 create sequence public.invoice_number_seq start 1001;
 
