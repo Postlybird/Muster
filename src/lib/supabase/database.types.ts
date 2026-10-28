@@ -1276,6 +1276,16 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      dev_auth_email: {
+        Args: {
+          p_action: string;
+          p_base_url: string;
+          p_recipient: string;
+          p_token: string;
+          p_token_hash: string;
+        };
+        Returns: undefined;
+      };
       hook_send_email: { Args: { event: Json }; Returns: Json };
       hook_send_sms: { Args: { event: Json }; Returns: Json };
       in_worker_folder: {

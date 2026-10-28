@@ -464,6 +464,13 @@ begin
     raise exception 'Some required steps are not finished' using errcode = 'check_violation';
   end if;
 
+  -- Both a mobile (urgent work, reminders) and an email (payroll setup), confirmed.
+  if exists (
+    select 1 from public.profiles p where p.id = w.profile_id and (p.email is null or p.phone is null)
+  ) then
+    raise exception 'Add and confirm both your mobile number and email address' using errcode = 'check_violation';
+  end if;
+
   select coalesce((select (s.value #>> '{}')::integer from public.settings s where s.key = 'min_worker_age'), 18)
     into v_min_age;
   if w.date_of_birth > (now() at time zone 'Australia/Sydney')::date - make_interval(years => v_min_age) then
