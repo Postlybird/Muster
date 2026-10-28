@@ -4,14 +4,14 @@ import { formatDayShort, formatTime } from "@/lib/format";
 import { shiftSummary } from "@/lib/job-format";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import { emailPerson, textPerson } from "./notify";
-import { requestOrigin } from "./request";
+import { notify, notifyAdmins } from "./notifications";
 
 /**
- * Messages about bookings. Until notifications arrive in step 1.14, workers
- * are texted and businesses emailed; these look up who to tell with the
- * service-role key, like notify.ts.
+ * Messages about bookings (src/config/notifications.ts has their words).
+ * These look up who to tell with the service-role key.
  */
+
+const DAY = 86_400_000;
 
 async function jobFacts(jobId: string) {
   const admin = createAdminClient();
@@ -34,8 +34,13 @@ async function jobFacts(jobId: string) {
   };
 }
 
+/** Starts within a day: worth sending even in quiet hours. */
+function soon(shifts: readonly { starts_at: string }[]): boolean {
+  return shifts.some((s) => Date.parse(s.starts_at) - Date.now() < DAY);
+}
+
 /** Tells a worker the business picked them, with a link to the address. */
-export async function textBooked(
+export async function notifyBooked(
   workerId: string,
   jobId: string,
   shiftIds: readonly string[],
@@ -48,16 +53,22 @@ export async function textBooked(
   if (!worker || !job) return;
   const booked = job.shifts.filter((s) => shiftIds.includes(s.id));
   if (booked.length === 0) return;
-  const origin = await requestOrigin();
-  await textPerson(
+  await notify(
+    "booked",
     worker.profile_id,
-    `You're booked: ${job.category} for ${job.business} in ${job.suburb}, ${shiftSummary(booked)}. See the address and who to report to: ${origin}/worker/shifts/${jobId}`,
+    {
+      work: job.category,
+      business: job.business,
+      suburb: job.suburb,
+      shifts: shiftSummary(booked),
+    },
+    { url: `/worker/shifts/${jobId}`, urgent: soon(booked) },
   );
 }
 
 /**
- * Claims a once-only email about a job: true for the first caller only, so
- * two people applying or accepting at once never send it twice.
+ * Claims a once-only message about a job: true for the first caller only,
+ * so two people applying or accepting at once never send it twice.
  */
 async function claim(
   jobId: string,
@@ -78,39 +89,43 @@ async function claim(
   return (data ?? []).length > 0;
 }
 
-/** Emails whoever posted a job when its first worker applies. */
-export async function emailFirstApplicant(jobId: string) {
+/** Tells whoever posted a job when its first worker applies. */
+export async function notifyFirstApplicant(jobId: string) {
   const job = await jobFacts(jobId);
   if (!job?.postedBy || !(await claim(jobId, "first_applicant_emailed_at"))) {
     return;
   }
-  const origin = await requestOrigin();
-  await emailPerson(job.postedBy, {
-    subject: `Your first applicant: ${job.category} at ${job.site}`,
-    text: `Someone has applied for ${job.category} at ${job.site} (${shiftSummary(job.shifts)}).\n\nSee their rating, reliability and tickets, and book who you want: ${origin}/business/jobs/${jobId}`,
-    tag: "job-applicants",
-  });
+  await notify(
+    "first_applicant",
+    job.postedBy,
+    { work: job.category, site: job.site, shifts: shiftSummary(job.shifts) },
+    { url: `/business/jobs/${jobId}` },
+  );
 }
 
-/** Emails whoever posted a "First in" job once every shift is booked. */
-export async function emailIfFilled(jobId: string) {
+/** Tells whoever posted a "First in" job once every shift is booked. */
+export async function notifyIfFilled(jobId: string) {
   const job = await jobFacts(jobId);
   if (!job?.postedBy || job.shifts.length === 0) return;
   if (job.shifts.some((s) => s.status === "open")) return;
   if (!(await claim(jobId, "filled_emailed_at"))) return;
-  const origin = await requestOrigin();
   const first = [...job.shifts].sort((a, b) =>
     a.starts_at.localeCompare(b.starts_at),
   )[0]!;
-  await emailPerson(job.postedBy, {
-    subject: `All booked: ${job.category} at ${job.site}`,
-    text: `Every shift of ${job.category} at ${job.site} is now booked, starting ${formatDayShort(first.starts_at)} at ${formatTime(first.starts_at)}.\n\nSee who's coming and their mobile numbers: ${origin}/business/jobs/${jobId}`,
-    tag: "job-filled",
-  });
+  await notify(
+    "job_filled",
+    job.postedBy,
+    {
+      work: job.category,
+      site: job.site,
+      start: `${formatDayShort(first.starts_at)} at ${formatTime(first.starts_at)}`,
+    },
+    { url: `/business/jobs/${jobId}` },
+  );
 }
 
 /** Tells whoever posted a job that a booked worker can't make it. */
-export async function emailWorkerCancelled(
+export async function notifyWorkerCancelled(
   jobId: string,
   workerId: string,
   shiftIds: readonly string[],
@@ -128,16 +143,21 @@ export async function emailWorkerCancelled(
   const name = `${worker.preferred_name ?? worker.legal_first_name ?? "A worker"} ${worker.legal_last_name?.[0] ?? ""}.`;
   const shifts = job.shifts.filter((s) => shiftIds.includes(s.id));
   if (shifts.length === 0) return;
-  const origin = await requestOrigin();
-  await emailPerson(job.postedBy, {
-    subject: `${name} can't make it: ${job.category} at ${job.site}`,
-    text: `${name} has cancelled ${shiftSummary(shifts)} at ${job.site}. We've offered the shift to other workers who match.\n\nSee who's booked: ${origin}/business/jobs/${jobId}`,
-    tag: "job-cancelled-by-worker",
-  });
+  await notify(
+    "worker_cancelled",
+    job.postedBy,
+    {
+      worker: name,
+      work: job.category,
+      site: job.site,
+      shifts: shiftSummary(shifts),
+    },
+    { url: `/business/jobs/${jobId}`, urgent: soon(shifts) },
+  );
 }
 
 /** Tells booked workers the business cancelled their shifts. */
-export async function textShiftsCancelled(
+export async function notifyShiftsCancelled(
   jobId: string,
   cancelled: readonly { worker_id: string; shift_id: string }[],
 ) {
@@ -161,16 +181,23 @@ export async function textShiftsCancelled(
         .map((c) => c.shift_id);
       const shifts = job.shifts.filter((s) => shiftIds.includes(s.id));
       if (shifts.length === 0) return null;
-      return textPerson(
+      return notify(
+        "shifts_cancelled",
         worker.profile_id,
-        `Cancelled: ${job.business} has cancelled ${job.category} in ${job.suburb}, ${shiftSummary(shifts)}. Sorry for the change. Find other work in the app.`,
+        {
+          business: job.business,
+          work: job.category,
+          suburb: job.suburb,
+          shifts: shiftSummary(shifts),
+        },
+        { url: "/worker/shifts" },
       );
     }),
   );
 }
 
 /** Tells a worker a no-show was recorded, and if that put their account on hold. */
-export async function textNoShow(
+export async function notifyNoShow(
   workerId: string,
   jobId: string,
   suspended: boolean,
@@ -181,42 +208,42 @@ export async function textNoShow(
     admin.from("workers").select("profile_id").eq("id", workerId).single(),
   ]);
   if (!job || !worker) return;
-  await textPerson(
-    worker.profile_id,
-    suspended
-      ? `${job.business} reported you didn't come to ${job.category} in ${job.suburb}. With your recent no-shows, your account is on hold and you can't take new shifts. We'll be in touch.`
-      : `${job.business} reported you didn't come to ${job.category} in ${job.suburb}. If that's not right, contact us.`,
-  );
+  await notify(suspended ? "no_show_suspended" : "no_show", worker.profile_id, {
+    business: job.business,
+    work: job.category,
+    suburb: job.suburb,
+  });
 }
 
 /** Tells every admin about a safety report straight away (brief §4.6). */
-export async function emailAdminsSafety(
+export async function notifyAdminsSafety(
   jobId: string,
   workerId: string,
   description: string,
 ) {
   const admin = createAdminClient();
-  const [job, { data: worker }, { data: admins }] = await Promise.all([
+  const [job, { data: worker }] = await Promise.all([
     jobFacts(jobId),
     admin
       .from("workers")
       .select("preferred_name, legal_first_name, legal_last_name")
       .eq("id", workerId)
       .single(),
-    admin.from("profiles").select("id").eq("role", "admin"),
   ]);
   if (!job) return;
   const name = worker
     ? `${worker.preferred_name ?? worker.legal_first_name ?? "A worker"} ${worker.legal_last_name ?? ""}`.trim()
     : "A worker";
-  await Promise.all(
-    (admins ?? []).map((person) =>
-      emailPerson(person.id, {
-        subject: `Safety issue at ${job.site} (${job.business})`,
-        text: `${name} reported a safety issue on ${job.category} at ${job.site}:\n\n${description}\n\nIt's flagged for admins in the app.`,
-        tag: "safety-report",
-      }),
-    ),
+  await notifyAdmins(
+    "safety_report",
+    {
+      worker: name,
+      work: job.category,
+      site: job.site,
+      business: job.business,
+      description,
+    },
+    { url: "/admin/queues" },
   );
 }
 
@@ -224,7 +251,7 @@ export async function emailAdminsSafety(
  * Tells whoever posted a job that a booked worker hasn't clocked in (plan:
  * 30 minutes after the start, a setting).
  */
-export async function emailPossibleNoShow(jobId: string, workerId: string) {
+export async function notifyPossibleNoShow(jobId: string, workerId: string) {
   const admin = createAdminClient();
   const [job, { data: worker }] = await Promise.all([
     jobFacts(jobId),
@@ -237,10 +264,10 @@ export async function emailPossibleNoShow(jobId: string, workerId: string) {
   if (!job?.postedBy || !worker) return;
   const name =
     `${worker.preferred_name ?? worker.legal_first_name ?? "A worker"} ${worker.legal_last_name ?? ""}`.trim();
-  const origin = await requestOrigin();
-  await emailPerson(job.postedBy, {
-    subject: `${name} hasn't clocked in at ${job.site}`,
-    text: `${name} is booked for ${job.category} at ${job.site} but hasn't clocked in yet.\n\nIf they're there, confirm their arrival. If they haven't come, report a no-show: ${origin}/business/jobs/${jobId}`,
-    tag: "possible-no-show",
-  });
+  await notify(
+    "possible_no_show",
+    job.postedBy,
+    { worker: name, work: job.category, site: job.site },
+    { url: `/business/jobs/${jobId}` },
+  );
 }

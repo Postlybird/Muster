@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getAbnLookup } from "@/adapters/abn";
-import { brand } from "@/config/brand";
 import { requireAdmin } from "@/lib/auth";
 import {
   failure,
@@ -16,7 +15,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { businessName, registerColumns } from "@/server/businesses";
 import { saveFailed } from "@/server/errors";
-import { emailBusinessOwners } from "@/server/notify";
+import { notifyBusinessOwners } from "@/server/notifications";
 import { requestOrigin } from "@/server/request";
 
 const ABN_CANCELLED =
@@ -88,10 +87,6 @@ async function postWorkLink() {
   return new URL("/business/post", await requestOrigin()).toString();
 }
 
-function contactLine() {
-  return `Questions? Email ${brand.supportEmail} or call ${brand.supportPhone}.`;
-}
-
 /**
  * A decision on a business waiting for approval: approve (with or without
  * account terms) or decline with a reason (brief §4.2 step 7).
@@ -144,22 +139,16 @@ export async function approveBusiness(
   const name = businessName(business);
   // Declined businesses are on hold too, but have never been approved.
   const wasOnHold = business.status === "suspended" && !!business.approved_at;
-  await emailBusinessOwners(businessId, {
-    subject: wasOnHold
-      ? `${name} is no longer on hold`
-      : `${name} is approved on ${brand.name}`,
-    text: [
-      wasOnHold
-        ? `Your ${brand.name} account is no longer on hold.`
-        : `Good news: ${name} is approved on ${brand.name}.`,
-      "",
-      terms.account_terms_approved
+  await notifyBusinessOwners(
+    wasOnHold ? "business_off_hold" : "business_approved",
+    businessId,
+    {
+      business: name,
+      next: terms.account_terms_approved
         ? `You can post work now: ${await postWorkLink()}\n\nWe invoice weekly. Invoices are due ${terms.payment_terms_days} days after issue.`
         : "Before you can post work we need to set up your account terms. We'll be in touch.",
-      "",
-      contactLine(),
-    ].join("\n"),
-  });
+    },
+  );
   return done(businessId, wasOnHold ? "Taken off hold" : `${name} approved`);
 }
 
@@ -185,20 +174,11 @@ export async function holdBusiness(
 
   const name = businessName(business);
   const declined = business.status === "pending";
-  await emailBusinessOwners(businessId, {
-    subject: declined
-      ? `We can't approve ${name} yet`
-      : `${name} is on hold on ${brand.name}`,
-    text: [
-      declined
-        ? `We've looked at ${name}'s application and can't approve it yet.`
-        : `We've put ${name}'s ${brand.name} account on hold. You can't post new work while it's on hold.`,
-      "",
-      reason,
-      "",
-      contactLine(),
-    ].join("\n"),
-  });
+  await notifyBusinessOwners(
+    declined ? "business_declined" : "business_on_hold",
+    businessId,
+    { business: name, reason },
+  );
   return done(businessId, declined ? "Declined" : "Put on hold");
 }
 
@@ -224,16 +204,12 @@ export async function saveAccountTerms(
 
   if (terms.account_terms_approved && !business.account_terms_approved) {
     const name = businessName(business);
-    await emailBusinessOwners(businessId, {
-      subject: `${name} can now post work on ${brand.name}`,
-      text: [
-        `Your account terms are set up, so you can post work now: ${await postWorkLink()}`,
-        "",
-        `We invoice weekly. Invoices are due ${terms.payment_terms_days} days after issue.`,
-        "",
-        contactLine(),
-      ].join("\n"),
-    });
+    await notifyBusinessOwners(
+      "business_terms_set",
+      businessId,
+      { business: name, terms: String(terms.payment_terms_days) },
+      { url: "/business/post" },
+    );
   }
   return done(businessId, "Account terms saved");
 }
@@ -268,15 +244,9 @@ export async function recheckAbn(businessId: string): Promise<ActionState> {
 
   if (hold) {
     const name = businessName(business);
-    await emailBusinessOwners(businessId, {
-      subject: `${name} is on hold on ${brand.name}`,
-      text: [
-        `We've put ${name}'s ${brand.name} account on hold. You can't post new work while it's on hold.`,
-        "",
-        ABN_CANCELLED,
-        "",
-        contactLine(),
-      ].join("\n"),
+    await notifyBusinessOwners("business_on_hold", businessId, {
+      business: name,
+      reason: ABN_CANCELLED,
     });
   }
   return done(

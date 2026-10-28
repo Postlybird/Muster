@@ -23,12 +23,18 @@ export async function sendTestMessages(): Promise<void> {
       to: "+61400000000",
       body: `${brand.name}: this is a test text from the SMS adapter.`,
     }),
-    getPushSender().send({
-      recipient: "test@demo.test",
-      title: "Test notification",
-      body: "This is a test from the push adapter.",
-      url: "/worker",
-    }),
+    getPushSender().send(
+      {
+        endpoint: "https://push.example/test-device",
+        keys: { p256dh: "test", auth: "test" },
+      },
+      {
+        recipient: "test@demo.test",
+        title: "Test notification",
+        body: "This is a test from the push adapter.",
+        url: "/worker",
+      },
+    ),
   ]);
 
   revalidatePath("/dev/outbox");

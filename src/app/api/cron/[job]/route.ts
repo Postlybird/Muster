@@ -3,6 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { checkAttendance } from "@/server/attendance";
+import { sendDueNotifications } from "@/server/notifications";
 import { scheduledPayRun } from "@/server/pay-runs";
 import { finishShifts } from "@/server/reliability";
 import { sendReminders } from "@/server/reminders";
@@ -18,6 +19,7 @@ const JOBS: Record<string, () => Promise<unknown>> = {
   attendance: () => checkAttendance(),
   timesheets: () => runTimesheets(),
   "pay-run": () => scheduledPayRun(),
+  notifications: () => sendDueNotifications(),
 };
 
 function allowed(request: Request): boolean {

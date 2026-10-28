@@ -4,8 +4,7 @@ import { formatDayShort, formatTime } from "@/lib/format";
 import { formatAuPhone } from "@/lib/phone";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import { textPerson } from "./notify";
-import { requestOrigin } from "./request";
+import { notify } from "./notifications";
 
 const HOUR = 3_600_000;
 
@@ -13,9 +12,8 @@ type Kind = "day_before" | "soon";
 
 /**
  * Reminds booked workers about their shifts (brief §4.4): the day before,
- * and two hours before. Each booking is claimed before it's texted, so two
- * runs at once never send the same reminder twice. Texts until push
- * notifications arrive in step 1.14.
+ * and two hours before. Each booking is claimed before it's sent, so two
+ * runs at once never send the same reminder twice.
  */
 export async function sendReminders(now = new Date()) {
   return {
@@ -55,7 +53,6 @@ async function remind(kind: Kind, now: Date): Promise<number> {
     .select(
       "id, workers(profile_id), shifts(starts_at, job_id, jobs(report_to_name, report_to_phone, categories(name), businesses(trading_name, legal_name), sites(address_line1, suburb, report_to_name, report_to_phone)))",
     );
-  const origin = await requestOrigin();
   await Promise.all(
     (claimed ?? []).map((booking) => {
       const shift = booking.shifts;
@@ -64,17 +61,26 @@ async function remind(kind: Kind, now: Date): Promise<number> {
       const site = job.sites;
       const reportTo = job.report_to_name ?? site?.report_to_name;
       const reportPhone = job.report_to_phone ?? site?.report_to_phone;
-      const when =
-        kind === "day_before"
-          ? `on ${formatDayShort(shift.starts_at)} from ${formatTime(shift.starts_at)}`
-          : `today from ${formatTime(shift.starts_at)}`;
-      const where = site ? ` at ${site.address_line1}, ${site.suburb}` : "";
-      const contact = reportTo
-        ? ` Report to ${reportTo}${reportPhone ? ` on ${formatAuPhone(reportPhone)}` : ""}.`
-        : "";
-      return textPerson(
+      const values = {
+        work: job.categories?.name ?? "Your shift",
+        business:
+          job.businesses?.trading_name ??
+          job.businesses?.legal_name ??
+          "the business",
+        when:
+          kind === "day_before"
+            ? `on ${formatDayShort(shift.starts_at)} from ${formatTime(shift.starts_at)}`
+            : `today from ${formatTime(shift.starts_at)}`,
+        address: site ? `${site.address_line1}, ${site.suburb}` : "",
+        report_to: reportTo
+          ? `Report to ${reportTo}${reportPhone ? ` on ${formatAuPhone(reportPhone)}` : ""}.`
+          : "",
+      };
+      return notify(
+        kind === "day_before" ? "reminder_day_before" : "reminder_soon",
         booking.workers.profile_id,
-        `${kind === "day_before" ? "Reminder" : "Starting soon"}: ${job.categories?.name ?? "Your shift"} for ${job.businesses?.trading_name ?? job.businesses?.legal_name ?? "the business"} ${when}${where}.${contact} Details: ${origin}/worker/shifts/${shift.job_id}`,
+        values,
+        { url: `/worker/shifts/${shift.job_id}` },
       );
     }),
   );

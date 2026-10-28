@@ -5,7 +5,7 @@ import { costTimesheetsWith } from "@/lib/timesheet-costing";
 
 import { refreshReliability } from "./reliability";
 import { getAllSettings } from "./settings";
-import { emailAutoApproved, emailTimesheetsReady } from "./timesheet-notices";
+import { notifyAutoApproved, notifyTimesheetsReady } from "./timesheet-notices";
 
 /**
  * Works out pay and bill for approved hours (brief §4.8) with the rates
@@ -35,8 +35,8 @@ export async function runTimesheets() {
   if (approveError) {
     throw new Error(`Couldn't approve timesheets: ${approveError.message}`);
   }
-  const ready = await emailTimesheetsReady();
-  await emailAutoApproved((approved ?? []).map((row) => row.timesheet_id));
+  const ready = await notifyTimesheetsReady();
+  await notifyAutoApproved((approved ?? []).map((row) => row.timesheet_id));
   const { costed } = await costTimesheets();
   await refreshReliability((recorded ?? []).map((row) => row.worker_id));
   return {

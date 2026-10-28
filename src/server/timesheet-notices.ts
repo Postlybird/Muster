@@ -4,15 +4,13 @@ import { formatDateTime, formatDayShort } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hoursLabel, workerName } from "@/lib/timesheet-format";
 
-import { emailPerson, textPerson } from "./notify";
-import { requestOrigin } from "./request";
+import { notify } from "./notifications";
 import { getAllSettings } from "./settings";
 
 /**
- * Messages about timesheets (brief §4.6). Until notifications arrive in
- * step 1.14, workers are texted and whoever posted the job is emailed, as
- * in booking-notices.ts; these look up who to tell with the service-role
- * key.
+ * Messages about timesheets (brief §4.6) to the worker and whoever posted
+ * the job (src/config/notifications.ts has their words). These look up who
+ * to tell with the service-role key.
  */
 
 async function loadTimesheets(ids: readonly string[]) {
@@ -60,11 +58,11 @@ function line(row: Loaded): string {
 }
 
 /**
- * Tells whoever posted each job that hours are ready to approve, one email
- * per person for everything new. Each timesheet is claimed first, so two
- * runs at once never send the same one twice.
+ * Tells whoever posted each job that hours are ready to approve, one
+ * message per person for everything new. Each timesheet is claimed first,
+ * so two runs at once never send the same one twice.
  */
-export async function emailTimesheetsReady(): Promise<number> {
+export async function notifyTimesheetsReady(): Promise<number> {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("timesheets")
@@ -75,100 +73,132 @@ export async function emailTimesheetsReady(): Promise<number> {
   if (error) throw new Error(`Couldn't claim timesheets: ${error.message}`);
   const rows = await loadTimesheets((data ?? []).map((row) => row.id));
   if (rows.length === 0) return 0;
-  const origin = await requestOrigin();
   for (const [postedBy, sheets] of byPoster(rows)) {
     const first = sheets[0]!;
     const by = sheets
       .map((sheet) => sheet.approve_by)
       .sort()
       .at(0)!;
-    await emailPerson(postedBy, {
-      subject:
-        sheets.length === 1
-          ? `Hours to approve: ${first.name} at ${first.site}`
-          : `${sheets.length} timesheets to approve`,
-      text: `These hours are ready for you to approve:\n\n${sheets.map(line).join("\n")}\n\nApprove or change them by ${formatDateTime(by)}, or they'll be approved as they are. If something's wrong, query them and our team will look into it: ${origin}/business/timesheets`,
-      tag: "timesheets-ready",
-    });
+    await notify(
+      "timesheets_ready",
+      postedBy,
+      {
+        summary:
+          sheets.length === 1
+            ? `${first.name} at ${first.site}`
+            : `${sheets.length} timesheets`,
+        hours: sheets.map(line).join("\n"),
+        deadline: formatDateTime(by),
+      },
+      { url: "/business/timesheets" },
+    );
   }
   return rows.length;
 }
 
 /** Tells whoever posted each job about hours approved automatically. */
-export async function emailAutoApproved(ids: readonly string[]) {
+export async function notifyAutoApproved(ids: readonly string[]) {
   const rows = await loadTimesheets(ids);
   if (rows.length === 0) return;
-  const [origin, settings] = await Promise.all([
-    requestOrigin(),
-    getAllSettings(),
-  ]);
+  const settings = await getAllSettings();
   for (const [postedBy, sheets] of byPoster(rows)) {
-    await emailPerson(postedBy, {
-      subject:
-        sheets.length === 1
-          ? `Approved automatically: ${sheets[0]!.name}'s hours`
-          : `${sheets.length} timesheets approved automatically`,
-      text: `Nobody approved or queried these hours within ${settings.auto_approve_hours} hours, so they've been approved as they were:\n\n${sheets.map(line).join("\n")}\n\nThey'll be on your next invoice. If something's wrong, contact us. See your timesheets: ${origin}/business/timesheets`,
-      tag: "timesheets-auto-approved",
-    });
+    await notify(
+      "timesheets_auto_approved",
+      postedBy,
+      {
+        summary:
+          sheets.length === 1
+            ? `${sheets[0]!.name}'s hours`
+            : `${sheets.length} timesheets`,
+        window: String(settings.auto_approve_hours),
+        hours: sheets.map(line).join("\n"),
+      },
+      { url: "/business/timesheets" },
+    );
   }
 }
 
 /** Tells the worker the business changed or entered their hours. */
-export async function textHoursChanged(timesheetId: string) {
+export async function notifyHoursChanged(timesheetId: string) {
   const [row] = await loadTimesheets([timesheetId]);
   if (!row?.profileId) return;
-  const origin = await requestOrigin();
-  const note = row.business_note ? ` "${row.business_note}"` : "";
-  await textPerson(
+  await notify(
+    "hours_changed",
     row.profileId,
-    `${row.business} set your hours for ${row.day} at ${row.site} to ${hoursLabel(row)}.${note} If that's not right, query them: ${origin}/worker/timesheets/${row.id}`,
+    {
+      business: row.business,
+      day: row.day,
+      site: row.site,
+      hours: hoursLabel(row),
+      note: row.business_note ? `"${row.business_note}"` : "",
+    },
+    { url: `/worker/timesheets/${row.id}` },
   );
 }
 
 /** Tells the worker the business queried their hours. */
-export async function textHoursQueried(timesheetId: string) {
+export async function notifyHoursQueried(timesheetId: string) {
   const [row] = await loadTimesheets([timesheetId]);
   if (!row?.profileId) return;
-  const origin = await requestOrigin();
-  await textPerson(
+  await notify(
+    "hours_queried",
     row.profileId,
-    `${row.business} has queried your hours for ${row.day} at ${row.site}. Our team will look into it. Add your side: ${origin}/worker/timesheets/${row.id}`,
+    { business: row.business, day: row.day, site: row.site },
+    { url: `/worker/timesheets/${row.id}` },
   );
 }
 
 /** Tells whoever posted the job the worker queried approved hours. */
-export async function emailWorkerQueried(timesheetId: string) {
+export async function notifyWorkerQueried(timesheetId: string) {
   const [row] = await loadTimesheets([timesheetId]);
   if (!row?.postedBy) return;
-  const origin = await requestOrigin();
-  await emailPerson(row.postedBy, {
-    subject: `${row.name} has queried their hours at ${row.site}`,
-    text: `${row.name} has queried the hours approved for ${row.day} at ${row.site} (${hoursLabel(row)}):\n\n"${row.worker_note ?? ""}"\n\nOur team will look into it and let you both know. Add your side: ${origin}/business/timesheets/${row.id}`,
-    tag: "timesheet-queried",
-  });
+  await notify(
+    "worker_queried_hours",
+    row.postedBy,
+    {
+      worker: row.name,
+      day: row.day,
+      site: row.site,
+      hours: hoursLabel(row),
+      note: row.worker_note ?? "",
+    },
+    { url: `/business/timesheets/${row.id}` },
+  );
 }
 
 /** Tells both sides how our team settled a query. */
-export async function noticeResolved(timesheetId: string) {
+export async function notifyResolved(timesheetId: string) {
   const [row] = await loadTimesheets([timesheetId]);
   if (!row) return;
-  const origin = await requestOrigin();
   const outcome =
     row.status === "rejected"
       ? "the hours won't be paid or charged"
       : `the hours are ${hoursLabel(row)}`;
   if (row.profileId) {
-    await textPerson(
+    await notify(
+      "query_settled_worker",
       row.profileId,
-      `We've settled the query about your hours for ${row.day} at ${row.site}: ${outcome}. ${row.resolution ?? ""} ${origin}/worker/timesheets/${row.id}`.trim(),
+      {
+        day: row.day,
+        site: row.site,
+        outcome,
+        resolution: row.resolution ?? "",
+      },
+      { url: `/worker/timesheets/${row.id}` },
     );
   }
   if (row.postedBy) {
-    await emailPerson(row.postedBy, {
-      subject: `Query settled: ${row.name}'s hours at ${row.site}`,
-      text: `We've settled the query about ${row.name}'s hours for ${row.day} at ${row.site}: ${outcome}.\n\n${row.resolution ?? ""}\n\nSee the timesheet: ${origin}/business/timesheets/${row.id}`,
-      tag: "timesheet-resolved",
-    });
+    await notify(
+      "query_settled_business",
+      row.postedBy,
+      {
+        worker: row.name,
+        day: row.day,
+        site: row.site,
+        outcome,
+        resolution: row.resolution ?? "",
+      },
+      { url: `/business/timesheets/${row.id}` },
+    );
   }
 }

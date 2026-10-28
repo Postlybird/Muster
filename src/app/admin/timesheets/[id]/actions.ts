@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hoursFromForm } from "@/lib/timesheets";
 import { saveFailed } from "@/server/errors";
 import { refreshReliability } from "@/server/reliability";
-import { noticeResolved } from "@/server/timesheet-notices";
+import { notifyResolved } from "@/server/timesheet-notices";
 import { costTimesheets } from "@/server/timesheets";
 
 /**
@@ -58,7 +58,7 @@ export async function resolveTimesheet(
     .eq("id", id)
     .maybeSingle();
   if (sheet) await refreshReliability([sheet.worker_id]);
-  await noticeResolved(id);
+  await notifyResolved(id);
   revalidatePath("/admin/queues");
   revalidatePath(`/admin/timesheets/${id}`);
   redirect("/admin/queues?resolved=1");

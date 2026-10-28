@@ -2,7 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import { emailPossibleNoShow } from "./booking-notices";
+import { notifyPossibleNoShow } from "./booking-notices";
 
 /**
  * Flags booked workers who haven't clocked in a while after the start
@@ -14,7 +14,7 @@ export async function checkAttendance() {
   const { data, error } = await admin.rpc("flag_possible_no_shows");
   if (error) throw new Error(`Couldn't check attendance: ${error.message}`);
   for (const row of data ?? []) {
-    await emailPossibleNoShow(row.job_id, row.worker_id);
+    await notifyPossibleNoShow(row.job_id, row.worker_id);
   }
   return { flagged: (data ?? []).length };
 }

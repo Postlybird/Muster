@@ -3,13 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getEmailSender } from "@/adapters/email";
-import { brand } from "@/config/brand";
 import { failure, success, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import { businessName, getMyBusiness } from "@/server/businesses";
 import { saveFailed } from "@/server/errors";
-import { requestOrigin } from "@/server/request";
+import { emailTemplate } from "@/server/notifications";
 
 const ROLE_WORDS = {
   owner: "an owner",
@@ -36,18 +34,13 @@ async function sendInvite(
   inviter: string,
   business: string,
 ) {
-  const link = new URL("/login?as=business", await requestOrigin()).toString();
   try {
-    await getEmailSender().send({
-      to: email,
-      subject: `${inviter} invited you to ${business} on ${brand.name}`,
-      text: [
-        `${inviter} has invited you to join ${business} on ${brand.name} as ${ROLE_WORDS[role]}.`,
-        "",
-        `Sign in with this email address (${email}) to accept: ${link}`,
-      ].join("\n"),
-      tag: "business-invite",
-    });
+    await emailTemplate(
+      "team_invite",
+      email,
+      { inviter, business, role: ROLE_WORDS[role], email },
+      { url: "/login?as=business" },
+    );
   } catch (error) {
     console.error("Couldn't send an invite", error);
   }

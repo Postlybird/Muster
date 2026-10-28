@@ -7,9 +7,9 @@ import { pickOutcome } from "@/domain/bookings";
 import { failure, success, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import {
-  textBooked,
-  textNoShow,
-  textShiftsCancelled,
+  notifyBooked,
+  notifyNoShow,
+  notifyShiftsCancelled,
 } from "@/server/booking-notices";
 import { canManage, getMyBusiness } from "@/server/businesses";
 import { saveFailed } from "@/server/errors";
@@ -84,7 +84,7 @@ export async function pickApplicant(
   const booked = rows
     .filter((row) => row.result === "booked")
     .map((row) => row.shift_id);
-  if (booked.length > 0) await textBooked(workerId, jobId, booked);
+  if (booked.length > 0) await notifyBooked(workerId, jobId, booked);
   revalidatePath(`/business/jobs/${jobId}`);
   revalidatePath("/business");
   return outcome.ok ? success(outcome.message) : failure(outcome.message);
@@ -122,7 +122,7 @@ export async function cancelShifts(
   });
   if (error) return saveFailed(error);
   const released = data ?? [];
-  await textShiftsCancelled(jobId, released);
+  await notifyShiftsCancelled(jobId, released);
   await refreshReliability(released.map((row) => row.worker_id));
   revalidatePath(`/business/jobs/${jobId}`);
   revalidatePath("/business", "layout");
@@ -153,7 +153,7 @@ export async function reportNoShow(
     return saveFailed(error);
   }
   await refreshReliability([workerId]);
-  await textNoShow(workerId, jobId, !!data?.suspended);
+  await notifyNoShow(workerId, jobId, !!data?.suspended);
   if (data?.suspended) await refreshWorkerMatches(workerId, { notify: false });
   revalidatePath(`/business/jobs/${jobId}`);
   revalidatePath("/business/timesheets");

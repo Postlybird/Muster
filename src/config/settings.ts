@@ -247,7 +247,7 @@ export const SETTINGS = {
   }),
   quiet_hours: define({
     label: "Quiet hours",
-    help: "No non-urgent messages between these times (Sydney time).",
+    help: "Non-urgent messages wait until these hours end (Sydney time). Set both to the same time for no quiet hours.",
     group: "on_the_day",
     schema: z.object({ start: time, end: time }),
     defaultValue: { start: "21:00", end: "06:00" },

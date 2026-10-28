@@ -1,7 +1,5 @@
 import "server-only";
 
-import { getEmailSender } from "@/adapters/email";
-import { brand } from "@/config/brand";
 import type { SettingsValues } from "@/config/settings";
 import { isRunDay, lastFullWeek, type Week } from "@/domain/pay-runs";
 import { formatCalendarDate, formatCents, sydneyDateKey } from "@/lib/format";
@@ -13,7 +11,7 @@ import {
 } from "@/lib/pay-runs";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import { requestOrigin } from "./request";
+import { emailTemplate } from "./notifications";
 import { getAllSettings } from "./settings";
 import { costTimesheets } from "./timesheets";
 
@@ -281,33 +279,23 @@ async function storedInvoicePdf(
   return { pdf: Buffer.from(await file.arrayBuffer()), data };
 }
 
-function invoiceEmail(
-  data: InvoicePdfData,
-  link: string,
-): { subject: string; text: string } {
-  const greeting = data.to.contact ? `Hi ${data.to.contact},` : "Hello,";
+/** The invoice email's values (src/config/notifications.ts has its words). */
+function invoiceValues(data: InvoicePdfData) {
   const contact = [data.from.email, data.from.phone].filter(Boolean);
   return {
-    subject: `Tax invoice ${data.number} from ${brand.name}`,
-    text: [
-      greeting,
-      `Your invoice ${data.number} for work up to ${formatCalendarDate(data.week.end)} is attached.`,
-      `Amount due: ${formatCents(data.totalCents)} (including GST of ${formatCents(data.gstCents)}), by ${formatCalendarDate(data.dueOn)}.`,
-      [
-        "Please pay by bank transfer to:",
-        `Account name: ${data.bank.accountName}`,
-        `BSB: ${data.bank.bsb}`,
-        `Account number: ${data.bank.accountNumber}`,
-        `Reference: ${data.number}`,
-      ].join("\n"),
-      `You can see each line of it at ${link}`,
+    greeting: data.to.contact ? `Hi ${data.to.contact},` : "Hello,",
+    number: data.number,
+    period_end: formatCalendarDate(data.week.end),
+    total: formatCents(data.totalCents),
+    gst: formatCents(data.gstCents),
+    due: formatCalendarDate(data.dueOn),
+    account_name: data.bank.accountName,
+    bsb: data.bank.bsb,
+    account_number: data.bank.accountNumber,
+    questions:
       contact.length > 0
         ? `Questions about it? Contact us at ${contact.join(" or ")}.`
         : "",
-      brand.name,
-    ]
-      .filter(Boolean)
-      .join("\n\n"),
   };
 }
 
@@ -324,7 +312,6 @@ export async function finishInvoices(runId: string) {
     .eq("pay_run_id", runId)
     .or("pdf_path.is.null,emailed_at.is.null");
   if (error) throw new Error(`Couldn't load invoices: ${error.message}`);
-  let origin: string | null = null;
   let made = 0;
   let emailed = 0;
   let failed = 0;
@@ -338,15 +325,8 @@ export async function finishInvoices(runId: string) {
       const to = invoice.businesses?.accounts_email;
       if (invoice.emailed_at || !to) continue;
       stored ??= await storedInvoicePdf(admin, invoice.id, settings);
-      origin ??= await requestOrigin();
-      const message = invoiceEmail(
-        stored.data,
-        `${origin}/business/invoices/${invoice.id}`,
-      );
-      await getEmailSender().send({
-        to,
-        ...message,
-        tag: "invoice",
+      await emailTemplate("invoice", to, invoiceValues(stored.data), {
+        url: `/business/invoices/${invoice.id}`,
         attachments: [
           {
             filename: `${stored.data.number}.pdf`,

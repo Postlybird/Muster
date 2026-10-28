@@ -10,10 +10,10 @@ import { failure, success, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import { acceptedUpload } from "@/lib/uploads";
 import {
-  emailAdminsSafety,
-  emailFirstApplicant,
-  emailIfFilled,
-  emailWorkerCancelled,
+  notifyAdminsSafety,
+  notifyFirstApplicant,
+  notifyIfFilled,
+  notifyWorkerCancelled,
 } from "@/server/booking-notices";
 import { saveFailed } from "@/server/errors";
 import { matchPostedJob, refreshWorkerMatches } from "@/server/matching";
@@ -64,8 +64,8 @@ export async function takeShifts(
   // On failure the page stays as it is, so they can read why.
   if (!outcome.ok) return failure(outcome.message);
   refresh(jobId);
-  if (mode === "auto") await emailIfFilled(jobId);
-  else await emailFirstApplicant(jobId);
+  if (mode === "auto") await notifyIfFilled(jobId);
+  else await notifyFirstApplicant(jobId);
   return success(outcome.message);
 }
 
@@ -130,7 +130,7 @@ export async function cancelMyBookings(
   await refreshReliability([worker.id]);
   // Offered to others straight away (brief §4.5), and the business is told.
   await matchPostedJob(jobId);
-  await emailWorkerCancelled(
+  await notifyWorkerCancelled(
     jobId,
     worker.id,
     cancelled.map((row) => row.shift_id),
@@ -255,6 +255,6 @@ export async function reportSafetyIssue(
     if (error.code === "23514") return failure(`${error.message}.`);
     return saveFailed(error);
   }
-  await emailAdminsSafety(jobId, worker.id, description);
+  await notifyAdminsSafety(jobId, worker.id, description);
   redirect(`/worker/shifts/${jobId}?reported=1`);
 }

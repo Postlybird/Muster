@@ -1840,6 +1840,105 @@ export type Database = {
           },
         ];
       };
+      notification_templates: {
+        Row: {
+          body: string;
+          created_at: string;
+          key: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          body: string;
+          created_at?: string;
+          key: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          key?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notification_templates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      notifications: {
+        Row: {
+          body: string;
+          channels: string[];
+          created_at: string;
+          dedupe_key: string | null;
+          failed_channels: string[];
+          id: string;
+          message: string;
+          profile_id: string;
+          read_at: string | null;
+          send_after: string;
+          sent_at: string | null;
+          template: string;
+          title: string;
+          urgent: boolean;
+          url: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          body: string;
+          channels?: string[];
+          created_at?: string;
+          dedupe_key?: string | null;
+          failed_channels?: string[];
+          id?: string;
+          message: string;
+          profile_id: string;
+          read_at?: string | null;
+          send_after?: string;
+          sent_at?: string | null;
+          template: string;
+          title: string;
+          urgent?: boolean;
+          url?: string | null;
+        };
+        Update: {
+          body?: string;
+          channels?: string[];
+          created_at?: string;
+          dedupe_key?: string | null;
+          failed_channels?: string[];
+          id?: string;
+          message?: string;
+          profile_id?: string;
+          read_at?: string | null;
+          send_after?: string;
+          sent_at?: string | null;
+          template?: string;
+          title?: string;
+          urgent?: boolean;
+          url?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       pay_run_lines: {
         Row: {
           allowance_cents: number;
@@ -2102,6 +2201,48 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      push_subscriptions: {
+        Row: {
+          auth: string;
+          created_at: string;
+          endpoint: string;
+          id: string;
+          last_used_at: string | null;
+          p256dh: string;
+          profile_id: string;
+          user_agent: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          auth: string;
+          created_at?: string;
+          endpoint: string;
+          id?: string;
+          last_used_at?: string | null;
+          p256dh: string;
+          profile_id: string;
+          user_agent?: string | null;
+        };
+        Update: {
+          auth?: string;
+          created_at?: string;
+          endpoint?: string;
+          id?: string;
+          last_used_at?: string | null;
+          p256dh?: string;
+          profile_id?: string;
+          user_agent?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       rate_cards: {
         Row: {
@@ -3457,6 +3598,10 @@ export type Database = {
         Returns: undefined;
       };
       mark_invoice_unpaid: { Args: { p_id: string }; Returns: undefined };
+      mark_notifications_read: {
+        Args: { p_ids?: string[] };
+        Returns: undefined;
+      };
       my_business_id: { Args: Record<PropertyKey, never>; Returns: string };
       my_business_role: {
         Args: Record<PropertyKey, never>;
@@ -3614,6 +3759,10 @@ export type Database = {
         }[];
       };
       record_timesheet: { Args: { p_assignment_id: string }; Returns: string };
+      remove_push_subscription: {
+        Args: { p_endpoint: string };
+        Returns: undefined;
+      };
       report_no_show: {
         Args: { p_assignment_id: string };
         Returns: {
@@ -3652,6 +3801,15 @@ export type Database = {
           p_run_by: string;
         };
         Returns: string;
+      };
+      save_push_subscription: {
+        Args: {
+          p_auth: string;
+          p_endpoint: string;
+          p_p256dh: string;
+          p_user_agent?: string;
+        };
+        Returns: undefined;
       };
       set_current_agreement: {
         Args: { p_agreement_id: string };

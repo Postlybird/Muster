@@ -12,7 +12,10 @@ import { blockWorker, setFavourite } from "@/server/business-workers";
 import { canManage, getMyBusiness } from "@/server/businesses";
 import { saveFailed } from "@/server/errors";
 import { refreshReliability } from "@/server/reliability";
-import { textHoursChanged, textHoursQueried } from "@/server/timesheet-notices";
+import {
+  notifyHoursChanged,
+  notifyHoursQueried,
+} from "@/server/timesheet-notices";
 import { costTimesheets } from "@/server/timesheets";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -111,7 +114,7 @@ export async function adjustTimesheet(
   await costTimesheets([id]);
   const workerId = await workerOf(id);
   if (workerId) await refreshReliability([workerId]);
-  await textHoursChanged(id);
+  await notifyHoursChanged(id);
   refresh(id);
   return success("Hours changed and approved. We've told the worker.");
 }
@@ -141,7 +144,7 @@ export async function addTimesheet(
   await costTimesheets([id]);
   const workerId = await workerOf(id);
   if (workerId) await refreshReliability([workerId]);
-  await textHoursChanged(id);
+  await notifyHoursChanged(id);
   refresh(id);
   redirect(`/business/timesheets/${id}`);
 }
@@ -165,7 +168,7 @@ export async function disputeTimesheet(
     p_note: note,
   });
   if (error) return refused(error);
-  await textHoursQueried(id);
+  await notifyHoursQueried(id);
   refresh(id);
   return success("Sent to our team. We'll look into it and let you both know.");
 }

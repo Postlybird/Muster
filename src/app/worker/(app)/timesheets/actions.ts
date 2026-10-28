@@ -7,7 +7,7 @@ import { failure, success, type ActionState } from "@/lib/forms";
 import { ratingFromForm } from "@/lib/ratings";
 import { createClient } from "@/lib/supabase/server";
 import { saveFailed } from "@/server/errors";
-import { emailWorkerQueried } from "@/server/timesheet-notices";
+import { notifyWorkerQueried } from "@/server/timesheet-notices";
 import { getMyWorker } from "@/server/workers";
 
 function readNote(
@@ -72,7 +72,7 @@ export async function disputeTimesheet(
       ? failure(`${error.message}.`)
       : saveFailed(error);
   }
-  await emailWorkerQueried(id);
+  await notifyWorkerQueried(id);
   refresh(id);
   return success("Sent to our team. We'll look into it and let you know.");
 }

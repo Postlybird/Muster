@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { credentialBucket } from "@/lib/uploads";
 import { getAllSettings } from "@/server/settings";
 import { refreshWorkerMatches } from "@/server/matching";
-import { textPerson } from "@/server/notify";
+import { notify } from "@/server/notifications";
 import { saveFailed } from "@/server/errors";
 
 type Decision =
@@ -107,10 +107,9 @@ export async function reviewPhoto(
     .eq("id", workerId);
   if (error) return saveFailed(error);
   if (!decision.approve) {
-    await textPerson(
-      worker.profile_id,
-      `Please change your photo: ${decision.reason} Open the app to upload a new one.`,
-    );
+    await notify("photo_rejected", worker.profile_id, {
+      reason: decision.reason,
+    });
   }
   return done(workerId, decision.approve ? "Photo approved" : "Photo rejected");
 }
@@ -170,10 +169,9 @@ export async function reviewIdentity(
     .eq("id", check.id);
   if (error) return saveFailed(error);
   if (!decision.approve) {
-    await textPerson(
-      worker.profile_id,
-      `We couldn't check your ID: ${decision.reason} Open the app to upload new photos.`,
-    );
+    await notify("id_rejected", worker.profile_id, {
+      reason: decision.reason,
+    });
   }
   return done(
     workerId,
@@ -242,10 +240,9 @@ export async function reviewRightToWork(
       })
       .eq("id", rights.id);
     if (error) return saveFailed(error);
-    await textPerson(
-      worker.profile_id,
-      `We couldn't confirm your right to work: ${decision.reason} Open the app to fix it.`,
-    );
+    await notify("rights_rejected", worker.profile_id, {
+      reason: decision.reason,
+    });
     return doneAndRematch(worker, "Right to work rejected");
   }
 
@@ -375,12 +372,12 @@ export async function reviewTicket(
   }
 
   if (!decision.approve) {
-    await textPerson(
-      worker.profile_id,
-      `We couldn't accept your ${name}: ${decision.reason} Open the app to fix it.`,
-    );
+    await notify("ticket_rejected", worker.profile_id, {
+      ticket: name,
+      reason: decision.reason,
+    });
   } else if (worker.status === "active") {
-    await textPerson(worker.profile_id, `Your ${name} is verified.`);
+    await notify("ticket_verified", worker.profile_id, { ticket: name });
   }
   return doneAndRematch(
     worker,
@@ -457,10 +454,7 @@ export async function savePayroll(
     .eq("id", workerId);
   if (error) return saveFailed(error);
   if (status === "invited" && before?.payroll_status !== "invited") {
-    await textPerson(
-      worker.profile_id,
-      "Check your email for an invitation from our payroll provider, Employment Hero, to add your tax, super and bank details.",
-    );
+    await notify("payroll_invite", worker.profile_id, {});
   }
   return done(workerId, "Payroll details saved");
 }
@@ -475,10 +469,7 @@ export async function activateWorker(workerId: string): Promise<ActionState> {
     if (error.code === "23514") return failure(`${error.message}.`);
     return saveFailed(error);
   }
-  await textPerson(
-    worker.profile_id,
-    "You're verified and ready to work. Open the app to find shifts.",
-  );
+  await notify("activated", worker.profile_id, {}, { url: "/worker/shifts" });
   await refreshWorkerMatches(workerId);
   return done(workerId, "Worker activated");
 }

@@ -4,15 +4,14 @@ import { formatCents, formatDayShort, formatTime } from "@/lib/format";
 import { matchJob, matchWorker, type UrgentOffer } from "@/lib/matching";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import { textPerson } from "./notify";
-import { requestOrigin } from "./request";
+import { notify } from "./notifications";
 import { getAllSettings } from "./settings";
 
 /**
- * Texts urgent call-outs (brief §4.3, §5) to the workers who opted in: one
- * text per worker, for their first offered shift.
+ * Tells the workers who opted in about urgent call-outs (brief §4.3, §5):
+ * one message per worker, for their first offered shift.
  */
-async function textUrgentOffers(offers: UrgentOffer[]) {
+async function notifyUrgentOffers(offers: UrgentOffer[]) {
   const first = new Map<string, string>();
   for (const offer of offers) {
     if (!first.has(offer.profileId)) first.set(offer.profileId, offer.shiftId);
@@ -25,19 +24,27 @@ async function textUrgentOffers(offers: UrgentOffer[]) {
       "id, job_id, starts_at, jobs(fill_mode, categories(name), sites(suburb)), shift_pay(estimate_cents)",
     )
     .in("id", [...new Set(first.values())]);
-  const origin = await requestOrigin();
   await Promise.all(
     [...first].map(([profileId, shiftId]) => {
       const shift = shifts?.find((s) => s.id === shiftId);
       if (!shift) return null;
-      const pay = shift.shift_pay?.estimate_cents
-        ? ` About ${formatCents(shift.shift_pay.estimate_cents)} with the urgent loading.`
-        : "";
-      const howToTake =
-        shift.jobs?.fill_mode === "auto" ? "First in gets it" : "Apply now";
-      return textPerson(
+      return notify(
+        "urgent_offer",
         profileId,
-        `Urgent work: ${shift.jobs?.categories?.name ?? "a shift"} in ${shift.jobs?.sites?.suburb ?? "your area"}, ${formatDayShort(shift.starts_at)} from ${formatTime(shift.starts_at)}.${pay} ${howToTake}: ${origin}/worker/shifts/${shift.job_id}`,
+        {
+          work: shift.jobs?.categories?.name ?? "a shift",
+          suburb: shift.jobs?.sites?.suburb ?? "your area",
+          when: `${formatDayShort(shift.starts_at)} from ${formatTime(shift.starts_at)}`,
+          pay: shift.shift_pay?.estimate_cents
+            ? `About ${formatCents(shift.shift_pay.estimate_cents)} with the urgent loading.`
+            : "",
+          how:
+            shift.jobs?.fill_mode === "auto" ? "First in gets it" : "Apply now",
+        },
+        {
+          url: `/worker/shifts/${shift.job_id}`,
+          dedupeKey: `urgent_offer:${shift.id}:${profileId}`,
+        },
       );
     }),
   );
@@ -54,7 +61,7 @@ export async function matchPostedJob(jobId: string) {
       jobId,
       await getAllSettings(),
     );
-    await textUrgentOffers(offers);
+    await notifyUrgentOffers(offers);
   } catch (error) {
     console.error("Couldn't match workers to a job", error);
   }
@@ -77,7 +84,7 @@ export async function refreshWorkerMatches(
       await getAllSettings(),
       { notify },
     );
-    await textUrgentOffers(offers);
+    await notifyUrgentOffers(offers);
   } catch (error) {
     console.error("Couldn't match a worker to shifts", error);
   }

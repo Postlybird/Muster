@@ -34,7 +34,7 @@ This project uses Next.js 16, which has breaking changes from older versions:
   - cron jobs, seeding and audited admin actions
   - recording agreement acceptances (`src/server/agreements.ts`, so the IP address comes from the server)
   - creating a business from the ABN register's details, and checking an ABN isn't already registered (`src/app/business/onboarding/actions.ts`)
-  - looking up who to text or email about their account (`src/server/notify.ts`)
+  - sending notifications (`src/server/notifications.ts`): who to tell, their devices, preferences and admins' template wording
   - reading rate cards and bill rules to price shifts (`src/server/pricing.ts`); callers only get the result
   - matching workers to shifts and texting urgent call-outs (`src/server/matching.ts`, which runs `src/lib/matching.ts`)
   - messages about bookings and reminders (`src/server/booking-notices.ts`, `src/server/reminders.ts`), and scheduled jobs in `src/app/api/cron/[job]/`, which need the `CRON_SECRET`
