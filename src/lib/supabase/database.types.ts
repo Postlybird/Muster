@@ -330,6 +330,62 @@ export type Database = {
           },
         ];
       };
+      blocks: {
+        Row: {
+          archived_at: string | null;
+          business_id: string;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          reason: string;
+          updated_at: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          business_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          reason: string;
+          updated_at?: string;
+          worker_id: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          business_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          reason?: string;
+          updated_at?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "blocks_business_id_fkey";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "blocks_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "blocks_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       business_user_sites: {
         Row: {
           business_user_id: string;
@@ -746,6 +802,50 @@ export type Database = {
           subject?: string | null;
         };
         Relationships: [];
+      };
+      favourites: {
+        Row: {
+          business_id: string;
+          created_at: string;
+          created_by: string | null;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          business_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          worker_id: string;
+        };
+        Update: {
+          business_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "favourites_business_id_fkey";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "favourites_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "favourites_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       hazards: {
         Row: {
@@ -1525,6 +1625,94 @@ export type Database = {
           },
         ];
       };
+      shift_matches: {
+        Row: {
+          computed_at: string;
+          distance_km: number | null;
+          eligible: boolean;
+          favourite: boolean;
+          flags: string[];
+          notified_at: string | null;
+          rank_score: number;
+          reasons: string[];
+          shift_id: string;
+          visible_from: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          computed_at?: string;
+          distance_km?: number | null;
+          eligible: boolean;
+          favourite?: boolean;
+          flags?: string[];
+          notified_at?: string | null;
+          rank_score?: number;
+          reasons?: string[];
+          shift_id: string;
+          visible_from?: string;
+          worker_id: string;
+        };
+        Update: {
+          computed_at?: string;
+          distance_km?: number | null;
+          eligible?: boolean;
+          favourite?: boolean;
+          flags?: string[];
+          notified_at?: string | null;
+          rank_score?: number;
+          reasons?: string[];
+          shift_id?: string;
+          visible_from?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shift_matches_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_matches_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      shift_pay: {
+        Row: {
+          computed_at: string;
+          estimate_cents: number;
+          hourly_cents: number;
+          shift_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          computed_at?: string;
+          estimate_cents: number;
+          hourly_cents: number;
+          shift_id: string;
+        };
+        Update: {
+          computed_at?: string;
+          estimate_cents?: number;
+          hourly_cents?: number;
+          shift_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shift_pay_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: true;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       shifts: {
         Row: {
           break_minutes: number;
@@ -2035,6 +2223,7 @@ export type Database = {
         Returns: boolean;
       };
       is_business_owner: { Args: { p_business_id: string }; Returns: boolean };
+      job_offer_count: { Args: { p_job_id: string }; Returns: number };
       log_access_event: {
         Args: {
           p_action: string;
@@ -2052,9 +2241,46 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: Database["public"]["Enums"]["business_role"];
       };
+      my_job_offer: {
+        Args: { p_job_id: string };
+        Returns: {
+          fill_mode: Database["public"]["Enums"]["fill_mode"];
+          hazard_controls: string;
+          hazard_notes: string;
+          induction: string;
+          instructions: string;
+          job_id: string;
+          ppe_notes: string;
+        }[];
+      };
       my_role: {
         Args: Record<PropertyKey, never>;
         Returns: Database["public"]["Enums"]["user_role"];
+      };
+      my_shift_offers: {
+        Args: { p_job_id?: string };
+        Returns: {
+          break_minutes: number;
+          business_name: string;
+          category_name: string;
+          distance_km: number;
+          ends_at: string;
+          estimate_cents: number;
+          hazards: string[];
+          headcount: number;
+          hourly_cents: number;
+          job_id: string;
+          job_type: Database["public"]["Enums"]["job_type"];
+          no_known_hazards: boolean;
+          police_check_required: boolean;
+          ppe: string[];
+          ppe_supplied_by: Database["public"]["Enums"]["ppe_supplier"];
+          shift_id: string;
+          starts_at: string;
+          state: string;
+          suburb: string;
+          tickets: string[];
+        }[];
       };
       my_worker_id: { Args: Record<PropertyKey, never>; Returns: string };
       normalise_auth_phone: { Args: { raw: string }; Returns: string };

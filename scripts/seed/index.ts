@@ -7,6 +7,7 @@ import { seedBusinesses } from "./steps/businesses";
 import { seedCatalogues } from "./steps/catalogues";
 import { seedCompliance } from "./steps/compliance";
 import { seedJobs } from "./steps/jobs";
+import { seedMatches } from "./steps/matches";
 import { seedSettings } from "./steps/settings";
 import { seedUsers } from "./steps/users";
 import { seedWorkers } from "./steps/workers";
@@ -40,6 +41,9 @@ async function main() {
 
   const jobs = await seedJobs(client);
   console.log(`  demo jobs: ${jobs.added} posted`);
+
+  const matches = await seedMatches(client);
+  console.log(`  workers matched to ${matches.jobs} open jobs`);
 
   console.log("Done.");
 }
