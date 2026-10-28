@@ -1,0 +1,46 @@
+import type { Metadata } from "next";
+
+import { requireRole } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+
+import { RateCardForm } from "../rate-card-form";
+
+export const metadata: Metadata = { title: "Add a rate card" };
+
+export default async function NewRateCardPage() {
+  await requireRole("admin");
+  const supabase = await createClient();
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("id, name")
+    .is("archived_at", null)
+    .order("sort_order");
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold">Add a rate card</h2>
+      <RateCardForm
+        categories={categories ?? []}
+        values={{
+          id: null,
+          category_id: "",
+          level: 1,
+          base_rate: "",
+          multipliers: {
+            ordinary: 1.25,
+            saturday: 1.75,
+            sunday: 2.25,
+            public_holiday: 2.75,
+            overtime: 1.875,
+            night: 1.4,
+          },
+          effective_from: "",
+          effective_to: "",
+          checked_by: "",
+          checked_on: "",
+          notes: "",
+        }}
+      />
+    </div>
+  );
+}

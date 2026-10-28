@@ -47,3 +47,10 @@ describe("Australian formats", () => {
     expect(formatCents(-550)).toBe("-$5.50");
   });
 });
+
+describe("formatCalendarDate", () => {
+  it("formats a date-only value without shifting the day", async () => {
+    const { formatCalendarDate } = await import("./format");
+    expect(formatCalendarDate("2026-07-01")).toBe("01/07/2026");
+  });
+});

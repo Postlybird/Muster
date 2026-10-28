@@ -52,3 +52,9 @@ const audFormatter = new Intl.NumberFormat("en-AU", {
 export function formatCents(cents: number): string {
   return audFormatter.format(cents / 100);
 }
+
+/** A calendar date with no time ("2026-07-01") as 01/07/2026. No time zone involved. */
+export function formatCalendarDate(isoDate: string): string {
+  const [year, month, day] = isoDate.split("-");
+  return year && month && day ? `${day}/${month}/${year}` : isoDate;
+}
