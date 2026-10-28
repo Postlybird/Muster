@@ -4,7 +4,9 @@ _Last updated: 28/10/2026_
 
 ## Status
 
-**Phase 0: Foundations, in progress.** The owner approved the Phase 0/1 plan (`docs/plan.md`) on 28/10/2026 and asked us to start Phase 0.
+**Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
+
+**Phase 1: Run real shifts, started.** The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -78,9 +80,9 @@ _Last updated: 28/10/2026_
 
 ## Next
 
-- Owner: set up Vercel (steps in README / the latest chat message), then send the preview URL.
-- Then: push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` via `supabase config push`.
-- Then: review of Phase 0 with the owner, the 10 open questions, then Phase 1 (step 1.1).
+- **Owner:** set up Vercel (steps in the README), then send the site address.
+- **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
+- **Phase 1, step 1.1** (in progress): admin screens for catalogues, settings, rate cards, bill rules, public holidays, agreements and licences.
 
 ## Decisions
 
@@ -120,4 +122,5 @@ _Last updated: 28/10/2026_
 - [x] GitHub Actions secrets: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_ID`, `SUPABASE_SECRET_KEY`.
 - [ ] ABN Lookup GUID requested at abr.business.gov.au. When it arrives, add `ABN_LOOKUP_GUID` to Vercel and to the cloud environment's variables.
 - [ ] Vercel project imported from GitHub, environment variables added (steps in README).
+- [ ] Decide whether the GitHub repository should be private. It's public now, so anyone can read the code and BRIEF.md.
 - [ ] Optional: allow `ui.shadcn.com` and `abr.business.gov.au` in the cloud environment's network settings, so the shadcn CLI and the live ABN lookup work from the build container.
