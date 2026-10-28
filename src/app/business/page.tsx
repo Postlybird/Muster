@@ -9,7 +9,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { BUSINESS_STEPS } from "@/domain/business-onboarding";
+import { formatDayShort } from "@/lib/format";
+import { jobTitle, shiftHours } from "@/lib/job-format";
 import { businessStatuses } from "@/lib/statuses";
+import { createClient } from "@/lib/supabase/server";
 import {
   businessName,
   businessSnapshot,
@@ -84,6 +87,64 @@ function SetupProgress({ business }: { business: BusinessRow }) {
       <Button asChild size="lg">
         <Link href="/business/onboarding">Continue</Link>
       </Button>
+    </section>
+  );
+}
+
+/** The next two weeks of shifts, with how many workers are booked. */
+async function UpcomingShifts({ businessId }: { businessId: string }) {
+  const supabase = await createClient();
+  const now = new Date();
+  const { data: shifts } = await supabase
+    .from("shifts")
+    .select(
+      "id, starts_at, ends_at, headcount, status, jobs!inner(id, business_id, status, categories(name), sites(name))",
+    )
+    .eq("jobs.business_id", businessId)
+    .eq("jobs.status", "posted")
+    .gt("ends_at", now.toISOString())
+    .lt("starts_at", new Date(now.getTime() + 14 * 86_400_000).toISOString())
+    .order("starts_at")
+    .limit(12);
+  if (!shifts?.length) {
+    return (
+      <EmptyState
+        icon={Briefcase}
+        title="Nothing in the next two weeks"
+        description="Shifts you post show here with how many workers are booked."
+      />
+    );
+  }
+  return (
+    <section aria-labelledby="coming-up" className="max-w-3xl space-y-3">
+      <h2 id="coming-up" className="text-lg font-semibold">
+        Coming up
+      </h2>
+      <ul className="divide-y rounded-lg border">
+        {shifts.map((shift) => (
+          <li key={shift.id}>
+            <Link
+              href={`/business/jobs/${shift.jobs.id}`}
+              className="flex flex-wrap items-center justify-between gap-2 p-4 hover:bg-muted/50"
+            >
+              <span>
+                <span className="block font-medium">
+                  {formatDayShort(shift.starts_at)}, {shiftHours(shift)}
+                </span>
+                <span className="block text-sm text-muted-foreground">
+                  {jobTitle(
+                    shift.jobs.categories?.name,
+                    shift.jobs.sites?.name,
+                  )}
+                </span>
+              </span>
+              <span className="text-sm text-muted-foreground">
+                0 of {shift.headcount} booked
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -170,11 +231,7 @@ export default async function BusinessDashboardPage({
               </AlertDescription>
             </Alert>
           ) : null}
-          <EmptyState
-            icon={Briefcase}
-            title="No shifts today"
-            description="Shifts you post will show here with how many workers are confirmed."
-          />
+          <UpcomingShifts businessId={business.id} />
         </>
       ) : (
         <WhatsNext

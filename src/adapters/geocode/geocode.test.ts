@@ -45,6 +45,11 @@ describe("mock geocoder", () => {
     expect(suggestion?.label).toBe("1 Miller St, North Sydney NSW 2060");
   });
 
+  it("takes the suburb at the end, not one in the street name", async () => {
+    const [suggestion] = await geocoder.suggest("42 Parramatta Rd, Granville");
+    expect(suggestion?.label).toMatch(/^42 Parramatta Rd, Granville NSW/);
+  });
+
   it("places an address near its suburb, the same way every time", async () => {
     const [suggestion] = await geocoder.suggest("12 George St, Parramatta");
     const first = await geocoder.resolve(suggestion!.id);

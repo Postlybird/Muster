@@ -1,10 +1,12 @@
 /**
- * Worker file uploads. Files go straight from the browser into private
- * storage, in a folder named after the worker's id; forms then send the
- * stored path to the server, which checks it before saving.
+ * File uploads. Files go straight from the browser into private storage, in
+ * a folder named after the worker's (or, for job photos, the business's) id;
+ * forms then send the stored path to the server, which checks it before
+ * saving.
  */
 
-export type UploadBucket = "worker-photos" | "identity" | "worker-docs";
+export type WorkerBucket = "worker-photos" | "identity" | "worker-docs";
+export type UploadBucket = WorkerBucket | "job-photos";
 
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
@@ -12,7 +14,7 @@ export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
  * Police certificates are kept with ID images (workers can't read them back,
  * and they're deleted after checking). Other ticket copies are kept.
  */
-export function credentialBucket(kind: string): UploadBucket {
+export function credentialBucket(kind: string): "identity" | "worker-docs" {
   return kind === "police_check" ? "identity" : "worker-docs";
 }
 
@@ -41,7 +43,7 @@ export function extensionFor(contentType: string): string | null {
   return EXTENSIONS[contentType] ?? null;
 }
 
-/** A new file's path: `{workerId}/{prefix}-{random}.{ext}`. */
+/** A new file's path: `{folder}/{prefix}-{random}.{ext}`. */
 export function uploadPath(
   workerId: string,
   prefix: string,

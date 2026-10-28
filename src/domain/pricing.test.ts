@@ -1,7 +1,7 @@
 import { fromZonedTime } from "date-fns-tz";
 import { describe, expect, it } from "vitest";
 
-import { makePricer, type PricingData } from "./pricing";
+import { estimateLines, makePricer, type PricingData } from "./pricing";
 
 const card = {
   id: "standard",
@@ -87,5 +87,36 @@ describe("pricing shifts from loaded data", () => {
     expect(estimate.ok && estimate.quotes).toHaveLength(2);
     expect(estimate.ok && estimate.totals.workedMinutes).toBe(240 * 2 * 3);
     expect(estimate.ok && estimate.totals.payCents).toBe(3313 * 4 * 2 * 3);
+  });
+});
+
+describe("an estimate's breakdown", () => {
+  it("adds up each rate type across shifts and workers", () => {
+    const shift = (local: string, end: string) => ({
+      start: sydney(local),
+      end: sydney(end),
+      breakMinutes: 0,
+      urgent: false,
+    });
+    const estimate = pricer.estimate(
+      [
+        shift("2026-11-06T16:00", "2026-11-06T20:00"),
+        shift("2026-11-07T08:00", "2026-11-07T12:00"),
+      ],
+      2,
+    );
+    if (!estimate.ok) throw new Error(estimate.problem);
+    const { lines, urgentBillCents } = estimateLines(
+      estimate.quotes.map((q) => q.cost),
+      2,
+    );
+    expect(urgentBillCents).toBe(0);
+    expect(lines.map((l) => [l.type, l.minutes])).toEqual([
+      ["ordinary", 180 * 2],
+      ["night", 60 * 2],
+      ["saturday", 240 * 2],
+    ]);
+    const total = lines.reduce((sum, l) => sum + l.billCents, 0);
+    expect(total).toBe(estimate.totals.billCents);
   });
 });

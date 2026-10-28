@@ -30,7 +30,7 @@ async function main() {
 
   const businesses = await seedBusinesses(client);
   console.log(
-    `  businesses: ${businesses.businesses} (${businesses.added} added)`,
+    `  businesses: ${businesses.businesses} (${businesses.added} added, ${businesses.repaired} sites corrected)`,
   );
 
   const workers = await seedWorkers(client);

@@ -52,19 +52,36 @@ function label(line1: string | null, suburb: Suburb): string {
 }
 
 /** Finds the suburb named in free text, preferring the longest name ("North Sydney" over "Sydney"). */
+/**
+ * The suburb in typed text: the one ending last (the suburb comes after the
+ * street, as in "42 Parramatta Rd, Granville"), and the longest name if two
+ * end together ("North Sydney", not "Sydney").
+ */
 function suburbInText(text: string): { suburb: Suburb; before: string } | null {
   const lower = text.toLowerCase();
-  const matches = SYDNEY_SUBURBS.filter((sub) =>
-    new RegExp(`\\b${sub.name.toLowerCase().replace(/ /g, "\\s+")}\\b`).test(
-      lower,
-    ),
-  ).sort((a, b) => b.name.length - a.name.length);
-  const suburb = matches[0];
-  if (!suburb) return null;
-  const index = lower.search(
-    new RegExp(`\\b${suburb.name.toLowerCase().replace(/ /g, "\\s+")}\\b`),
-  );
-  return { suburb, before: text.slice(0, index).replace(/[,\s]+$/, "") };
+  let best: { suburb: Suburb; start: number; end: number } | null = null;
+  for (const sub of SYDNEY_SUBURBS) {
+    const pattern = new RegExp(
+      `\\b${sub.name.toLowerCase().replace(/ /g, "\\s+")}\\b`,
+      "g",
+    );
+    for (const match of lower.matchAll(pattern)) {
+      const start = match.index;
+      const end = start + match[0].length;
+      if (
+        !best ||
+        end > best.end ||
+        (end === best.end && sub.name.length > best.suburb.name.length)
+      ) {
+        best = { suburb: sub, start, end };
+      }
+    }
+  }
+  if (!best) return null;
+  return {
+    suburb: best.suburb,
+    before: text.slice(0, best.start).replace(/[,\s]+$/, ""),
+  };
 }
 
 /**

@@ -114,3 +114,54 @@ export const payrollStatuses: Record<PayrollStatus, StatusInfo> = {
     next: "Nothing to do.",
   },
 };
+
+export type JobStatus = "draft" | "posted" | "cancelled" | "completed";
+
+/** A job, as its business sees it. */
+export const jobStatuses: Record<JobStatus, StatusInfo> = {
+  draft: {
+    label: "Draft",
+    tone: "neutral",
+    next: "Finish the steps and post it when you're ready.",
+  },
+  posted: {
+    label: "Posted",
+    tone: "info",
+    next: "Matching workers can see it. We'll tell you as they apply.",
+  },
+  cancelled: {
+    label: "Cancelled",
+    tone: "danger",
+    next: "Nothing more happens with this job.",
+  },
+  completed: {
+    label: "Done",
+    tone: "success",
+    next: "Approve the timesheets so we can pay the workers and invoice you.",
+  },
+};
+
+export type ShiftStatus = "open" | "filled" | "cancelled" | "completed";
+
+export const shiftStatuses: Record<ShiftStatus, StatusInfo> = {
+  open: {
+    label: "Open",
+    tone: "info",
+    next: "Waiting for workers.",
+  },
+  filled: {
+    label: "Filled",
+    tone: "success",
+    next: "Everyone you asked for is booked.",
+  },
+  cancelled: {
+    label: "Cancelled",
+    tone: "danger",
+    next: "This shift won't go ahead.",
+  },
+  completed: {
+    label: "Done",
+    tone: "neutral",
+    next: "Check and approve the timesheets.",
+  },
+};

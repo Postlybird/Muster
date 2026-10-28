@@ -19,7 +19,7 @@ export async function seedBusinesses(client: SeedClient) {
   const geocoder = new MockGeocoder();
   const [existing, profiles, admin, agreement, paymentTerms] =
     await Promise.all([
-      client.from("businesses").select("abn"),
+      client.from("businesses").select("id, abn").is("archived_at", null),
       client
         .from("profiles")
         .select("id, email")
@@ -45,7 +45,7 @@ export async function seedBusinesses(client: SeedClient) {
         .eq("key", "invoice_payment_terms_days")
         .maybeSingle(),
     ]);
-  const have = new Set(must(existing, "businesses").map((b) => b.abn));
+  const have = new Map(must(existing, "businesses").map((b) => [b.abn, b.id]));
   const profileByEmail = new Map(
     must(profiles, "business people").map((p) => [p.email, p.id]),
   );
@@ -54,8 +54,13 @@ export async function seedBusinesses(client: SeedClient) {
     typeof paymentTerms.data?.value === "number" ? paymentTerms.data.value : 14;
 
   let added = 0;
+  let repaired = 0;
   for (const [index, business] of BUSINESSES.entries()) {
-    if (have.has(business.abn)) continue;
+    const existingId = have.get(business.abn);
+    if (existingId) {
+      repaired += await repairSites(client, geocoder, existingId, business);
+      continue;
+    }
     const abr = DEMO_ABNS[business.abn];
     if (!abr) throw new Error(`No demo ABN details for ${business.abn}`);
     const owner = business.people.find((p) => p.role === "owner");
@@ -189,5 +194,48 @@ export async function seedBusinesses(client: SeedClient) {
     added++;
   }
 
-  return { businesses: BUSINESSES.length, added };
+  return { businesses: BUSINESSES.length, added, repaired };
+}
+
+/**
+ * Puts demo sites back where their typed address says, if an older seed
+ * placed them wrongly (the demo address lookup once picked the wrong suburb).
+ */
+async function repairSites(
+  client: SeedClient,
+  geocoder: MockGeocoder,
+  businessId: string,
+  business: (typeof BUSINESSES)[number],
+): Promise<number> {
+  const { data: sites } = await client
+    .from("sites")
+    .select("id, name, address_line1, suburb")
+    .eq("business_id", businessId)
+    .is("archived_at", null);
+  let repaired = 0;
+  for (const site of business.sites) {
+    const row = (sites ?? []).find((s) => s.name === site.name);
+    const [suggestion] = await geocoder.suggest(site.address);
+    const place = suggestion ? await geocoder.resolve(suggestion.id) : null;
+    if (!row || !place?.line1) continue;
+    if (row.address_line1 === place.line1 && row.suburb === place.suburb) {
+      continue;
+    }
+    check(
+      await client
+        .from("sites")
+        .update({
+          address_line1: place.line1,
+          suburb: place.suburb,
+          state: place.state,
+          postcode: place.postcode,
+          lat: place.lat,
+          lng: place.lng,
+        })
+        .eq("id", row.id),
+      `site ${site.name}`,
+    );
+    repaired++;
+  }
+  return repaired;
 }

@@ -5,9 +5,7 @@ import {
   datesProblem,
   isOvernightShift,
   missingPostSteps,
-  nextPostStep,
   postingBlocker,
-  previousPostStep,
   resumePostStep,
   safetyProblem,
   shiftLengthMinutes,
@@ -17,17 +15,13 @@ import {
 } from "./jobs";
 
 describe("post-work steps", () => {
-  it("moves forward and back through the steps", () => {
-    expect(nextPostStep("what")).toBe("when");
-    expect(nextPostStep("review")).toBe("review");
-    expect(previousPostStep("when")).toBe("what");
-    expect(previousPostStep("what")).toBeNull();
-  });
-
   it("resumes at the first step not done", () => {
     expect(resumePostStep([])).toBe("what");
     expect(resumePostStep(["what", "when"])).toBe("needs");
     expect(resumePostStep(["what", "when", "needs", "safety"])).toBe("review");
+    // A copied job has everything but the dates.
+    expect(resumePostStep(["what", "needs", "safety"])).toBe("when");
+    expect(resumePostStep(["what", "needs", "safety", "when"])).toBe("review");
   });
 });
 

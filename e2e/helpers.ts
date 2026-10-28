@@ -335,3 +335,40 @@ export async function createPendingBusiness(options: { abn?: string } = {}) {
   });
   return { businessId: business.id as string, name, ownerEmail: email };
 }
+
+/**
+ * Makes sure a demo business has accepted the current services agreement.
+ * Another test publishes new versions, which (rightly) stops posting.
+ */
+export async function acceptCurrentAgreement(tradingName: string) {
+  const supabase = serviceClient();
+  const [{ data: business }, { data: agreement }] = await Promise.all([
+    supabase
+      .from("businesses")
+      .select("id, created_by")
+      .eq("trading_name", tradingName)
+      .is("archived_at", null)
+      .single(),
+    supabase
+      .from("agreements")
+      .select("id")
+      .eq("kind", "labour_hire_services")
+      .is("jurisdiction", null)
+      .eq("is_current", true)
+      .maybeSingle(),
+  ]);
+  if (!business || !agreement) return;
+  const { count } = await supabase
+    .from("agreement_acceptances")
+    .select("id", { count: "exact", head: true })
+    .eq("agreement_id", agreement.id)
+    .eq("business_id", business.id);
+  if (!count) {
+    await supabase.from("agreement_acceptances").insert({
+      agreement_id: agreement.id,
+      profile_id: business.created_by,
+      business_id: business.id,
+      user_agent: "Browser test setup",
+    });
+  }
+}

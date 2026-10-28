@@ -221,3 +221,48 @@ export function makePricer(scope: PricingScope, data: PricingData) {
 
   return { quote, estimate };
 }
+
+export type EstimateLine = {
+  type: ShiftCost["lines"][number]["type"];
+  kind: ShiftCost["lines"][number]["kind"];
+  /** Across every shift and worker. */
+  minutes: number;
+  billCents: number;
+  /** The hourly bill rate, or null when it differs between shifts. */
+  billRateCents: number | null;
+};
+
+/**
+ * An estimate's bill broken down by rate type, across every shift and
+ * worker, for "how we worked this out".
+ */
+export function estimateLines(
+  costs: readonly ShiftCost[],
+  workers: number,
+): { lines: EstimateLine[]; urgentBillCents: number } {
+  const lines = new Map<string, EstimateLine>();
+  let urgentBillCents = 0;
+  for (const cost of costs) {
+    urgentBillCents += cost.urgentBillCents * workers;
+    for (const line of cost.lines) {
+      const key = `${line.type}:${line.kind}`;
+      const existing = lines.get(key);
+      if (existing) {
+        existing.minutes += line.minutes * workers;
+        existing.billCents += line.billCents * workers;
+        if (existing.billRateCents !== line.billRateCents) {
+          existing.billRateCents = null;
+        }
+      } else {
+        lines.set(key, {
+          type: line.type,
+          kind: line.kind,
+          minutes: line.minutes * workers,
+          billCents: line.billCents * workers,
+          billRateCents: line.billRateCents,
+        });
+      }
+    }
+  }
+  return { lines: [...lines.values()], urgentBillCents };
+}

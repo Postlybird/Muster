@@ -50,7 +50,7 @@ export function FileUpload({
   hint?: React.ReactNode;
   error?: string[];
   bucket: UploadBucket;
-  /** The worker's id: files go in their own folder. */
+  /** The worker's id (or the business's, for job photos): files go in their folder. */
   folder: string;
   prefix: string;
   accept?: "image" | "document";
