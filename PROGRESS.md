@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.11 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.12 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -232,14 +232,22 @@ _Last updated: 28/10/2026_
   - **Demo data:** last night's Westside clean with two timesheets to approve (one with no clock-out), and a Harbour shift last week with approved hours and a query for admins.
   - Tests: 268 pgTAP, 307 unit and 156 browser tests passing.
 
+- **1.12 Ratings, favourites and blocks** (Phase 1):
+  - **Ratings:** once the hours are approved, the business rates the worker (1 to 5 stars, with tags like punctual, hard-working and would rehire) and the worker rates the site (tags like safe site and clear instructions), once each. Comments go only to our team, on the admin worker and business pages.
+  - **Averages:** businesses see each worker's average on worker cards, as before. Workers now see each business's average with its work, in Find shifts and on the job page.
+  - **Favourites and blocks:** when rating, owners and managers can add the worker to their favourites or block them. The new **Workers** page lists favourites, everyone who has worked for the business, and blocked workers, with a reason only our team sees. Favourites see work first; blocked workers stop being offered the business's work and aren't told. Bookings they already have stay.
+  - The business's approved hours show "Rate them" until the worker is rated.
+  - **Demo data:** Harbour Restoration rated Ethan Murphy for last week's shift, and he rated the site.
+  - Tests: 292 pgTAP, 313 unit and 162 browser tests passing.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
 - **Once the site has an address:** schedule the `reminders`, `finish-shifts`, `attendance` and `timesheets` jobs (every 10 minutes) with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET`. Vercel's free plan only runs scheduled jobs once a day.
-- **Phase 1, step 1.12:** ratings, favourites and blocks:
-  - after approval, the business rates the worker (1–5 with tags; favourite or block) and the worker rates the site
-  - averages are visible; written comments go privately to admins
+- **Phase 1, step 1.13:** the weekly pay and billing run:
+  - the prior week's approved hours make a payroll export (draft columns until we have the Employment Hero template) and one invoice per business, with GST and a PDF emailed to the accounts contact
+  - late cancellation charges on invoices; approved hours lock once they're in a run
 
 ## Decisions
 
@@ -320,6 +328,10 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | A booking counts towards reliability once its hours are in (replacing the step 1.9 rule). Hours starting after the grace period count as a late arrival. | Reliability now follows what was recorded, not just the roster. |
 | 28/10/2026 | A no-show can't be reported for someone who clocked in at the site, whose arrival the business confirmed, or whose hours are in: query the hours instead. A clock-in from somewhere else can still be reported. | A no-show and paid hours for the same shift would contradict each other. |
 | 28/10/2026 | "Hours ready to approve" and "approved automatically" emails go to whoever posted the job, one email per run of the timesheets job. | Fewer emails when a crew clocks out together. Step 1.14 adds preferences and push. |
+| 28/10/2026 | Ratings are given once per booking, after the hours are approved, and can't be changed. | Plan: "rater, once, after approval". It keeps averages honest. |
+| 28/10/2026 | Anyone at the business who can see the job rates the worker, supervisors included. Only owners and managers add favourites or block workers. | Supervisors approve hours at their sites (brief §2); favourites and blocks apply to the whole account. |
+| 28/10/2026 | Neither side sees what the other wrote or tagged: workers see a business's average across all its sites, businesses see each worker's average. | Brief §4.7 and the plan default (not per site). |
+| 28/10/2026 | Blocking a worker stops new offers and takes them off the favourites, but keeps bookings they already have. | Cancelling has its own rules and charges (step 1.9); the business can still cancel. |
 
 ## Open questions for the owner
 
