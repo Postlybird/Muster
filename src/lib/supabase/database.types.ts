@@ -1276,6 +1276,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      activate_worker: { Args: { p_worker_id: string }; Returns: undefined };
       dev_auth_email: {
         Args: {
           p_action: string;
@@ -1311,6 +1312,10 @@ export type Database = {
       };
       my_worker_id: { Args: Record<PropertyKey, never>; Returns: string };
       normalise_auth_phone: { Args: { raw: string }; Returns: string };
+      review_worker_credential: {
+        Args: { p_approve: boolean; p_id: string; p_reason?: string };
+        Returns: undefined;
+      };
       set_current_agreement: {
         Args: { p_agreement_id: string };
         Returns: undefined;

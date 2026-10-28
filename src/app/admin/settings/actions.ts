@@ -9,7 +9,7 @@ import {
   type SettingGroup,
   type SettingKey,
 } from "@/config/settings";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { failure, formBoolean, success, type ActionState } from "@/lib/forms";
 import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
@@ -56,7 +56,7 @@ export async function saveSettingsGroup(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const user = await requireRole("admin");
+  const user = await requireAdmin();
   const keys = settingKeys.filter((key) => SETTINGS[key].group === group);
 
   const fieldErrors: Record<string, string[]> = {};

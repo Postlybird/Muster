@@ -2,7 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 import { AgreementForm } from "../agreement-form";
@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "New agreement version" };
 export default async function NewAgreementPage({
   searchParams,
 }: PageProps<"/admin/agreements/new">) {
-  await requireRole("admin");
+  await requireAdmin();
   const params = await searchParams;
   const requested = agreementKinds.find((k) => k.kind === params.kind)?.kind;
   const kind: AgreementKind = requested ?? "labour_hire_services";

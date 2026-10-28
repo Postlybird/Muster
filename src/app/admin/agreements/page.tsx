@@ -5,7 +5,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,7 +14,7 @@ import { agreementKinds } from "./labels";
 export const metadata: Metadata = { title: "Agreements" };
 
 export default async function AgreementsPage() {
-  await requireRole("admin");
+  await requireAdmin();
   const supabase = await createClient();
   const [{ data: agreements }, { data: acceptances }] = await Promise.all([
     supabase

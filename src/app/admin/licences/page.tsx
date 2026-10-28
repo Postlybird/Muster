@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { sydneyDateKey } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,7 +11,7 @@ import { JurisdictionRow, LicenceForm } from "./licence-forms";
 export const metadata: Metadata = { title: "Licences" };
 
 export default async function LicencesPage() {
-  await requireRole("admin");
+  await requireAdmin();
   const supabase = await createClient();
   const [{ data: jurisdictions }, { data: licences }] = await Promise.all([
     supabase.from("jurisdictions").select("*").order("code"),

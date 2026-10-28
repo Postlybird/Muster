@@ -1,10 +1,10 @@
 import type { Json } from "../../../src/lib/supabase/database.types";
 import { check, type SeedClient } from "../client";
-import { SEED_SETTINGS } from "../data/settings";
+import { DEMO_ONLY_SETTINGS, SEED_SETTINGS } from "../data/settings";
 
 /** Adds missing settings. Never overwrites a value an admin has changed. */
 export async function seedSettings(client: SeedClient) {
-  const rows = SEED_SETTINGS.map((s) => ({
+  const rows = [...SEED_SETTINGS, ...DEMO_ONLY_SETTINGS].map((s) => ({
     key: s.key,
     value: s.value as NonNullable<Json>,
     is_public: s.isPublic,

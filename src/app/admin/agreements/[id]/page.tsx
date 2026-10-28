@@ -8,7 +8,7 @@ import { Markdown } from "@/components/markdown";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,7 +21,7 @@ export const metadata: Metadata = { title: "Agreement" };
 export default async function AgreementPage({
   params,
 }: PageProps<"/admin/agreements/[id]">) {
-  await requireRole("admin");
+  await requireAdmin();
   const { id } = await params;
   const supabase = await createClient();
   const [{ data: agreement }, { count }] = await Promise.all([

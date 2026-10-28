@@ -10,3 +10,18 @@ export const SEED_SETTINGS = settingKeys.map((key) => {
     description: `${definition.placeholder ? "PLACEHOLDER. " : ""}${definition.help}`,
   };
 });
+
+/**
+ * Demo data only: lets the seeded @demo.test admins use admin screens
+ * without an authenticator app, so "Sign in as" works. Not in the registry,
+ * so it can't be changed from the settings screen. Production is never seeded.
+ */
+export const DEMO_ONLY_SETTINGS = [
+  {
+    key: "demo_admins_skip_mfa",
+    value: true,
+    isPublic: false,
+    description:
+      "Demo data only: seeded @demo.test admins skip the authenticator app.",
+  },
+];

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import {
   failure,
   invalid,
@@ -37,7 +37,7 @@ export async function saveAgreementDraft(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const user = await requireRole("admin");
+  const user = await requireAdmin();
   const jurisdiction = optionalText(formData.get("jurisdiction"));
   const parsed = draftSchema.safeParse({
     kind: formData.get("kind"),
@@ -87,7 +87,7 @@ export async function publishAgreement(
   id: string,
   makeCurrent: boolean,
 ): Promise<ActionState> {
-  await requireRole("admin");
+  await requireAdmin();
   if (!z.uuid().safeParse(id).success) return failure("Unknown agreement.");
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -116,7 +116,7 @@ export async function publishAgreement(
 }
 
 export async function makeAgreementCurrent(id: string): Promise<ActionState> {
-  await requireRole("admin");
+  await requireAdmin();
   if (!z.uuid().safeParse(id).success) return failure("Unknown agreement.");
   const supabase = await createClient();
   const { error } = await supabase.rpc("set_current_agreement", {

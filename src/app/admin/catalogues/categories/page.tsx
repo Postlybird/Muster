@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 import { CatalogueStatus } from "../status-badge";
@@ -19,7 +19,7 @@ import { CatalogueStatus } from "../status-badge";
 export const metadata: Metadata = { title: "Work categories" };
 
 export default async function CategoriesPage() {
-  await requireRole("admin");
+  await requireAdmin();
   const supabase = await createClient();
   const { data: categories } = await supabase
     .from("categories")

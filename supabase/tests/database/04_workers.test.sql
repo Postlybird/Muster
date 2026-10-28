@@ -255,7 +255,7 @@ insert into public.worker_credentials (worker_id, credential_type_id, number)
 values (public.my_worker_id(), 'aaaaaaaa-0000-0000-0000-000000000002', 'B-1');
 
 -- Admin
-select set_config('request.jwt.claims', '{"sub": "44444444-4444-4444-4444-444444444444", "role": "authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub": "44444444-4444-4444-4444-444444444444", "role": "authenticated", "aal": "aal2"}', true);
 
 select lives_ok(
   format(

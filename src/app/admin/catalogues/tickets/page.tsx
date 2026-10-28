@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 import { CatalogueStatus } from "../status-badge";
@@ -20,7 +20,7 @@ import { kindLabels } from "./labels";
 export const metadata: Metadata = { title: "Tickets" };
 
 export default async function TicketsPage() {
-  await requireRole("admin");
+  await requireAdmin();
   const supabase = await createClient();
   const { data: tickets } = await supabase
     .from("credential_types")

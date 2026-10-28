@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { Button } from "@/components/ui/button";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 import { setArchived } from "../../actions";
@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Edit ticket" };
 export default async function EditTicketPage({
   params,
 }: PageProps<"/admin/catalogues/tickets/[id]">) {
-  await requireRole("admin");
+  await requireAdmin();
   const { id } = await params;
   const supabase = await createClient();
   const { data: ticket } = await supabase

@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { formatCalendarDate, formatCents } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { getAllSettings } from "@/server/settings";
@@ -21,7 +21,7 @@ import { getAllSettings } from "@/server/settings";
 export const metadata: Metadata = { title: "Bill rules" };
 
 export default async function BillRulesPage() {
-  await requireRole("admin");
+  await requireAdmin();
   const supabase = await createClient();
   const [{ data: rules }, settings] = await Promise.all([
     supabase

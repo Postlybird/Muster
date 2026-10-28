@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import {
   failure,
   formBoolean,
@@ -61,7 +61,7 @@ export async function saveCategory(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole("admin");
+  await requireAdmin();
   const workersComp = optionalText(formData.get("workers_comp_pct"));
   const parsed = categorySchema.safeParse({
     name: formData.get("name") ?? "",
@@ -196,7 +196,7 @@ export async function saveTicket(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole("admin");
+  await requireAdmin();
   const parsed = ticketSchema.safeParse({
     name: formData.get("name") ?? "",
     description: formData.get("description") ?? "",
@@ -248,7 +248,7 @@ export async function setArchived(
   id: string,
   archived: boolean,
 ): Promise<ActionState> {
-  await requireRole("admin");
+  await requireAdmin();
   const parsedTable = archivable.safeParse(table);
   if (!parsedTable.success || !z.uuid().safeParse(id).success)
     return failure("Unknown item.");
@@ -279,7 +279,7 @@ export async function saveSimpleItem(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole("admin");
+  await requireAdmin();
   const parsedTable = simpleTable.safeParse(table);
   if (!parsedTable.success) return failure("Unknown list.");
   const parsed = simpleSchema.safeParse({

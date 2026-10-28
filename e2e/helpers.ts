@@ -1,5 +1,9 @@
+import { createHmac } from "node:crypto";
+import { existsSync } from "node:fs";
+
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 
 /** A random Australian mobile number in the 04xx range. */
 export function randomMobile(): { local: string; e164: string } {
@@ -83,4 +87,40 @@ export async function signInAsDemo(page: Page, name: string) {
   }
   await button.click();
   await page.waitForURL(/\/(admin|business|worker)$/);
+}
+
+/**
+ * Supabase with the secret key, for setting up test data the app can't
+ * create itself (e.g. a non-demo admin). Local and CI databases only.
+ */
+export function serviceClient() {
+  if (existsSync(".env.local")) process.loadEnvFile(".env.local");
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SECRET_KEY;
+  if (!url || !key) throw new Error("Supabase URL and secret key are needed");
+  const host = new URL(url).hostname;
+  if (host !== "127.0.0.1" && host !== "localhost") {
+    throw new Error("Browser tests only change the local database");
+  }
+  return createClient(url, key, { auth: { persistSession: false } });
+}
+
+/** The current code an authenticator app would show for a base32 secret (RFC 6238). */
+export function totp(secret: string, at = Date.now()): string {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let bits = "";
+  for (const char of secret.replace(/[\s=]/g, "").toUpperCase()) {
+    const value = alphabet.indexOf(char);
+    if (value < 0) throw new Error("Not a base32 secret");
+    bits += value.toString(2).padStart(5, "0");
+  }
+  const key = Buffer.from(
+    (bits.match(/.{8}/g) ?? []).map((byte) => parseInt(byte, 2)),
+  );
+  const counter = Buffer.alloc(8);
+  counter.writeBigUInt64BE(BigInt(Math.floor(at / 30_000)));
+  const hmac = createHmac("sha1", key).update(counter).digest();
+  const offset = hmac[hmac.length - 1]! & 0x0f;
+  const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000;
+  return String(code).padStart(6, "0");
 }

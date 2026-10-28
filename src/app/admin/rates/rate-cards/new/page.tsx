@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 import { RateCardForm } from "../rate-card-form";
@@ -8,7 +8,7 @@ import { RateCardForm } from "../rate-card-form";
 export const metadata: Metadata = { title: "Add a rate card" };
 
 export default async function NewRateCardPage() {
-  await requireRole("admin");
+  await requireAdmin();
   const supabase = await createClient();
   const { data: categories } = await supabase
     .from("categories")

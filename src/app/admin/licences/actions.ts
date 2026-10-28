@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import {
   failure,
   formBoolean,
@@ -29,7 +29,7 @@ export async function saveJurisdiction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole("admin");
+  await requireAdmin();
   if (!(STATES as readonly string[]).includes(code))
     return failure("Unknown state.");
   const parsed = jurisdictionSchema.safeParse({
@@ -82,7 +82,7 @@ export async function saveLicence(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole("admin");
+  await requireAdmin();
   const parsed = licenceSchema.safeParse({
     jurisdiction: formData.get("jurisdiction"),
     licence_number: formData.get("licence_number") ?? "",

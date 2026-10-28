@@ -19,14 +19,14 @@ import {
   hourlyPayTable,
   rateCardFromRow,
 } from "@/domain/rates";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { formatCalendarDate, formatCents } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Pay rate cards" };
 
 export default async function RateCardsPage() {
-  await requireRole("admin");
+  await requireAdmin();
   const supabase = await createClient();
   const { data: cards } = await supabase
     .from("rate_cards")

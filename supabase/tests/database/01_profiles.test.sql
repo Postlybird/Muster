@@ -67,7 +67,7 @@ select is_empty(
 );
 
 -- Act as the admin.
-select set_config('request.jwt.claims', '{"sub": "44444444-4444-4444-4444-444444444444", "role": "authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub": "44444444-4444-4444-4444-444444444444", "role": "authenticated", "aal": "aal2"}', true);
 
 select is(
   (select count(*)::int from public.profiles),

@@ -9,7 +9,7 @@ import {
   settingKeys,
   type SettingGroup,
 } from "@/config/settings";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 import { SettingsGroupForm, type SettingRow } from "./settings-form";
@@ -17,7 +17,7 @@ import { SettingsGroupForm, type SettingRow } from "./settings-form";
 export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
-  await requireRole("admin");
+  await requireAdmin();
   const supabase = await createClient();
   const { data } = await supabase
     .from("settings")

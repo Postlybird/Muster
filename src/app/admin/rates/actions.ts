@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { DAY_TYPES } from "@/domain/rates";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import {
   dollarsToCents,
   failure,
@@ -71,7 +71,7 @@ export async function saveRateCard(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const user = await requireRole("admin");
+  const user = await requireAdmin();
   const cents = dollarsToCents(formData.get("base_rate"));
   const parsed = rateCardSchema.safeParse({
     category_id: formData.get("category_id"),
@@ -179,7 +179,7 @@ export async function saveBillRule(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const user = await requireRole("admin");
+  const user = await requireAdmin();
   const method = formData.get("method") === "fixed" ? "fixed" : "markup";
   const margin = optionalText(formData.get("margin_pct"));
   const fixed = Object.fromEntries(
@@ -245,7 +245,7 @@ export async function setRateArchived(
   id: string,
   archived: boolean,
 ): Promise<ActionState> {
-  await requireRole("admin");
+  await requireAdmin();
   if (
     !["rate_cards", "bill_rate_rules"].includes(table) ||
     !z.uuid().safeParse(id).success
@@ -279,7 +279,7 @@ export async function addHoliday(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireRole("admin");
+  await requireAdmin();
   const parsed = holidaySchema.safeParse({
     state: formData.get("state") ?? "NSW",
     date: formData.get("date"),
@@ -300,7 +300,7 @@ export async function addHoliday(
 }
 
 export async function deleteHoliday(id: string): Promise<ActionState> {
-  await requireRole("admin");
+  await requireAdmin();
   if (!z.uuid().safeParse(id).success) return failure("Unknown holiday.");
   const supabase = await createClient();
   const { error } = await supabase

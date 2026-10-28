@@ -3,6 +3,8 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
+import { isDemoEmail } from "@/config/demo";
+import { isDemoMode } from "@/lib/env";
 import { roleHome, type UserRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,6 +14,8 @@ export type SessionUser = {
   fullName: string | null;
   email: string | null;
   phone: string | null;
+  /** "aal2" once the user has used their authenticator app this session. */
+  aal: string | null;
 };
 
 /**
@@ -23,6 +27,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
   if (!userId) return null;
+  const aal = typeof data.claims.aal === "string" ? data.claims.aal : null;
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -38,6 +43,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     fullName: profile.full_name,
     email: profile.email,
     phone: profile.phone,
+    aal,
   };
 });
 
@@ -56,5 +62,24 @@ export async function requireRole(...roles: UserRole[]): Promise<SessionUser> {
   if (!roles.includes(user.role)) {
     redirect(roleHome[user.role]);
   }
+  return user;
+}
+
+/**
+ * Admins must also use their authenticator app (the database checks this
+ * too). Seeded demo admins skip it in demo mode, matching the demo data.
+ */
+export function adminNeedsSecondFactor(user: SessionUser): boolean {
+  return (
+    user.role === "admin" &&
+    user.aal !== "aal2" &&
+    !(isDemoMode() && isDemoEmail(user.email))
+  );
+}
+
+/** For admin pages and actions: an admin who has used their second factor. */
+export async function requireAdmin(): Promise<SessionUser> {
+  const user = await requireRole("admin");
+  if (adminNeedsSecondFactor(user)) redirect("/mfa");
   return user;
 }

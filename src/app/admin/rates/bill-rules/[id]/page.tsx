@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { Button } from "@/components/ui/button";
 import { DAY_TYPES } from "@/domain/rates";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 import { setRateArchived } from "../../actions";
@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Edit bill rule" };
 export default async function EditBillRulePage({
   params,
 }: PageProps<"/admin/rates/bill-rules/[id]">) {
-  await requireRole("admin");
+  await requireAdmin();
   const { id } = await params;
   const supabase = await createClient();
   const [{ data: rule }, { data: categories }] = await Promise.all([

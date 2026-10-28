@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { Button } from "@/components/ui/button";
 import { rateCardFromRow } from "@/domain/rates";
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 import { setRateArchived } from "../../actions";
@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Edit rate card" };
 export default async function EditRateCardPage({
   params,
 }: PageProps<"/admin/rates/rate-cards/[id]">) {
-  await requireRole("admin");
+  await requireAdmin();
   const { id } = await params;
   const supabase = await createClient();
   const [{ data: card }, { data: categories }] = await Promise.all([

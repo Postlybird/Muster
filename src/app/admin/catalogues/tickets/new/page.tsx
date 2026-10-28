@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 
 import { TicketForm } from "../ticket-form";
 
 export const metadata: Metadata = { title: "Add a ticket" };
 
 export default async function NewTicketPage() {
-  await requireRole("admin");
+  await requireAdmin();
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">Add a ticket</h2>

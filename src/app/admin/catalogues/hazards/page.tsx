@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { requireRole } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 import { SimpleList } from "../simple-list";
@@ -8,7 +8,7 @@ import { SimpleList } from "../simple-list";
 export const metadata: Metadata = { title: "Hazards" };
 
 export default async function HazardsPage() {
-  await requireRole("admin");
+  await requireAdmin();
   const supabase = await createClient();
   const { data } = await supabase
     .from("hazards")

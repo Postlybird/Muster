@@ -53,7 +53,7 @@ select lives_ok(
 );
 
 -- Admin
-select set_config('request.jwt.claims', '{"sub": "44444444-4444-4444-4444-444444444444", "role": "authenticated"}', true);
+select set_config('request.jwt.claims', '{"sub": "44444444-4444-4444-4444-444444444444", "role": "authenticated", "aal": "aal2"}', true);
 
 select is(
   (select count(*)::int from public.settings where key like 'test_%'),
