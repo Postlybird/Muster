@@ -291,7 +291,7 @@ _Last updated: 28/10/2026_
 - **1.17 Core-flow tests and the Phase 1 acceptance run** (Phase 1):
   - **The acceptance run** (brief §11), done in the app the way people would:
     - 3 business owners sign up, look up their ABN, add a site, accept the agreement and submit; an admin approves each one
-    - 10 workers sign up on their phones and complete the wizard; an admin checks each one's photo, right to work, ID and tickets, records their payroll ID and activates them
+    - 10 workers sign up with their mobile numbers and complete the wizard; an admin checks each one's photo, right to work, ID and tickets, records their payroll ID and activates them
     - the businesses post 20 shifts over 6 jobs, some "first in" and some "I'll choose"; workers accept or apply, the owners choose from the applicants, and every shift is filled
     - the booked week is moved back to last week, standing in for the week going by (the only change made outside the app)
     - the owners enter and approve everyone's hours: 25 workers' days

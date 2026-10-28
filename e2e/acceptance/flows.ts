@@ -106,7 +106,7 @@ export type Worker = {
   ticket: string | null;
 };
 
-/** A worker signs up on their phone and submits their details (brief §4.1). */
+/** A worker signs up with their mobile and submits their details (brief §4.1). */
 export async function signUpWorker(
   page: Page,
   person: {

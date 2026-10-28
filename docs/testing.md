@@ -40,9 +40,9 @@ exactly that, the way people would in the app:
 
 1. Three business owners sign up, look up their ABN, add a site, accept the
    agreement and submit. An admin approves each one.
-2. Ten workers sign up on their phones and go through the whole wizard. An
-   admin checks each one's photo, right to work, ID and tickets, records
-   their payroll setup and activates them.
+2. Ten workers sign up with their mobile numbers and go through the whole
+   wizard. An admin checks each one's photo, right to work, ID and tickets,
+   records their payroll setup and activates them.
 3. The businesses post 20 shifts over six jobs for the week after next,
    some "first in" and some "I'll choose".
 4. Workers accept or apply; the owners choose from the applicants. Every
