@@ -9,7 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BUSINESS_ROLES } from "@/config/business-roles";
 import { businessHoldReasons } from "@/config/review-reasons";
-import { BUSINESS_STEPS } from "@/domain/business-onboarding";
+import {
+  BUSINESS_STEPS,
+  type BusinessStepKey,
+} from "@/domain/business-onboarding";
 import { requireAdmin } from "@/lib/auth";
 import { formatCalendarDate, formatCents, formatDate } from "@/lib/format";
 import { formatAuPhone } from "@/lib/phone";
@@ -27,6 +30,16 @@ import {
 } from "./forms";
 
 export const metadata: Metadata = { title: "Business" };
+
+/** What each setup step means, in an admin's words. */
+const SETUP_STEP_LABELS: Record<BusinessStepKey, string> = {
+  abn: "ABN",
+  details: "billing contact",
+  sites: "a site",
+  team: "team",
+  agreement: "services agreement",
+  submit: "submit",
+};
 
 function Section({
   id,
@@ -131,7 +144,9 @@ export default async function AdminBusinessPage({
   };
   const stepsLeft = BUSINESS_STEPS.filter(
     (step) =>
-      step.key !== "submit" && !business.onboarding_steps.includes(step.key),
+      step.key !== "submit" &&
+      !("optional" in step) &&
+      !business.onboarding_steps.includes(step.key),
   );
 
   return (
@@ -179,9 +194,9 @@ export default async function AdminBusinessPage({
       {business.status === "draft" ? (
         <Section id="decision" title="Approval">
           <p className="text-sm">
-            Still setting up.{" "}
+            Setting up their account.{" "}
             {stepsLeft.length > 0
-              ? `To do: ${stepsLeft.map((step) => step.title.toLowerCase()).join(", ")}.`
+              ? `Still to do: ${stepsLeft.map((step) => SETUP_STEP_LABELS[step.key]).join(", ")}.`
               : "Everything's done except submitting."}
           </p>
         </Section>

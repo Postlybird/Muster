@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.3 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.4 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -122,11 +122,41 @@ _Last updated: 28/10/2026_
   - Every view of worker documents is logged.
   - Tests: 93 pgTAP, 169 unit and 86 browser tests passing.
 
+- **1.4 Business onboarding and approval** (Phase 1):
+  - **Schema:** businesses, their people (owner, manager, site supervisor) and sites, plus which sites each supervisor looks after.
+    - Register details (legal name, ABN status, GST, ACN) are written only by the server after an ABN lookup. One business per ABN.
+    - The owner edits the billing contact; status, approval and account terms are admin-only, enforced in the database. A cancelled ABN can't be approved.
+    - Invites are by email and are matched to the account that signs in with that email. One business per login.
+    - Supervisors see only their own sites; owners and managers see them all.
+  - **Sign-up wizard** (`/business/onboarding`), six steps that can be left and resumed:
+    1. ABN lookup (the demo register until the ABN Lookup GUID arrives). Invalid, cancelled and already-registered ABNs are refused.
+    2. Billing contact and accounts email.
+    3. Sites: address lookup, access and parking notes, who to report to, and an optional clock-in distance.
+    4. Invite managers and supervisors (optional).
+    5. The Labour Hire Services Agreement, recorded with time, IP address and browser.
+    6. Check and submit.
+  - **Business area:** dashboard by status; **Sites** (add, edit, remove); **Team** (invite, change roles, give supervisors their sites, resend or remove); **Settings** (register details, billing contact, payment terms and the agreement).
+  - **New agreement versions:** when we publish a new Labour Hire Services Agreement, the dashboard and Settings ask the owner to read and accept it.
+  - **Admin** (`/admin/businesses`): businesses awaiting approval first, oldest first. Each business page shows register details, billing contact, sites, people and the agreement.
+    - "Check the register again" updates the details. A cancelled ABN puts the business on hold.
+    - Approve with or without account terms, and set payment days (default from settings).
+    - Decline or put on hold with a reason (ready-made reasons, editable); take off hold later.
+    - The owner is emailed each time.
+  - **Business-specific rates:** a pay rate card or bill rule can apply to one business, for example a "same job, same pay" order or a negotiated margin. Set from the business page or the rates pages.
+  - **Demo data:** 5 businesses with people, sites and supervisors (one awaiting approval). Harbour Restoration has a 15% margin.
+  - **Accessibility:** long documents scroll in a box that can be reached by keyboard. Long email addresses wrap on phones. The browser checks now also fail any page that scrolls sideways (WCAG reflow).
+  - Tests: 117 pgTAP, 173 unit and 110 browser tests passing.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Phase 1, step 1.4:** business onboarding: email sign-up, live ABN lookup (mock until the GUID arrives), billing contact, sites with address lookup, inviting managers and supervisors, the Labour Hire Services Agreement, and admin approval with account terms.
+- **Phase 1, step 1.5:** the pay, bill and cost-estimate engine, as tested pure functions:
+  - the rate card for a shift (business, category, level and date)
+  - day types: weekday, Saturday, Sunday, public holiday, night and overtime
+  - minimum engagement
+  - on-costs plus margin, or fixed bill rates
+  - GST
 
 ## Decisions
 
@@ -162,6 +192,12 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | ID images, citizenship evidence and police certificates are deleted when the admin saves a decision, approved or rejected. We keep the outcome, date, reviewer and a short reference. | Plan question 2. A rejected worker uploads new ones anyway. |
 | 28/10/2026 | Payroll setup is recorded by hand in v1: the admin adds the worker in Employment Hero, then records the employee ID and marks setup complete. Activation needs it complete. | Plan question 9. Phase 2 does this through the Employment Hero API. |
 | 28/10/2026 | Account messages to workers (rejections, activation) are sent as texts straight away. | They're critical. Step 1.14 moves them into the full notifications system with templates and preferences. |
+| 28/10/2026 | A business is created by the server from the ABN register's details, using the service-role key. Only admins can change register details, status or account terms. | The business can't type in or alter what the register says. The server also checks that the ABN isn't already registered, which a business can't see for itself. |
+| 28/10/2026 | One business per login. Invites go by email and are matched when that person signs in with the same email. | Simple for v1. Someone who works for two businesses uses a different email for each. |
+| 28/10/2026 | Declining a business puts it "On hold" with the reason. There's no separate "rejected" status, and an admin can approve it later. | The owner sees the same thing either way: they can't post work, and they see why. |
+| 28/10/2026 | A business can post work only once it's approved **and** on account terms. | Plan decision on posting rights. v1 has no card payments (Stripe is Phase 2). |
+| 28/10/2026 | When we publish a new Labour Hire Services Agreement, owners are asked to accept it. Posting work (step 1.6) will need the current version accepted. | The agreement covers every placement. Each acceptance records the version, time and IP address. |
+| 28/10/2026 | The most specific bill rule wins: the business's rule for the category, then its rule for all categories, then the category's standard rule, then the default margin. Only one rule per business, category and start date. | Plan: a margin with per-category and per-business overrides. The pay and bill engine (step 1.5) always finds exactly one rule. |
 
 ## Open questions for the owner
 

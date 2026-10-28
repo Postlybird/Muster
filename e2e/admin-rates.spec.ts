@@ -25,16 +25,16 @@ test.describe("admin rates", () => {
   test("adds a rate card with a live preview and refuses a duplicate", async ({
     page,
   }) => {
-    // A unique level and date so the test can run again on the same database.
-    const level = String(2 + (Date.now() % 8));
-    const day = String(1 + (Date.now() % 28)).padStart(2, "0");
+    // A random level and date so the test can run again on the same database.
+    const level = String(2 + Math.floor(Math.random() * 8));
+    const from = randomFutureDate();
     const addCard = async () => {
       await page.goto("/admin/rates/rate-cards/new");
       await page.getByLabel("Work category").click();
       await page.getByRole("option", { name: "Commercial cleaner" }).click();
       await page.getByLabel("Level").fill(level);
       await page.getByLabel("Base rate").fill("28.00");
-      await page.getByLabel("Applies from").fill(`2031-01-${day}`);
+      await page.getByLabel("Applies from").fill(from);
     };
 
     await addCard();
