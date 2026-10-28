@@ -6,7 +6,7 @@
  */
 
 export type WorkerBucket = "worker-photos" | "identity" | "worker-docs";
-export type UploadBucket = WorkerBucket | "job-photos";
+export type UploadBucket = WorkerBucket | "job-photos" | "safety-photos";
 
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 

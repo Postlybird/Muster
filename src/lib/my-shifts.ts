@@ -89,3 +89,52 @@ export function cancellable(
     ];
   });
 }
+
+const HOUR = 3_600_000;
+
+/**
+ * The booked shift on now, for clocking in and out: from two hours before
+ * the start until twelve hours after the finish (the database allows the
+ * same window).
+ */
+export function liveShift(
+  rows: readonly MyShift[],
+  now: Date,
+): MyShift | undefined {
+  const at = now.getTime();
+  return rows.find(
+    (row) =>
+      row.assignment_status === "confirmed" &&
+      at >= Date.parse(row.starts_at) - 2 * HOUR &&
+      at <= Date.parse(row.ends_at) + 12 * HOUR,
+  );
+}
+
+export type Attendance = {
+  /** A clock-in, or else an arrival the business confirmed. */
+  startedAt: string | null;
+  confirmedByBusiness: boolean;
+  clockedOutAt: string | null;
+  next: "clock_in" | "clock_out" | null;
+};
+
+/** Where a worker is up to on a shift, from its attendance events. */
+export function attendanceOf(
+  events: readonly { kind: string; occurred_at: string }[],
+): Attendance {
+  const first = (kind: string) =>
+    events
+      .filter((e) => e.kind === kind)
+      .map((e) => e.occurred_at)
+      .sort()[0] ?? null;
+  const clockIn = first("clock_in");
+  const arrival = first("arrival_confirmed");
+  const clockOut = first("clock_out");
+  const startedAt = clockIn ?? arrival;
+  return {
+    startedAt,
+    confirmedByBusiness: !clockIn && !!arrival,
+    clockedOutAt: clockOut,
+    next: clockOut ? null : startedAt ? "clock_out" : "clock_in",
+  };
+}

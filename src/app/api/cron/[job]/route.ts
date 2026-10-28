@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
+import { checkAttendance } from "@/server/attendance";
 import { finishShifts } from "@/server/reliability";
 import { sendReminders } from "@/server/reminders";
 
@@ -12,6 +13,7 @@ import { sendReminders } from "@/server/reminders";
 const JOBS: Record<string, () => Promise<unknown>> = {
   reminders: () => sendReminders(),
   "finish-shifts": () => finishShifts(),
+  attendance: () => checkAttendance(),
 };
 
 function allowed(request: Request): boolean {

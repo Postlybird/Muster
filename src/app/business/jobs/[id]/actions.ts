@@ -158,3 +158,22 @@ export async function reportNoShow(
   revalidatePath(`/business/jobs/${jobId}`);
   return success("Recorded. Thanks for letting us know.");
 }
+
+/** Confirms a booked worker has arrived, e.g. when their phone couldn't clock in. */
+export async function confirmArrival(
+  jobId: string,
+  assignmentId: string,
+): Promise<ActionState> {
+  const { business } = await getMyBusiness();
+  if (!business) return failure("Sign in to your business first.");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("confirm_arrival", {
+    p_assignment_id: assignmentId,
+  });
+  if (error) {
+    if (error.code === "23514") return failure(`${error.message}.`);
+    return saveFailed(error);
+  }
+  revalidatePath(`/business/jobs/${jobId}`);
+  return success("Arrival confirmed");
+}

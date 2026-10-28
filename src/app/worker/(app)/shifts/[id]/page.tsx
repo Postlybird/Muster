@@ -20,9 +20,9 @@ import {
   JOB_TYPES,
   PPE_SUPPLIERS_FOR_WORKERS,
 } from "@/domain/jobs";
-import { formatCents, formatDayShort } from "@/lib/format";
+import { formatCents, formatDayShort, formatTime } from "@/lib/format";
 import { shiftHours } from "@/lib/job-format";
-import { cancellable } from "@/lib/my-shifts";
+import { attendanceOf, cancellable, liveShift } from "@/lib/my-shifts";
 import { distanceLabel } from "@/lib/offers";
 import { formatAuPhone } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
@@ -30,6 +30,7 @@ import { getAllSettings } from "@/server/settings";
 
 import { withdrawApplications } from "./actions";
 import { CancelBookingsForm } from "./cancel-bookings-form";
+import { ClockCard } from "./clock-card";
 import { TakeShiftsForm } from "./take-shifts-form";
 
 export const metadata: Metadata = { title: "Shift details" };
@@ -138,8 +139,10 @@ function Gone() {
  */
 export default async function WorkerJobPage({
   params,
+  searchParams,
 }: PageProps<"/worker/shifts/[id]">) {
   const { id } = await params;
+  const { reported } = await searchParams;
   const supabase = await createClient();
   const [{ data: offers }, { data: mine }, { data: job }] = await Promise.all([
     supabase.rpc("my_shift_offers", { p_job_id: id }),
@@ -173,6 +176,15 @@ export default async function WorkerJobPage({
   ]
     .filter(Boolean)
     .join(", ");
+  // The shift on now, for clocking in and out (brief §4.6).
+  const live = liveShift(booked, new Date());
+  const { data: events } = live?.assignment_id
+    ? await supabase
+        .from("attendance_events")
+        .select("kind, occurred_at")
+        .eq("assignment_id", live.assignment_id)
+    : { data: null };
+  const attendance = attendanceOf(events ?? []);
   // Booked shifts still to start can be cancelled (brief §4.5).
   const lateHours = booked.length
     ? (await getAllSettings()).worker_late_cancel_hours
@@ -218,6 +230,41 @@ export default async function WorkerJobPage({
         </div>
         <p className="text-muted-foreground">for {job.business_name}</p>
       </div>
+
+      {reported ? (
+        <Alert variant="success">
+          <AlertDescription>
+            Thanks. We&apos;ve told our team about the safety issue and
+            we&apos;ll be in touch. If anyone is in danger, call 000.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {live?.assignment_id ? (
+        <Section
+          id="today"
+          title={`On now: ${formatDayShort(live.starts_at)}, ${shiftHours(live)}`}
+          className="border-primary/30 bg-card"
+        >
+          {attendance.startedAt ? (
+            <p className="text-sm">
+              {attendance.confirmedByBusiness
+                ? `The business confirmed you arrived at ${formatTime(attendance.startedAt)}.`
+                : `Clocked in at ${formatTime(attendance.startedAt)}.`}
+              {attendance.clockedOutAt
+                ? ` Clocked out at ${formatTime(attendance.clockedOutAt)}. Your hours go to the business to approve.`
+                : ""}
+            </p>
+          ) : null}
+          {attendance.next ? (
+            <ClockCard
+              jobId={id}
+              assignmentId={live.assignment_id}
+              next={attendance.next}
+            />
+          ) : null}
+        </Section>
+      ) : null}
 
       {booked.length > 0 ? (
         <Section

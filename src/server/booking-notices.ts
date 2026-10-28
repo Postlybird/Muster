@@ -188,3 +188,59 @@ export async function textNoShow(
       : `${job.business} reported you didn't come to ${job.category} in ${job.suburb}. If that's not right, contact us.`,
   );
 }
+
+/** Tells every admin about a safety report straight away (brief §4.6). */
+export async function emailAdminsSafety(
+  jobId: string,
+  workerId: string,
+  description: string,
+) {
+  const admin = createAdminClient();
+  const [job, { data: worker }, { data: admins }] = await Promise.all([
+    jobFacts(jobId),
+    admin
+      .from("workers")
+      .select("preferred_name, legal_first_name, legal_last_name")
+      .eq("id", workerId)
+      .single(),
+    admin.from("profiles").select("id").eq("role", "admin"),
+  ]);
+  if (!job) return;
+  const name = worker
+    ? `${worker.preferred_name ?? worker.legal_first_name ?? "A worker"} ${worker.legal_last_name ?? ""}`.trim()
+    : "A worker";
+  await Promise.all(
+    (admins ?? []).map((person) =>
+      emailPerson(person.id, {
+        subject: `Safety issue at ${job.site} (${job.business})`,
+        text: `${name} reported a safety issue on ${job.category} at ${job.site}:\n\n${description}\n\nIt's flagged for admins in the app.`,
+        tag: "safety-report",
+      }),
+    ),
+  );
+}
+
+/**
+ * Tells whoever posted a job that a booked worker hasn't clocked in (plan:
+ * 30 minutes after the start, a setting).
+ */
+export async function emailPossibleNoShow(jobId: string, workerId: string) {
+  const admin = createAdminClient();
+  const [job, { data: worker }] = await Promise.all([
+    jobFacts(jobId),
+    admin
+      .from("workers")
+      .select("preferred_name, legal_first_name, legal_last_name")
+      .eq("id", workerId)
+      .single(),
+  ]);
+  if (!job?.postedBy || !worker) return;
+  const name =
+    `${worker.preferred_name ?? worker.legal_first_name ?? "A worker"} ${worker.legal_last_name ?? ""}`.trim();
+  const origin = await requestOrigin();
+  await emailPerson(job.postedBy, {
+    subject: `${name} hasn't clocked in at ${job.site}`,
+    text: `${name} is booked for ${job.category} at ${job.site} but hasn't clocked in yet.\n\nIf they're there, confirm their arrival. If they haven't come, report a no-show: ${origin}/business/jobs/${jobId}`,
+    tag: "possible-no-show",
+  });
+}

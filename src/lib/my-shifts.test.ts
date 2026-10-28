@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { cancellable, groupMyShifts, type MyShift } from "./my-shifts";
+import {
+  attendanceOf,
+  cancellable,
+  groupMyShifts,
+  liveShift,
+  type MyShift,
+} from "./my-shifts";
 
 function shift(overrides: Partial<MyShift>): MyShift {
   return {
@@ -108,5 +114,51 @@ describe("cancelling", () => {
       ["x1", true],
       ["x2", false],
     ]);
+  });
+});
+
+describe("on the day", () => {
+  const booked = {
+    application_status: "booked" as const,
+    assignment_status: "confirmed" as const,
+    assignment_id: "x1",
+  };
+
+  it("finds the shift on now, from two hours before to twelve after", () => {
+    const rows = [
+      shift({
+        ...booked,
+        starts_at: "2026-11-02T20:00:00Z",
+        ends_at: "2026-11-03T04:30:00Z",
+      }),
+    ];
+    const at = (iso: string) => liveShift(rows, new Date(iso))?.shift_id;
+    expect(at("2026-11-02T17:59:00Z")).toBeUndefined();
+    expect(at("2026-11-02T18:00:00Z")).toBe("s1");
+    expect(at("2026-11-03T16:30:00Z")).toBe("s1");
+    expect(at("2026-11-03T16:31:00Z")).toBeUndefined();
+  });
+
+  it("knows whether to clock in or out next", () => {
+    expect(attendanceOf([]).next).toBe("clock_in");
+    const inEvent = { kind: "clock_in", occurred_at: "2026-11-02T20:02:00Z" };
+    expect(attendanceOf([inEvent])).toEqual({
+      startedAt: inEvent.occurred_at,
+      confirmedByBusiness: false,
+      clockedOutAt: null,
+      next: "clock_out",
+    });
+    // The business confirmed they arrived when their phone couldn't.
+    expect(
+      attendanceOf([
+        { kind: "arrival_confirmed", occurred_at: "2026-11-02T20:05:00Z" },
+      ]),
+    ).toMatchObject({ confirmedByBusiness: true, next: "clock_out" });
+    expect(
+      attendanceOf([
+        inEvent,
+        { kind: "clock_out", occurred_at: "2026-11-03T04:31:00Z" },
+      ]).next,
+    ).toBeNull();
   });
 });

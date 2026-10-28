@@ -5,11 +5,12 @@ import { ConfirmAction } from "@/components/forms/confirm-action";
 import { WorkerCard } from "@/components/jobs/worker-card";
 import { Button } from "@/components/ui/button";
 import { shiftsLabel } from "@/domain/bookings";
-import { formatDayShort } from "@/lib/format";
+import { formatDayShort, formatTime } from "@/lib/format";
+import { attendanceOf } from "@/lib/my-shifts";
 import { formatAuPhone } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
 
-import { pickApplicant, reportNoShow } from "./actions";
+import { confirmArrival, pickApplicant, reportNoShow } from "./actions";
 
 type Shift = { id: string; starts_at: string };
 
@@ -140,7 +141,20 @@ export async function Booked({
       booking,
     ]);
   }
-  const photos = await photoLinks(bookings.map((b) => b.photo_path));
+  const [photos, { data: events }] = await Promise.all([
+    photoLinks(bookings.map((b) => b.photo_path)),
+    supabase
+      .from("attendance_events")
+      .select(
+        "assignment_id, kind, occurred_at, inside_geofence, distance_m, reason",
+      )
+      .in(
+        "assignment_id",
+        bookings.map((b) => b.assignment_id),
+      ),
+  ]);
+  const attendance = (assignmentId: string) =>
+    (events ?? []).filter((e) => e.assignment_id === assignmentId);
   return (
     <section
       aria-labelledby="booked"
@@ -183,25 +197,67 @@ export async function Booked({
                       ? [{ row, shift }]
                       : [];
                   })
-                  .map(({ row, shift }) => (
-                    <ConfirmAction
-                      key={row.assignment_id}
-                      trigger={
-                        <Button variant="outline" size="sm">
-                          Didn&apos;t turn up {formatDayShort(shift.starts_at)}
-                        </Button>
-                      }
-                      title={`Report ${worker.display_name} as a no-show?`}
-                      description={`For ${formatDayShort(shift.starts_at)}. It counts against their reliability, and repeated no-shows put their account on hold. We'll let them know.`}
-                      confirmLabel="Report no-show"
-                      action={reportNoShow.bind(
-                        null,
-                        jobId,
-                        row.assignment_id,
-                        worker.worker_id,
-                      )}
-                    />
-                  ))}
+                  .map(({ row, shift }) => {
+                    const events = attendance(row.assignment_id);
+                    const state = attendanceOf(events);
+                    const away = events.find(
+                      (e) =>
+                        e.kind === "clock_in" && e.inside_geofence === false,
+                    );
+                    const day = formatDayShort(shift.starts_at);
+                    if (state.startedAt) {
+                      return (
+                        <p key={row.assignment_id} className="text-sm">
+                          {day}:{" "}
+                          {state.confirmedByBusiness
+                            ? `arrival confirmed for ${formatTime(state.startedAt)}`
+                            : `clocked in ${formatTime(state.startedAt)}`}
+                          {away
+                            ? ` (${away.distance_m === null ? "no location" : `${away.distance_m} m from the site`}: "${away.reason ?? ""}")`
+                            : ""}
+                          {state.clockedOutAt
+                            ? `, out ${formatTime(state.clockedOutAt)}`
+                            : ""}
+                          .
+                        </p>
+                      );
+                    }
+                    return (
+                      <div key={row.assignment_id} className="space-y-2">
+                        <p className="text-sm">{day}: not clocked in yet.</p>
+                        <div className="flex flex-wrap gap-2">
+                          <ActionButton
+                            variant="outline"
+                            size="sm"
+                            action={confirmArrival.bind(
+                              null,
+                              jobId,
+                              row.assignment_id,
+                            )}
+                            pendingText="Confirming…"
+                          >
+                            They&apos;re here
+                          </ActionButton>
+                          <ConfirmAction
+                            trigger={
+                              <Button variant="outline" size="sm">
+                                Didn&apos;t turn up {day}
+                              </Button>
+                            }
+                            title={`Report ${worker.display_name} as a no-show?`}
+                            description={`For ${day}. It counts against their reliability, and repeated no-shows put their account on hold. We'll let them know.`}
+                            confirmLabel="Report no-show"
+                            action={reportNoShow.bind(
+                              null,
+                              jobId,
+                              row.assignment_id,
+                              worker.worker_id,
+                            )}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 {worker.mobile ? (
                   <a
                     href={`tel:${worker.mobile}`}

@@ -409,6 +409,73 @@ export type Database = {
           },
         ];
       };
+      attendance_events: {
+        Row: {
+          accuracy_m: number | null;
+          assignment_id: string;
+          created_at: string;
+          distance_m: number | null;
+          id: string;
+          inside_geofence: boolean | null;
+          kind: Database["public"]["Enums"]["attendance_kind"];
+          lat: number | null;
+          lng: number | null;
+          occurred_at: string;
+          offline: boolean;
+          reason: string | null;
+          received_at: string;
+          recorded_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          accuracy_m?: number | null;
+          assignment_id: string;
+          created_at?: string;
+          distance_m?: number | null;
+          id?: string;
+          inside_geofence?: boolean | null;
+          kind: Database["public"]["Enums"]["attendance_kind"];
+          lat?: number | null;
+          lng?: number | null;
+          occurred_at: string;
+          offline?: boolean;
+          reason?: string | null;
+          received_at?: string;
+          recorded_by?: string | null;
+        };
+        Update: {
+          accuracy_m?: number | null;
+          assignment_id?: string;
+          created_at?: string;
+          distance_m?: number | null;
+          id?: string;
+          inside_geofence?: boolean | null;
+          kind?: Database["public"]["Enums"]["attendance_kind"];
+          lat?: number | null;
+          lng?: number | null;
+          occurred_at?: string;
+          offline?: boolean;
+          reason?: string | null;
+          received_at?: string;
+          recorded_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "attendance_events_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "attendance_events_recorded_by_fkey";
+            columns: ["recorded_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       audit_log: {
         Row: {
           action: string;
@@ -1875,6 +1942,71 @@ export type Database = {
           },
         ];
       };
+      safety_reports: {
+        Row: {
+          assignment_id: string;
+          created_at: string;
+          description: string;
+          id: string;
+          photo_paths: string[];
+          resolution: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          status: string;
+          updated_at: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          assignment_id: string;
+          created_at?: string;
+          description: string;
+          id?: string;
+          photo_paths?: string[];
+          resolution?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: string;
+          updated_at?: string;
+          worker_id: string;
+        };
+        Update: {
+          assignment_id?: string;
+          created_at?: string;
+          description?: string;
+          id?: string;
+          photo_paths?: string[];
+          resolution?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: string;
+          updated_at?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "safety_reports_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "safety_reports_resolved_by_fkey";
+            columns: ["resolved_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "safety_reports_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       settings: {
         Row: {
           created_at: string;
@@ -2578,6 +2710,26 @@ export type Database = {
           worker_id: string;
         }[];
       };
+      clock: {
+        Args: {
+          p_accuracy_m?: number;
+          p_assignment_id: string;
+          p_kind: Database["public"]["Enums"]["attendance_kind"];
+          p_lat?: number;
+          p_lng?: number;
+          p_occurred_at: string;
+          p_offline?: boolean;
+          p_reason?: string;
+        };
+        Returns: {
+          distance_m: number;
+          inside: boolean;
+        }[];
+      };
+      confirm_arrival: {
+        Args: { p_assignment_id: string; p_at?: string };
+        Returns: undefined;
+      };
       dev_auth_email: {
         Args: {
           p_action: string;
@@ -2588,10 +2740,27 @@ export type Database = {
         };
         Returns: undefined;
       };
+      distance_m: {
+        Args: {
+          p_lat1: number;
+          p_lat2: number;
+          p_lng1: number;
+          p_lng2: number;
+        };
+        Returns: number;
+      };
       duplicate_job: { Args: { p_job_id: string }; Returns: string };
       finish_shifts: {
         Args: Record<PropertyKey, never>;
         Returns: {
+          worker_id: string;
+        }[];
+      };
+      flag_possible_no_shows: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          assignment_id: string;
+          job_id: string;
           worker_id: string;
         }[];
       };
@@ -2747,6 +2916,14 @@ export type Database = {
           worker_id: string;
         }[];
       };
+      report_safety_issue: {
+        Args: {
+          p_assignment_id: string;
+          p_description: string;
+          p_photo_paths: string[];
+        };
+        Returns: string;
+      };
       review_worker_credential: {
         Args: { p_approve: boolean; p_id: string; p_reason?: string };
         Returns: undefined;
@@ -2789,6 +2966,7 @@ export type Database = {
         | "cancelled_by_business"
         | "no_show"
         | "completed";
+      attendance_kind: "clock_in" | "clock_out" | "arrival_confirmed";
       bill_method: "markup" | "fixed";
       business_role: "owner" | "manager" | "supervisor";
       business_status: "draft" | "pending" | "approved" | "suspended";
@@ -2954,6 +3132,7 @@ export const Constants = {
         "no_show",
         "completed",
       ],
+      attendance_kind: ["clock_in", "clock_out", "arrival_confirmed"],
       bill_method: ["markup", "fixed"],
       business_role: ["owner", "manager", "supervisor"],
       business_status: ["draft", "pending", "approved", "suspended"],
