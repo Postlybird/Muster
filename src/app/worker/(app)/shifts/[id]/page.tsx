@@ -22,11 +22,14 @@ import {
 } from "@/domain/jobs";
 import { formatCents, formatDayShort } from "@/lib/format";
 import { shiftHours } from "@/lib/job-format";
+import { cancellable } from "@/lib/my-shifts";
 import { distanceLabel } from "@/lib/offers";
 import { formatAuPhone } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
+import { getAllSettings } from "@/server/settings";
 
 import { withdrawApplications } from "./actions";
+import { CancelBookingsForm } from "./cancel-bookings-form";
 import { TakeShiftsForm } from "./take-shifts-form";
 
 export const metadata: Metadata = { title: "Shift details" };
@@ -154,6 +157,9 @@ export default async function WorkerJobPage({
   const declined = (mine ?? []).filter(
     (s) => s.application_status === "declined",
   );
+  const cancelledByBusiness = (mine ?? []).filter(
+    (s) => s.assignment_status === "cancelled_by_business",
+  );
   const hourly =
     open[0]?.hourly_cents ??
     booked[0]?.hourly_cents ??
@@ -167,6 +173,16 @@ export default async function WorkerJobPage({
   ]
     .filter(Boolean)
     .join(", ");
+  // Booked shifts still to start can be cancelled (brief §4.5).
+  const lateHours = booked.length
+    ? (await getAllSettings()).worker_late_cancel_hours
+    : 0;
+  const toCancel = cancellable(booked, lateHours, new Date()).map((b) => ({
+    id: b.assignmentId,
+    day: formatDayShort(b.shift.starts_at),
+    detail: shiftDetail(b.shift),
+    late: b.late,
+  }));
   const photos = job.booked
     ? await Promise.all(
         job.photo_paths.map(async (path) => {
@@ -270,6 +286,13 @@ export default async function WorkerJobPage({
               )}
             </ul>
           ) : null}
+          {toCancel.length > 0 ? (
+            <CancelBookingsForm
+              jobId={id}
+              bookings={toCancel}
+              lateHours={lateHours}
+            />
+          ) : null}
         </Section>
       ) : null}
 
@@ -291,6 +314,22 @@ export default async function WorkerJobPage({
             Withdraw application
           </ActionButton>
         </Section>
+      ) : null}
+
+      {cancelledByBusiness.length > 0 ? (
+        <Alert variant="warning">
+          <AlertDescription>
+            {job.business_name} cancelled{" "}
+            {cancelledByBusiness.length === 1
+              ? "your booking"
+              : `${cancelledByBusiness.length} of your bookings`}{" "}
+            (
+            {cancelledByBusiness
+              .map((s) => formatDayShort(s.starts_at))
+              .join(", ")}
+            ).
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       {declined.length > 0 && open.length === 0 && booked.length === 0 ? (

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { postTestJob, serviceClient } from "./helpers";
+import { postTestJob, releaseTestJob, serviceClient } from "./helpers";
 
 test("booked workers are reminded the day before, once", async ({
   request,
@@ -59,10 +59,38 @@ test("booked workers are reminded the day before, once", async ({
     );
   } finally {
     // Out of the way of later runs.
-    await service
-      .from("assignments")
-      .update({ status: "cancelled_by_business" })
-      .eq("shift_id", shiftId);
-    await service.from("jobs").update({ status: "cancelled" }).eq("id", jobId);
+    await releaseTestJob(jobId);
   }
+});
+
+test("finished shifts are closed off on schedule", async ({ request }) => {
+  serviceClient(); // loads the local environment
+  const { jobId, shiftId } = await postTestJob({
+    business: "Westside Cleaning",
+    site: "Blacktown office tower",
+    category: "Commercial cleaner",
+    fillMode: "auto",
+  });
+  // It ended an hour ago.
+  const start = Date.now() - 3 * 3_600_000;
+  const service = serviceClient();
+  await service
+    .from("shifts")
+    .update({
+      starts_at: new Date(start).toISOString(),
+      ends_at: new Date(start + 2 * 3_600_000).toISOString(),
+    })
+    .eq("id", shiftId);
+
+  const response = await request.get("/api/cron/finish-shifts", {
+    headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+  });
+  expect(response.status()).toBe(200);
+  const { data: job } = await service
+    .from("jobs")
+    .select("status, shifts(status)")
+    .eq("id", jobId)
+    .single();
+  expect(job?.status).toBe("completed");
+  expect(job?.shifts).toEqual([{ status: "completed" }]);
 });

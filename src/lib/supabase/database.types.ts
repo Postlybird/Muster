@@ -9,6 +9,81 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_flags: {
+        Row: {
+          assignment_id: string | null;
+          business_id: string | null;
+          created_at: string;
+          id: string;
+          kind: string;
+          resolution: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          status: string;
+          summary: string;
+          updated_at: string;
+          worker_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          assignment_id?: string | null;
+          business_id?: string | null;
+          created_at?: string;
+          id?: string;
+          kind: string;
+          resolution?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: string;
+          summary: string;
+          updated_at?: string;
+          worker_id?: string | null;
+        };
+        Update: {
+          assignment_id?: string | null;
+          business_id?: string | null;
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          resolution?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: string;
+          summary?: string;
+          updated_at?: string;
+          worker_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "admin_flags_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "admin_flags_business_id_fkey";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "admin_flags_resolved_by_fkey";
+            columns: ["resolved_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "admin_flags_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       agreement_acceptances: {
         Row: {
           accepted_at: string;
@@ -236,10 +311,18 @@ export type Database = {
       };
       assignments: {
         Row: {
+          cancellation_charge_hours: number | null;
+          cancellation_pay_hours: number | null;
+          cancellation_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: string | null;
           confirmed_at: string;
           confirmed_by: string | null;
           created_at: string;
           id: string;
+          late_cancellation: boolean;
+          no_show_reported_at: string | null;
+          no_show_reported_by: string | null;
           reminded_day_before_at: string | null;
           reminded_soon_at: string | null;
           shift_id: string;
@@ -249,10 +332,18 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          cancellation_charge_hours?: number | null;
+          cancellation_pay_hours?: number | null;
+          cancellation_reason?: string | null;
+          cancelled_at?: string | null;
+          cancelled_by?: string | null;
           confirmed_at?: string;
           confirmed_by?: string | null;
           created_at?: string;
           id?: string;
+          late_cancellation?: boolean;
+          no_show_reported_at?: string | null;
+          no_show_reported_by?: string | null;
           reminded_day_before_at?: string | null;
           reminded_soon_at?: string | null;
           shift_id: string;
@@ -261,10 +352,18 @@ export type Database = {
           worker_id: string;
         };
         Update: {
+          cancellation_charge_hours?: number | null;
+          cancellation_pay_hours?: number | null;
+          cancellation_reason?: string | null;
+          cancelled_at?: string | null;
+          cancelled_by?: string | null;
           confirmed_at?: string;
           confirmed_by?: string | null;
           created_at?: string;
           id?: string;
+          late_cancellation?: boolean;
+          no_show_reported_at?: string | null;
+          no_show_reported_by?: string | null;
           reminded_day_before_at?: string | null;
           reminded_soon_at?: string | null;
           shift_id?: string;
@@ -274,8 +373,22 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "assignments_cancelled_by_fkey";
+            columns: ["cancelled_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "assignments_confirmed_by_fkey";
             columns: ["confirmed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assignments_no_show_reported_by_fkey";
+            columns: ["no_show_reported_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
@@ -2449,6 +2562,22 @@ export type Database = {
       can_edit_job: { Args: { p_job_id: string }; Returns: boolean };
       can_see_job: { Args: { p_job_id: string }; Returns: boolean };
       can_see_site: { Args: { p_site_id: string }; Returns: boolean };
+      cancel_my_bookings: {
+        Args: { p_assignment_ids: string[]; p_reason: string };
+        Returns: {
+          assignment_id: string;
+          late: boolean;
+          shift_id: string;
+        }[];
+      };
+      cancel_shifts: {
+        Args: { p_reason: string; p_shift_ids: string[] };
+        Returns: {
+          late: boolean;
+          shift_id: string;
+          worker_id: string;
+        }[];
+      };
       dev_auth_email: {
         Args: {
           p_action: string;
@@ -2460,6 +2589,12 @@ export type Database = {
         Returns: undefined;
       };
       duplicate_job: { Args: { p_job_id: string }; Returns: string };
+      finish_shifts: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          worker_id: string;
+        }[];
+      };
       hook_send_email: { Args: { event: Json }; Returns: Json };
       hook_send_sms: { Args: { event: Json }; Returns: Json };
       in_worker_folder: {
@@ -2605,6 +2740,13 @@ export type Database = {
       my_worker_id: { Args: Record<PropertyKey, never>; Returns: string };
       normalise_auth_phone: { Args: { raw: string }; Returns: string };
       post_job: { Args: { p_job_id: string }; Returns: undefined };
+      report_no_show: {
+        Args: { p_assignment_id: string };
+        Returns: {
+          suspended: boolean;
+          worker_id: string;
+        }[];
+      };
       review_worker_credential: {
         Args: { p_approve: boolean; p_id: string; p_reason?: string };
         Returns: undefined;
@@ -2612,6 +2754,14 @@ export type Database = {
       set_current_agreement: {
         Args: { p_agreement_id: string };
         Returns: undefined;
+      };
+      setting_boolean: {
+        Args: { p_default: boolean; p_key: string };
+        Returns: boolean;
+      };
+      setting_numeric: {
+        Args: { p_default: number; p_key: string };
+        Returns: number;
       };
       state_blocked: { Args: { p_state: string }; Returns: boolean };
       submit_business: { Args: Record<PropertyKey, never>; Returns: undefined };

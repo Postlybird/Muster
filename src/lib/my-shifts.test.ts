@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { groupMyShifts, type MyShift } from "./my-shifts";
+import { cancellable, groupMyShifts, type MyShift } from "./my-shifts";
 
 function shift(overrides: Partial<MyShift>): MyShift {
   return {
@@ -44,6 +44,13 @@ describe("my shifts", () => {
         }),
         shift({ shift_id: "a1", job_id: "j2" }),
         shift({ shift_id: "d1", job_id: "j3", application_status: "declined" }),
+        shift({
+          shift_id: "c1",
+          job_id: "j5",
+          application_status: "booked",
+          assignment_id: "x5",
+          assignment_status: "cancelled_by_business",
+        }),
         // Already over.
         shift({
           shift_id: "old",
@@ -63,5 +70,43 @@ describe("my shifts", () => {
     ]);
     expect(groups.applied.map((j) => j.jobId)).toEqual(["j2"]);
     expect(groups.filled.map((j) => j.jobId)).toEqual(["j3"]);
+    expect(groups.cancelled.map((j) => j.jobId)).toEqual(["j5"]);
+  });
+});
+
+describe("cancelling", () => {
+  it("covers booked shifts still to start, flagging late ones", () => {
+    const now = new Date("2026-11-02T10:00:00Z");
+    const booked = {
+      application_status: "booked" as const,
+      assignment_status: "confirmed" as const,
+    };
+    const rows = [
+      shift({
+        ...booked,
+        shift_id: "soon",
+        assignment_id: "x1",
+        starts_at: "2026-11-02T16:00:00Z",
+      }),
+      shift({
+        ...booked,
+        shift_id: "later",
+        assignment_id: "x2",
+        starts_at: "2026-11-04T16:00:00Z",
+      }),
+      shift({
+        ...booked,
+        shift_id: "started",
+        assignment_id: "x3",
+        starts_at: "2026-11-02T09:00:00Z",
+      }),
+      shift({ shift_id: "applied" }),
+    ];
+    expect(
+      cancellable(rows, 12, now).map((b) => [b.assignmentId, b.late]),
+    ).toEqual([
+      ["x1", true],
+      ["x2", false],
+    ]);
   });
 });

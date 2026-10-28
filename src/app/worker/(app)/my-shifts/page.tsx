@@ -21,7 +21,7 @@ function Group({
   id: string;
   title: string;
   jobs: MyJob[];
-  status: "booked" | "applied" | "filled";
+  status: "booked" | "applied" | "filled" | "cancelled";
 }) {
   if (jobs.length === 0) return null;
   return (
@@ -48,7 +48,11 @@ export default async function MyShiftsPage() {
   if (error) throw new Error(`Loading your shifts: ${error.message}`);
   const groups = groupMyShifts(data ?? []);
   const nothing =
-    groups.booked.length + groups.applied.length + groups.filled.length === 0;
+    groups.booked.length +
+      groups.applied.length +
+      groups.filled.length +
+      groups.cancelled.length ===
+    0;
 
   return (
     <div className="space-y-6">
@@ -80,6 +84,12 @@ export default async function MyShiftsPage() {
             title="Waiting to hear"
             jobs={groups.applied}
             status="applied"
+          />
+          <Group
+            id="cancelled"
+            title="Cancelled by the business"
+            jobs={groups.cancelled}
+            status="cancelled"
           />
           <Group
             id="filled"

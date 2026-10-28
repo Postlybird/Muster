@@ -25,6 +25,8 @@ export type MyShiftGroups = {
   applied: MyJob[];
   /** Applied for, then filled by others. */
   filled: MyJob[];
+  /** Booked, then cancelled by the business. */
+  cancelled: MyJob[];
 };
 
 function byJob(rows: readonly MyShift[]): MyJob[] {
@@ -57,5 +59,33 @@ export function groupMyShifts(
     filled: byJob(
       coming.filter((row) => row.application_status === "declined"),
     ),
+    cancelled: byJob(
+      coming.filter((row) => row.assignment_status === "cancelled_by_business"),
+    ),
   };
+}
+
+/**
+ * Booked shifts still to start, which the worker can cancel (brief §4.5),
+ * and whether each is inside the late cancellation window.
+ */
+export function cancellable(
+  rows: readonly MyShift[],
+  lateHours: number,
+  now: Date,
+): { shift: MyShift; assignmentId: string; late: boolean }[] {
+  return rows.flatMap((shift) => {
+    const startsIn = Date.parse(shift.starts_at) - now.getTime();
+    if (shift.assignment_status !== "confirmed" || !shift.assignment_id) {
+      return [];
+    }
+    if (startsIn <= 0) return [];
+    return [
+      {
+        shift,
+        assignmentId: shift.assignment_id,
+        late: startsIn < lateHours * 3_600_000,
+      },
+    ];
+  });
 }

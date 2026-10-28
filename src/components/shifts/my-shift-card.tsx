@@ -9,6 +9,7 @@ const STATUS = {
   booked: { label: "Booked", variant: "success" },
   applied: { label: "Applied", variant: "info" },
   filled: { label: "Filled by others", variant: "neutral" },
+  cancelled: { label: "Cancelled by the business", variant: "warning" },
 } as const;
 
 /** A job the worker is booked on or applied for. */

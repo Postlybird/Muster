@@ -2,13 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 
-import { takeOutcome } from "@/domain/bookings";
+import { shiftsLabel, takeOutcome } from "@/domain/bookings";
 import type { FillMode } from "@/domain/jobs";
 import { failure, success, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
-import { emailFirstApplicant, emailIfFilled } from "@/server/booking-notices";
+import {
+  emailFirstApplicant,
+  emailIfFilled,
+  emailWorkerCancelled,
+} from "@/server/booking-notices";
 import { saveFailed } from "@/server/errors";
-import { refreshWorkerMatches } from "@/server/matching";
+import { matchPostedJob, refreshWorkerMatches } from "@/server/matching";
+import { refreshReliability } from "@/server/reliability";
 import { getMyWorker } from "@/server/workers";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -77,4 +82,58 @@ export async function withdrawApplications(
   if (error) return saveFailed(error);
   refresh(jobId);
   return success("Application withdrawn");
+}
+
+const REASONS = ["I'm sick", "Family emergency", "Transport problem", "Other"];
+
+/**
+ * Cancels the worker's chosen bookings on a job (brief §4.5). Late ones
+ * count against their reliability; the shifts are offered to others and
+ * the business is told.
+ */
+export async function cancelMyBookings(
+  jobId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const { worker } = await getMyWorker();
+  const ids = formData
+    .getAll("booking")
+    .map(String)
+    .filter((id) => UUID.test(id));
+  if (ids.length === 0) {
+    return failure("Choose at least one shift.", {
+      booking: ["Choose at least one shift"],
+    });
+  }
+  const reason = String(formData.get("reason") ?? "");
+  if (!REASONS.includes(reason)) {
+    return failure("Tell us why.", { reason: ["Choose a reason"] });
+  }
+  const note = String(formData.get("note") ?? "")
+    .trim()
+    .slice(0, 300);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("cancel_my_bookings", {
+    p_assignment_ids: ids,
+    p_reason: note ? `${reason}: ${note}` : reason,
+  });
+  if (error) return saveFailed(error);
+  const cancelled = data ?? [];
+  if (cancelled.length === 0) {
+    return failure("Those shifts can't be cancelled any more.");
+  }
+  await refreshReliability([worker.id]);
+  // Offered to others straight away (brief §4.5), and the business is told.
+  await matchPostedJob(jobId);
+  await emailWorkerCancelled(
+    jobId,
+    worker.id,
+    cancelled.map((row) => row.shift_id),
+  );
+  refresh(jobId);
+  const late = cancelled.some((row) => row.late);
+  return success(
+    `Cancelled ${shiftsLabel(cancelled.length)}. Thanks for letting us know.${late ? " Cancelling this close to the start counts against your reliability." : ""}`,
+  );
 }

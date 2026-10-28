@@ -108,3 +108,83 @@ export async function emailIfFilled(jobId: string) {
     tag: "job-filled",
   });
 }
+
+/** Tells whoever posted a job that a booked worker can't make it. */
+export async function emailWorkerCancelled(
+  jobId: string,
+  workerId: string,
+  shiftIds: readonly string[],
+) {
+  const admin = createAdminClient();
+  const [job, { data: worker }] = await Promise.all([
+    jobFacts(jobId),
+    admin
+      .from("workers")
+      .select("preferred_name, legal_first_name, legal_last_name")
+      .eq("id", workerId)
+      .single(),
+  ]);
+  if (!job?.postedBy || !worker) return;
+  const name = `${worker.preferred_name ?? worker.legal_first_name ?? "A worker"} ${worker.legal_last_name?.[0] ?? ""}.`;
+  const shifts = job.shifts.filter((s) => shiftIds.includes(s.id));
+  if (shifts.length === 0) return;
+  const origin = await requestOrigin();
+  await emailPerson(job.postedBy, {
+    subject: `${name} can't make it: ${job.category} at ${job.site}`,
+    text: `${name} has cancelled ${shiftSummary(shifts)} at ${job.site}. We've offered the shift to other workers who match.\n\nSee who's booked: ${origin}/business/jobs/${jobId}`,
+    tag: "job-cancelled-by-worker",
+  });
+}
+
+/** Tells booked workers the business cancelled their shifts. */
+export async function textShiftsCancelled(
+  jobId: string,
+  cancelled: readonly { worker_id: string; shift_id: string }[],
+) {
+  if (cancelled.length === 0) return;
+  const admin = createAdminClient();
+  const [job, { data: workers }] = await Promise.all([
+    jobFacts(jobId),
+    admin
+      .from("workers")
+      .select("id, profile_id")
+      .in(
+        "id",
+        cancelled.map((c) => c.worker_id),
+      ),
+  ]);
+  if (!job) return;
+  await Promise.all(
+    (workers ?? []).map((worker) => {
+      const shiftIds = cancelled
+        .filter((c) => c.worker_id === worker.id)
+        .map((c) => c.shift_id);
+      const shifts = job.shifts.filter((s) => shiftIds.includes(s.id));
+      if (shifts.length === 0) return null;
+      return textPerson(
+        worker.profile_id,
+        `Cancelled: ${job.business} has cancelled ${job.category} in ${job.suburb}, ${shiftSummary(shifts)}. Sorry for the change. Find other work in the app.`,
+      );
+    }),
+  );
+}
+
+/** Tells a worker a no-show was recorded, and if that put their account on hold. */
+export async function textNoShow(
+  workerId: string,
+  jobId: string,
+  suspended: boolean,
+) {
+  const admin = createAdminClient();
+  const [job, { data: worker }] = await Promise.all([
+    jobFacts(jobId),
+    admin.from("workers").select("profile_id").eq("id", workerId).single(),
+  ]);
+  if (!job || !worker) return;
+  await textPerson(
+    worker.profile_id,
+    suspended
+      ? `${job.business} reported you didn't come to ${job.category} in ${job.suburb}. With your recent no-shows, your account is on hold and you can't take new shifts. We'll be in touch.`
+      : `${job.business} reported you didn't come to ${job.category} in ${job.suburb}. If that's not right, contact us.`,
+  );
+}

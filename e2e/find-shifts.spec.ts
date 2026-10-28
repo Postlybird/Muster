@@ -1,6 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { expectAccessible, postTestJob, signInAsDemo } from "./helpers";
+import {
+  expectAccessible,
+  postTestJob,
+  releaseTestJob,
+  signInAsDemo,
+} from "./helpers";
 
 test("a worker sees work they can take, without the address", async ({
   page,
@@ -68,4 +73,5 @@ test("a business sees how many workers its job was offered to", async ({
   // Never who, or what they're paid.
   await expect(page.getByText("Liam O'Brien")).toHaveCount(0);
   await expect(page.getByText(/an hour/)).toHaveCount(0);
+  await releaseTestJob(jobId);
 });

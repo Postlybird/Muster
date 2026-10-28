@@ -1,13 +1,15 @@
 import { Phone } from "lucide-react";
 
 import { ActionButton } from "@/components/forms/action-button";
+import { ConfirmAction } from "@/components/forms/confirm-action";
 import { WorkerCard } from "@/components/jobs/worker-card";
+import { Button } from "@/components/ui/button";
 import { shiftsLabel } from "@/domain/bookings";
 import { formatDayShort } from "@/lib/format";
 import { formatAuPhone } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
 
-import { pickApplicant } from "./actions";
+import { pickApplicant, reportNoShow } from "./actions";
 
 type Shift = { id: string; starts_at: string };
 
@@ -121,9 +123,11 @@ export async function Applicants({
 export async function Booked({
   jobId,
   shifts,
+  now,
 }: {
   jobId: string;
   shifts: Shift[];
+  now: Date;
 }) {
   const supabase = await createClient();
   const { data } = await supabase.rpc("job_bookings", { p_job_id: jobId });
@@ -172,6 +176,32 @@ export async function Booked({
                     shifts,
                   )}
                 </p>
+                {rows
+                  .flatMap((row) => {
+                    const shift = shifts.find((s) => s.id === row.shift_id);
+                    return shift && new Date(shift.starts_at) <= now
+                      ? [{ row, shift }]
+                      : [];
+                  })
+                  .map(({ row, shift }) => (
+                    <ConfirmAction
+                      key={row.assignment_id}
+                      trigger={
+                        <Button variant="outline" size="sm">
+                          Didn&apos;t turn up {formatDayShort(shift.starts_at)}
+                        </Button>
+                      }
+                      title={`Report ${worker.display_name} as a no-show?`}
+                      description={`For ${formatDayShort(shift.starts_at)}. It counts against their reliability, and repeated no-shows put their account on hold. We'll let them know.`}
+                      confirmLabel="Report no-show"
+                      action={reportNoShow.bind(
+                        null,
+                        jobId,
+                        row.assignment_id,
+                        worker.worker_id,
+                      )}
+                    />
+                  ))}
                 {worker.mobile ? (
                   <a
                     href={`tel:${worker.mobile}`}

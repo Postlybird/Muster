@@ -490,3 +490,57 @@ export async function pageAs(browser: Browser, name: string): Promise<Page> {
   await signInAsDemo(page, name);
   return page;
 }
+
+/** Books a demo worker on a shift directly, as if they'd been picked. */
+export async function bookTestWorker(shiftId: string, name: string) {
+  const supabase = serviceClient();
+  const [first, ...rest] = name.split(" ");
+  const { data: worker } = await supabase
+    .from("workers")
+    .select("id, profile_id, profiles(phone)")
+    .eq("legal_first_name", first)
+    .eq("legal_last_name", rest.join(" "))
+    .single();
+  if (!worker) throw new Error(`No demo worker called ${name}`);
+  const { data: result } = await supabase.rpc("book_worker", {
+    p_shift_id: shiftId,
+    p_worker_id: worker.id,
+    p_check_visible: false,
+  });
+  expect(result).toBe("booked");
+  const profile = worker.profiles as unknown as { phone: string };
+  return { workerId: worker.id as string, phone: profile.phone };
+}
+
+/** Moves a shift to start `hours` from now (negative: already started). */
+export async function moveShift(shiftId: string, hours: number) {
+  const start = Date.now() + hours * 3_600_000;
+  await serviceClient()
+    .from("shifts")
+    .update({
+      starts_at: new Date(start).toISOString(),
+      ends_at: new Date(start + 2 * 3_600_000).toISOString(),
+    })
+    .eq("id", shiftId);
+}
+
+/**
+ * Releases everyone booked on a test job and cancels it, so bookings from
+ * earlier runs never clash with later ones.
+ */
+export async function releaseTestJob(jobId: string) {
+  const supabase = serviceClient();
+  const { data: shifts } = await supabase
+    .from("shifts")
+    .select("id")
+    .eq("job_id", jobId);
+  await supabase
+    .from("assignments")
+    .update({ status: "cancelled_by_business" })
+    .eq("status", "confirmed")
+    .in(
+      "shift_id",
+      (shifts ?? []).map((shift) => shift.id),
+    );
+  await supabase.from("jobs").update({ status: "cancelled" }).eq("id", jobId);
+}

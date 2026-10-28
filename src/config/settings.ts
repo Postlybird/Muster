@@ -194,6 +194,26 @@ export const SETTINGS = {
     input: { kind: "number", unit: "shifts", min: 5, max: 100 },
     isPublic: false,
   }),
+  reliability_late_cancel_credit: define({
+    label: "A late cancellation counts as",
+    help: "In reliability, a worked shift counts as 100% and a no-show as 0%. A late cancellation counts as this much of a worked shift.",
+    group: "cancellations",
+    schema: percent,
+    defaultValue: 50,
+    input: { kind: "number", unit: "%", min: 0, max: 100 },
+    isPublic: false,
+    placeholder: true,
+  }),
+  reliability_late_arrival_credit: define({
+    label: "A late arrival counts as",
+    help: "In reliability, a shift started after the late arrival grace period counts as this much of a worked shift.",
+    group: "cancellations",
+    schema: percent,
+    defaultValue: 75,
+    input: { kind: "number", unit: "%", min: 0, max: 100 },
+    isPublic: false,
+    placeholder: true,
+  }),
 
   // On the day and timesheets
   geofence_radius_m: define({

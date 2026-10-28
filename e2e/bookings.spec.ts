@@ -4,9 +4,16 @@ import {
   expectAccessible,
   pageAs,
   postTestJob,
+  releaseTestJob,
   serviceClient,
   signInAsDemo,
 } from "./helpers";
+
+// Jobs posted by these tests, released afterwards so bookings never pile up.
+const posted: string[] = [];
+test.afterEach(async () => {
+  for (const jobId of posted.splice(0)) await releaseTestJob(jobId);
+});
 
 test("a worker applies, the business picks them, and they see the address", async ({
   page,
@@ -18,6 +25,7 @@ test("a worker applies, the business picks them, and they see the address", asyn
     category: "Restoration labourer",
     fillMode: "pick",
   });
+  posted.push(jobId);
 
   // Liam applies, changes his mind, then applies again.
   await signInAsDemo(page, "Liam O'Brien");
@@ -109,6 +117,7 @@ test("first in: the first worker to accept is booked, and the next is told it's 
     category: "Commercial cleaner",
     fillMode: "auto",
   });
+  posted.push(jobId);
 
   // Fatima opens it first...
   const fatima = await pageAs(browser, "Fatima Al-Sayed");

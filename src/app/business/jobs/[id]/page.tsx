@@ -18,8 +18,10 @@ import { jobStatuses, shiftStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
 import { canManage, getMyBusiness } from "@/server/businesses";
 import { loadJobDetails } from "@/server/jobs";
+import { getAllSettings } from "@/server/settings";
 
 import { repeatJob } from "../../post/actions";
+import { CancelWork } from "./cancel-work";
 import { Applicants, Booked } from "./people";
 import { SaveTemplateForm } from "./save-template-form";
 
@@ -64,9 +66,35 @@ export default async function JobPage({
       .eq("shifts.job_id", job.id)
       .eq("status", "confirmed"),
   ]);
+  const manager = canManage(role);
   const bookedOn = (shiftId: string) =>
     (booked ?? []).filter((row) => row.shift_id === shiftId).length;
-  const manager = canManage(role);
+
+  // Owners and managers can cancel shifts still to come (brief §4.5).
+  const now = new Date();
+  const toCome =
+    manager && job.status === "posted"
+      ? details.shifts.filter(
+          (shift) =>
+            (shift.status === "open" || shift.status === "filled") &&
+            new Date(shift.starts_at) > now,
+        )
+      : [];
+  const settings = toCome.length > 0 ? await getAllSettings() : null;
+  const describeCancel = (shifts: typeof toCome) => {
+    const people = shifts.reduce((sum, shift) => sum + bookedOn(shift.id), 0);
+    if (people === 0) return "No one's booked yet, so there's no charge.";
+    const lateMs = (settings?.business_late_cancel_hours ?? 0) * 3_600_000;
+    const late = shifts.some(
+      (shift) =>
+        bookedOn(shift.id) > 0 &&
+        new Date(shift.starts_at).getTime() - now.getTime() < lateMs,
+    );
+    const told = `We'll tell the ${people === 1 ? "worker who's" : `${people} workers who are`} booked.`;
+    return late
+      ? `${told} It's less than ${settings?.business_late_cancel_hours} hours to the start, so each booking is charged ${settings?.business_late_cancel_charge_hours} hours at the shift's rate.`
+      : told;
+  };
   const title = jobTitle(details.categoryName, details.site?.name);
   // Only while the business's favourites have their head start.
   const favouritesUntil =
@@ -131,22 +159,42 @@ export default async function JobPage({
               <span>
                 {formatDayShort(shift.starts_at)}, {shiftHours(shift)}
               </span>
-              <span className="flex items-center gap-2">
+              <span className="flex flex-wrap items-center gap-2">
                 <span className="text-muted-foreground">
                   {bookedOn(shift.id)} of {shift.headcount} booked
                 </span>
                 <StatusBadge status={shiftStatuses[shift.status]} />
+                {toCome.some((s) => s.id === shift.id) ? (
+                  <CancelWork
+                    jobId={job.id}
+                    shiftIds={[shift.id]}
+                    trigger="Cancel"
+                    title={`Cancel ${formatDayShort(shift.starts_at)}?`}
+                    description={describeCancel([shift])}
+                    confirmLabel="Cancel this shift"
+                  />
+                ) : null}
               </span>
             </li>
           ))}
         </ul>
+        {toCome.length > 1 ? (
+          <CancelWork
+            jobId={job.id}
+            shiftIds={toCome.map((shift) => shift.id)}
+            trigger="Cancel the whole job"
+            title="Cancel the whole job?"
+            description={`All ${toCome.length} shifts still to come. ${describeCancel(toCome)}`}
+            confirmLabel="Cancel the job"
+          />
+        ) : null}
       </section>
 
       {job.status === "posted" && job.fill_mode === "pick" ? (
         <Applicants jobId={job.id} shifts={details.shifts} canPick={manager} />
       ) : null}
 
-      <Booked jobId={job.id} shifts={details.shifts} />
+      <Booked jobId={job.id} shifts={details.shifts} now={now} />
 
       {job.estimate_cents !== null ? (
         <section
