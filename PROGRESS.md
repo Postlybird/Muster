@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.8 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.9 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -199,15 +199,25 @@ _Last updated: 28/10/2026_
   - **Demo data:** applicants and a booked worker on the Harbour flood job, and a booked cleaner on the Westside evening clean. Liam O'Brien is left free to try applying.
   - Tests: 188 pgTAP, 263 unit and 132 browser tests passing.
 
+- **1.9 Cancellations, no-shows and reliability** (Phase 1):
+  - **Workers cancel** booked shifts that haven't started ("Can't make it?"), giving a reason. Inside the late window (a setting, 12 hours for now) it counts against their reliability. The shift reopens and is offered to other workers straight away (urgent call-outs are texted to anyone not yet told), and whoever posted the job gets an email.
+  - **Businesses cancel** a shift or the whole job, with a reason we pass on; booked workers are texted. Inside the business's late window, each booking is charged a set number of hours (settings), recorded on the booking for invoicing in step 1.13. If the "pay workers" setting is on, the worker is paid the same hours. A job with nothing left is closed off.
+  - **No-shows:** once a shift has started, owners, managers and the site's supervisors can report a booked worker who didn't turn up. The worker is texted and admins are flagged; a second no-show within 30 days (settings) puts the account on hold, so no new shifts until an admin reviews it. Existing bookings stay for the admin to decide. Automatic alerts come with clock-in in step 1.10.
+  - **Reliability** covers the last 20 shifts (a setting): a worked shift counts as 100%, a late cancellation 50%, a late arrival 75% (two new placeholder settings) and a no-show 0%. Early cancellations and the business's own cancellations don't count. It shows "New" until there's something to count. Businesses see it on worker cards.
+  - **Finished shifts:** a scheduled job (`/api/cron/finish-shifts`) closes off shifts and jobs whose time has passed, and brings reliability and "shifts done" up to date.
+  - Workers see bookings the business cancelled, in My shifts and on the job page.
+  - Tests: 208 pgTAP, 271 unit and 140 browser tests passing.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Once the site has an address:** schedule the reminders job (every 10 minutes) with Supabase's free scheduler (pg_cron), calling `/api/cron/reminders` with the `CRON_SECRET`. Vercel's free plan only runs scheduled jobs once a day.
-- **Phase 1, step 1.9:** cancellations and no-shows:
-  - workers cancelling (late cancellations inside a set window lower reliability), and businesses cancelling (charged inside a set window)
-  - no-shows flagged 30 minutes after the start without a clock-in; two in 30 days suspends the worker pending admin review
-  - re-offering a shift automatically when a booked worker drops out, and telling the business
+- **Once the site has an address:** schedule the `reminders` and `finish-shifts` jobs (every 10 minutes) with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET`. Vercel's free plan only runs scheduled jobs once a day.
+- **Phase 1, step 1.10:** on the day:
+  - clock in and out on the phone with a GPS check against the site; outside the radius is allowed with a reason and flagged
+  - clock-ins queue when there's no signal and sync later
+  - a "Report a safety issue" button that alerts admin straight away
+  - supervisors confirm arrival, adjust times and record breaks; possible no-shows flagged automatically 30 minutes after the start
 
 ## Decisions
 
@@ -271,6 +281,11 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | When a shift fills, the other applicants are marked "filled by others" rather than kept on a waiting list. | Workers know where they stand and can plan. Re-offers when someone drops out come with step 1.9. |
 | 28/10/2026 | Businesses see an applicant's first name and initial; the full name and mobile number once they're booked. | Brief §4.4 ("preferred name") and the plan's contact rule ("the business sees the worker's mobile" after confirmation). |
 | 28/10/2026 | Until push notifications arrive (step 1.14), workers are texted when a business books them and for reminders; businesses get emails. Workers who accept "First in" aren't texted: they see it on screen. | Brief §5 reserves texts for login codes and urgent work, but workers need these messages and push isn't built yet. See the open question about texts. |
+| 28/10/2026 | Until clock-in arrives (step 1.10), no-shows are reported by the business; then they're also flagged automatically after 30 minutes without a clock-in. | Plan default: the supervisor confirms a no-show or arrival, otherwise admin decides. |
+| 28/10/2026 | A booked shift counts as worked once it's over and no one reported a no-show, until timesheets arrive (step 1.11). | Reliability and "shifts done" need something to count from the start. |
+| 28/10/2026 | Businesses cancel a whole shift or job; taking one booked worker off a shift isn't offered yet. | Keeps cancelling simple. Each booking still gets its own charge and message. |
+| 28/10/2026 | A late business cancellation is charged as hours at each booking's bill rate, recorded on the booking. | Brief §4.5: "charged per policy". The hours are a setting; invoices (step 1.13) add the line. |
+| 28/10/2026 | Admins are flagged about every no-show and suspension in a new list, shown in the admin queues from step 1.15. | Brief §4.5: suspension is "pending admin review". |
 | 28/10/2026 | The most specific bill rule wins: the business's rule for the category, then its rule for all categories, then the category's standard rule, then the default margin. Only one rule per business, category and start date. | Plan: a margin with per-category and per-business overrides. The pay and bill engine (step 1.5) always finds exactly one rule. |
 
 ## Open questions for the owner
@@ -280,6 +295,7 @@ _Last updated: 28/10/2026_
 - **Employment Hero timesheet import template.** Needed by step 1.13.
 - **Company details for tax invoices** (legal name, ABN, address, bank details). Placeholders until provided.
 - **Texts for bookings and reminders.** The brief keeps texts for login codes and urgent work. Until the app can send push notifications (step 1.14), we text workers when a business books them and for reminders. Once push is available, should these still go by text to workers who haven't installed the app? Each text costs a few cents once Twilio is set up.
+- **Late cancellations by a business.** Each booking is charged 3 hours for now (a placeholder setting). Should the worker also be paid those hours if they hadn't arrived yet? (Workers who have arrived are always paid at least the minimum engagement, brief §4.5.) The setting is off for now.
 - **Changing a posted job.** For now a business can't edit a job once it's posted, because workers decide on what they were shown. From step 1.9 they'll be able to cancel and post again. Should they be able to change small things, like the instructions or who to report to, after posting?
 
 ## Before launch (not now)
