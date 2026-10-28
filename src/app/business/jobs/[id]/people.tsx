@@ -11,25 +11,11 @@ import { attendanceOf } from "@/lib/my-shifts";
 import { formatAuPhone } from "@/lib/phone";
 import { businessTimesheetStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
+import { workerPhotoLinks } from "@/server/worker-photos";
 
 import { confirmArrival, pickApplicant, reportNoShow } from "./actions";
 
 type Shift = { id: string; starts_at: string; ends_at: string };
-
-/** Short-lived links to the workers' photos the business may see. */
-async function photoLinks(paths: (string | null)[]) {
-  const wanted = [...new Set(paths.filter((p): p is string => !!p))];
-  if (wanted.length === 0) return new Map<string, string>();
-  const supabase = await createClient();
-  const { data } = await supabase.storage
-    .from("worker-photos")
-    .createSignedUrls(wanted, 600);
-  return new Map(
-    (data ?? []).flatMap((item) =>
-      item.path && item.signedUrl ? [[item.path, item.signedUrl]] : [],
-    ),
-  );
-}
 
 /** "All 5 shifts", or the days. */
 function daysLabel(shiftIds: readonly string[], shifts: readonly Shift[]) {
@@ -58,7 +44,7 @@ export async function Applicants({
   const supabase = await createClient();
   const { data } = await supabase.rpc("job_applicants", { p_job_id: jobId });
   const applicants = data ?? [];
-  const photos = await photoLinks(applicants.map((a) => a.photo_path));
+  const photos = await workerPhotoLinks(applicants.map((a) => a.photo_path));
   return (
     <section
       aria-labelledby="applicants"
@@ -145,7 +131,7 @@ export async function Booked({
   }
   const assignmentIds = bookings.map((b) => b.assignment_id);
   const [photos, { data: events }, { data: timesheets }] = await Promise.all([
-    photoLinks(bookings.map((b) => b.photo_path)),
+    workerPhotoLinks(bookings.map((b) => b.photo_path)),
     supabase
       .from("attendance_events")
       .select(

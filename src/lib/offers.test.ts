@@ -18,6 +18,8 @@ function offer(overrides: Partial<ShiftOffer>): ShiftOffer {
     job_type: "multi_day",
     category_name: "Restoration labourer",
     business_name: "Harbour Restoration",
+    business_rating: null,
+    business_rating_count: 0,
     suburb: "Granville",
     state: "NSW",
     distance_km: 1.9,

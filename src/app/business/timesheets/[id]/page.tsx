@@ -4,21 +4,28 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ActionButton } from "@/components/forms/action-button";
+import { RatingForm } from "@/components/ratings/rating-form";
 import { WhatsNext } from "@/components/status/whats-next";
 import { HoursForm } from "@/components/timesheets/hours-form";
 import { NoteForm } from "@/components/timesheets/note-form";
 import { TimesheetDetails } from "@/components/timesheets/timesheet-details";
+import { WORKER_TAGS } from "@/domain/ratings";
+import { isPayable } from "@/domain/timesheets";
 import { formatDateTime, formatDayShort, sydneyDateKey } from "@/lib/format";
+import { ratingGiven } from "@/lib/rating-format";
 import { businessTimesheetStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
 import { timeInputValue, type BusinessHours } from "@/lib/timesheets";
+import { canManage, getMyBusiness } from "@/server/businesses";
 
 import {
   adjustTimesheet,
   approveTimesheet,
   disputeTimesheet,
   noteTimesheet,
+  rateWorker,
 } from "../actions";
+import { NextTimeField } from "./next-time-field";
 
 export const metadata: Metadata = { title: "Timesheet" };
 
@@ -76,6 +83,28 @@ export default async function BusinessTimesheetPage({
   if (!row) notFound();
   const day = formatDayShort(row.shift_starts_at);
   const status = businessTimesheetStatuses[row.status];
+  // Once the hours are approved, the business rates the worker (brief §4.7).
+  const { business, role } = await getMyBusiness();
+  const manager = canManage(role);
+  const [{ data: rating }, { data: favourite }] = isPayable(row.status)
+    ? await Promise.all([
+        supabase
+          .from("ratings")
+          .select("score, tags")
+          .eq("assignment_id", row.assignment_id)
+          .eq("direction", "worker")
+          .maybeSingle(),
+        manager && business
+          ? supabase
+              .from("favourites")
+              .select("worker_id")
+              .eq("business_id", business.id)
+              .eq("worker_id", row.worker_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+      ])
+    : [{ data: null }, { data: null }];
+  const firstName = row.worker_name.split(" ")[0] ?? row.worker_name;
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -183,6 +212,40 @@ export default async function BusinessTimesheetPage({
             submitLabel="Save"
             pendingText="Saving…"
           />
+        </section>
+      ) : null}
+
+      {isPayable(row.status) ? (
+        <section
+          aria-labelledby="rate"
+          className="space-y-3 rounded-xl border bg-card p-5"
+        >
+          <h2 id="rate" className="text-lg font-semibold">
+            {rating ? `Your rating for ${firstName}` : `Rate ${firstName}`}
+          </h2>
+          {rating ? (
+            <p className="text-sm">{ratingGiven(rating, "worker")}</p>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Other businesses see the average, not what you say. Any comments
+                go only to our team.
+              </p>
+              <RatingForm
+                action={rateWorker.bind(
+                  null,
+                  row.assignment_id,
+                  row.worker_id,
+                  id,
+                )}
+                idPrefix="rate-worker"
+                starsLegend={`How did ${firstName} go?`}
+                tags={WORKER_TAGS}
+              >
+                {manager ? <NextTimeField favourite={!!favourite} /> : null}
+              </RatingForm>
+            </>
+          )}
         </section>
       ) : null}
     </div>

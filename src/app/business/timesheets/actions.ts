@@ -3,10 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { WORKER_TAGS } from "@/domain/ratings";
 import { failure, success, type ActionState } from "@/lib/forms";
+import { ratingFromForm } from "@/lib/ratings";
 import { createClient } from "@/lib/supabase/server";
 import { hoursFromForm } from "@/lib/timesheets";
-import { getMyBusiness } from "@/server/businesses";
+import { blockWorker, setFavourite } from "@/server/business-workers";
+import { canManage, getMyBusiness } from "@/server/businesses";
 import { saveFailed } from "@/server/errors";
 import { refreshReliability } from "@/server/reliability";
 import { textHoursChanged, textHoursQueried } from "@/server/timesheet-notices";
@@ -188,4 +191,50 @@ export async function noteTimesheet(
   if (error) return refused(error);
   refresh(id);
   return success("Saved. Our team can see it.");
+}
+
+/**
+ * The business rates the worker once their hours are approved (brief
+ * §4.7). Owners and managers can also make them a favourite or block them.
+ */
+export async function rateWorker(
+  assignmentId: string,
+  workerId: string,
+  timesheetId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const { business, role } = await getMyBusiness();
+  if (!business) return failure("Sign in to your business first.");
+  const parsed = ratingFromForm(formData, WORKER_TAGS);
+  if (!parsed.ok) return parsed.state;
+  const next = canManage(role) ? String(formData.get("next") ?? "") : "";
+  const reason = String(formData.get("reason") ?? "").trim();
+  if (next === "block" && !reason) {
+    return failure("Say why you don't want them back. Only our team sees it.");
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("rate_worker", {
+    p_assignment_id: assignmentId,
+    p_score: parsed.score,
+    p_tags: parsed.tags,
+    p_note: parsed.note || undefined,
+  });
+  if (error) return refused(error);
+  if (next === "favourite" || next === "block") {
+    const { error: listError } =
+      next === "favourite"
+        ? await setFavourite(business.id, workerId, true)
+        : await blockWorker(business.id, workerId, reason.slice(0, 500));
+    if (listError) return saveFailed(listError);
+  }
+  refresh(timesheetId);
+  revalidatePath("/business/workers");
+  return success(
+    next === "favourite"
+      ? "Thanks for rating them. They're now one of your favourites."
+      : next === "block"
+        ? "Thanks for rating them. We won't offer them your work again."
+        : "Thanks for rating them.",
+  );
 }

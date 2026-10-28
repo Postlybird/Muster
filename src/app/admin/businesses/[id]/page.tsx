@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { formatAbn } from "@/adapters/abn/validate";
+import { RatingsList } from "@/components/ratings/ratings-list";
 import { StatusBadge } from "@/components/status/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,11 +14,13 @@ import {
   BUSINESS_STEPS,
   type BusinessStepKey,
 } from "@/domain/business-onboarding";
+import { ratingSummary } from "@/domain/ratings";
 import { requireAdmin } from "@/lib/auth";
 import { formatCalendarDate, formatCents, formatDate } from "@/lib/format";
 import { formatAuPhone } from "@/lib/phone";
 import { businessStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
+import { workerName } from "@/lib/timesheet-format";
 import { businessName } from "@/server/businesses";
 import { getAllSettings } from "@/server/settings";
 
@@ -97,6 +100,7 @@ export default async function AdminBusinessPage({
     { data: acceptances },
     { data: rateCards },
     { data: billRules },
+    { data: ratings },
     settings,
   ] = await Promise.all([
     supabase
@@ -134,6 +138,14 @@ export default async function AdminBusinessPage({
       .eq("business_id", id)
       .is("archived_at", null)
       .order("effective_from", { ascending: false }),
+    supabase
+      .from("ratings")
+      .select(
+        "id, score, tags, private_note, created_at, sites(name), workers(preferred_name, legal_first_name, legal_last_name)",
+      )
+      .eq("business_id", id)
+      .eq("direction", "site")
+      .order("created_at", { ascending: false }),
     getAllSettings(),
   ]);
 
@@ -459,6 +471,29 @@ export default async function AdminBusinessPage({
             </Button>
           </div>
         </div>
+      </Section>
+
+      <Section
+        id="ratings"
+        title="Ratings from workers"
+        badge={
+          business.rating_avg === null ? null : (
+            <Badge variant="neutral">
+              {ratingSummary(
+                Number(business.rating_avg),
+                business.rating_count,
+              )}
+            </Badge>
+          )
+        }
+      >
+        <RatingsList
+          about="site"
+          ratings={(ratings ?? []).map((rating) => ({
+            ...rating,
+            from: `${rating.workers ? workerName(rating.workers) : "A worker"} (${rating.sites?.name ?? "a site"})`,
+          }))}
+        />
       </Section>
     </div>
   );

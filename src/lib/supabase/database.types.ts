@@ -861,6 +861,8 @@ export type Database = {
           legal_name: string;
           onboarding_steps: string[];
           payment_terms_days: number | null;
+          rating_avg: number | null;
+          rating_count: number;
           status: Database["public"]["Enums"]["business_status"];
           status_reason: string | null;
           stripe_customer_id: string | null;
@@ -894,6 +896,8 @@ export type Database = {
           legal_name: string;
           onboarding_steps?: string[];
           payment_terms_days?: number | null;
+          rating_avg?: number | null;
+          rating_count?: number;
           status?: Database["public"]["Enums"]["business_status"];
           status_reason?: string | null;
           stripe_customer_id?: string | null;
@@ -926,6 +930,8 @@ export type Database = {
           legal_name?: string;
           onboarding_steps?: string[];
           payment_terms_days?: number | null;
+          rating_avg?: number | null;
+          rating_count?: number;
           status?: Database["public"]["Enums"]["business_status"];
           status_reason?: string | null;
           stripe_customer_id?: string | null;
@@ -1942,6 +1948,85 @@ export type Database = {
           },
         ];
       };
+      ratings: {
+        Row: {
+          assignment_id: string;
+          business_id: string;
+          created_at: string;
+          direction: Database["public"]["Enums"]["rating_direction"];
+          id: string;
+          private_note: string | null;
+          rated_by: string;
+          score: number;
+          site_id: string;
+          tags: string[];
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          assignment_id: string;
+          business_id: string;
+          created_at?: string;
+          direction: Database["public"]["Enums"]["rating_direction"];
+          id?: string;
+          private_note?: string | null;
+          rated_by: string;
+          score: number;
+          site_id: string;
+          tags?: string[];
+          worker_id: string;
+        };
+        Update: {
+          assignment_id?: string;
+          business_id?: string;
+          created_at?: string;
+          direction?: Database["public"]["Enums"]["rating_direction"];
+          id?: string;
+          private_note?: string | null;
+          rated_by?: string;
+          score?: number;
+          site_id?: string;
+          tags?: string[];
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ratings_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ratings_business_id_fkey";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ratings_rated_by_fkey";
+            columns: ["rated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ratings_site_id_fkey";
+            columns: ["site_id"];
+            isOneToOne: false;
+            referencedRelation: "sites";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ratings_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       safety_reports: {
         Row: {
           assignment_id: string;
@@ -2946,6 +3031,23 @@ export type Database = {
           worker_note: string;
         }[];
       };
+      business_workers: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          block_id: string;
+          block_reason: string;
+          display_name: string;
+          favourite: boolean;
+          last_worked_at: string;
+          photo_path: string;
+          rating: number;
+          rating_count: number;
+          reliability: number;
+          shifts_completed: number;
+          shifts_here: number;
+          worker_id: string;
+        }[];
+      };
       can_edit_job: { Args: { p_job_id: string }; Returns: boolean };
       can_see_job: { Args: { p_job_id: string }; Returns: boolean };
       can_see_site: { Args: { p_site_id: string }; Returns: boolean };
@@ -3035,6 +3137,7 @@ export type Database = {
       };
       hook_send_email: { Args: { event: Json }; Returns: Json };
       hook_send_sms: { Args: { event: Json }; Returns: Json };
+      hours_approved: { Args: { p_assignment_id: string }; Returns: boolean };
       in_worker_folder: {
         Args: { p_path: string; p_worker_id: string };
         Returns: boolean;
@@ -3101,6 +3204,8 @@ export type Database = {
           address_line1: string;
           booked: boolean;
           business_name: string;
+          business_rating: number;
+          business_rating_count: number;
           category_name: string;
           fill_mode: Database["public"]["Enums"]["fill_mode"];
           hazard_controls: string;
@@ -3136,6 +3241,8 @@ export type Database = {
         Returns: {
           break_minutes: number;
           business_name: string;
+          business_rating: number;
+          business_rating_count: number;
           category_name: string;
           distance_km: number;
           ends_at: string;
@@ -3208,6 +3315,24 @@ export type Database = {
         Returns: undefined;
       };
       post_job: { Args: { p_job_id: string }; Returns: undefined };
+      rate_site: {
+        Args: {
+          p_assignment_id: string;
+          p_note?: string;
+          p_score: number;
+          p_tags?: string[];
+        };
+        Returns: undefined;
+      };
+      rate_worker: {
+        Args: {
+          p_assignment_id: string;
+          p_note?: string;
+          p_score: number;
+          p_tags?: string[];
+        };
+        Returns: undefined;
+      };
       record_missing_timesheets: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -3310,6 +3435,7 @@ export type Database = {
       licence_status: "active" | "expired" | "suspended" | "cancelled";
       payroll_status: "not_started" | "invited" | "complete";
       ppe_supplier: "business" | "worker" | "both";
+      rating_direction: "worker" | "site";
       right_to_work_basis:
         "citizen" | "permanent_resident" | "nz_citizen" | "visa";
       shift_status: "open" | "filled" | "cancelled" | "completed";
@@ -3486,6 +3612,7 @@ export const Constants = {
       licence_status: ["active", "expired", "suspended", "cancelled"],
       payroll_status: ["not_started", "invited", "complete"],
       ppe_supplier: ["business", "worker", "both"],
+      rating_direction: ["worker", "site"],
       right_to_work_basis: [
         "citizen",
         "permanent_resident",

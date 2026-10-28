@@ -38,7 +38,9 @@ export async function seedWorked(client: SeedClient) {
         )
         .is("archived_at", null),
       client.from("categories").select("id, code, default_level"),
-      client.from("workers").select("id, legal_first_name, legal_last_name"),
+      client
+        .from("workers")
+        .select("id, profile_id, legal_first_name, legal_last_name"),
       client.from("settings").select("key, value"),
       client.from("timesheets").select("jobs!inner(business_id)"),
     ]);
@@ -63,6 +65,9 @@ export async function seedWorked(client: SeedClient) {
       `${w.legal_first_name} ${w.legal_last_name}`,
       w.id,
     ]),
+  );
+  const profileOf = new Map(
+    must(workers, "workers").map((w) => [w.id, w.profile_id]),
   );
 
   let shifts = 0;
@@ -286,7 +291,85 @@ export async function seedWorked(client: SeedClient) {
       "timesheet notices",
     );
     await costTimesheetsWith(client, settings, approved);
+
+    // Ratings both ways for approved hours, and the averages they make.
+    for (const person of demo.workers) {
+      const sheet = sheets.find(
+        (s) => s.worker_id === workerId.get(person.name),
+      );
+      if (!sheet || !person.ratings) continue;
+      const common = {
+        assignment_id: sheet.assignment_id,
+        worker_id: sheet.worker_id,
+        business_id: business.id,
+        site_id: site.id,
+      };
+      check(
+        await client.from("ratings").insert([
+          {
+            ...common,
+            direction: "worker" as const,
+            score: person.ratings.worker.score,
+            tags: person.ratings.worker.tags,
+            private_note: person.ratings.worker.note ?? null,
+            rated_by: business.created_by!,
+          },
+          {
+            ...common,
+            direction: "site" as const,
+            score: person.ratings.site.score,
+            tags: person.ratings.site.tags,
+            private_note: person.ratings.site.note ?? null,
+            rated_by: profileOf.get(sheet.worker_id)!,
+          },
+        ]),
+        "demo ratings",
+      );
+      await updateAverages(client, sheet.worker_id, business.id);
+    }
     shifts++;
   }
   return { shifts };
+}
+
+/** The averages rate_worker() and rate_site() keep, for seeded ratings. */
+async function updateAverages(
+  client: SeedClient,
+  workerId: string,
+  businessId: string,
+) {
+  const average = (rows: { score: number }[]) => ({
+    rating_avg: rows.length
+      ? Math.round(
+          (rows.reduce((sum, row) => sum + row.score, 0) / rows.length) * 100,
+        ) / 100
+      : null,
+    rating_count: rows.length,
+  });
+  const [forWorker, forBusiness] = await Promise.all([
+    client
+      .from("ratings")
+      .select("score")
+      .eq("worker_id", workerId)
+      .eq("direction", "worker"),
+    client
+      .from("ratings")
+      .select("score")
+      .eq("business_id", businessId)
+      .eq("direction", "site"),
+  ]);
+  check(
+    await client
+      .from("workers")
+      .update(average(must(forWorker, "worker ratings")))
+      .eq("id", workerId),
+    "worker rating",
+  );
+  check(
+    await client
+      .from("businesses")
+      .update(average(must(forBusiness, "business ratings")))
+      .eq("id", businessId),
+    "business rating",
+  );
 }

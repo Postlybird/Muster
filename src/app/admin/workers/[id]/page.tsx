@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { reviewReasons } from "@/config/review-reasons";
 import { ageOn } from "@/domain/onboarding";
 import { activationBlockers } from "@/domain/verification";
+import { RatingsList } from "@/components/ratings/ratings-list";
+import { ratingSummary } from "@/domain/ratings";
 import { requireAdmin } from "@/lib/auth";
 import { formatCalendarDate, formatDate, sydneyDateKey } from "@/lib/format";
 import { formatAuPhone } from "@/lib/phone";
@@ -92,6 +94,7 @@ export default async function WorkerReviewPage({
     { data: tickets },
     { data: categories },
     { data: acceptances },
+    { data: ratings },
     settings,
   ] = await Promise.all([
     supabase
@@ -120,6 +123,14 @@ export default async function WorkerReviewPage({
       .select("id, accepted_at, ip, agreements(title, version)")
       .eq("profile_id", worker.profile_id)
       .order("accepted_at"),
+    supabase
+      .from("ratings")
+      .select(
+        "id, score, tags, private_note, created_at, businesses(trading_name, legal_name), sites(name)",
+      )
+      .eq("worker_id", id)
+      .eq("direction", "worker")
+      .order("created_at", { ascending: false }),
     getAllSettings(),
   ]);
 
@@ -568,6 +579,26 @@ export default async function WorkerReviewPage({
         ) : (
           <p className="text-sm text-muted-foreground">Nothing accepted yet.</p>
         )}
+      </Section>
+
+      <Section
+        id="ratings"
+        title="Ratings from businesses"
+        badge={
+          worker.rating_avg === null ? null : (
+            <Badge variant="neutral">
+              {ratingSummary(Number(worker.rating_avg), worker.rating_count)}
+            </Badge>
+          )
+        }
+      >
+        <RatingsList
+          about="worker"
+          ratings={(ratings ?? []).map((rating) => ({
+            ...rating,
+            from: `${rating.businesses?.trading_name ?? rating.businesses?.legal_name ?? "A business"} (${rating.sites?.name ?? "a site"})`,
+          }))}
+        />
       </Section>
     </div>
   );

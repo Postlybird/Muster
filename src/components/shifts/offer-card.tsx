@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { JOB_TYPES } from "@/domain/jobs";
+import { ratingSummary } from "@/domain/ratings";
 import { shiftSummary } from "@/lib/job-format";
 import {
   distanceLabel,
@@ -23,7 +24,12 @@ export function OfferCard({ offer }: { offer: JobOffer }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="font-semibold">{first.category_name}</p>
-          <p className="text-sm text-muted-foreground">{first.business_name}</p>
+          <p className="text-sm text-muted-foreground">
+            {first.business_name}
+            {first.business_rating !== null
+              ? ` · ${ratingSummary(Number(first.business_rating), first.business_rating_count)}`
+              : ""}
+          </p>
         </div>
         {first.job_type === "urgent" ? (
           <Badge variant="warning">{JOB_TYPES.urgent.label}</Badge>

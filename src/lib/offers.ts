@@ -5,16 +5,18 @@ type OfferRow =
   Database["public"]["Functions"]["my_shift_offers"]["Returns"][number];
 
 /**
- * One shift offered to the signed-in worker (from my_shift_offers()). Pay
- * and distance can be missing, whatever the generated types say.
+ * One shift offered to the signed-in worker (from my_shift_offers()). Pay,
+ * distance and the business's rating can be missing, whatever the generated
+ * types say.
  */
 export type ShiftOffer = Omit<
   OfferRow,
-  "hourly_cents" | "estimate_cents" | "distance_km"
+  "hourly_cents" | "estimate_cents" | "distance_km" | "business_rating"
 > & {
   hourly_cents: number | null;
   estimate_cents: number | null;
   distance_km: number | null;
+  business_rating: number | null;
 };
 
 /** A job's offered shifts, shown together (a multi-day job is one offer). */

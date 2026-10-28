@@ -109,6 +109,26 @@ export default async function BusinessTimesheetsPage() {
     rows,
     new Date(),
   );
+  // Approved hours waiting for the business to rate the worker (brief §4.7).
+  const { data: rated } = done.length
+    ? await supabase
+        .from("ratings")
+        .select("assignment_id")
+        .eq("direction", "worker")
+        .in(
+          "assignment_id",
+          done.map((row) => row.assignment_id),
+        )
+    : { data: [] };
+  const unrated = new Set(
+    done
+      .filter(
+        (row) =>
+          row.status !== "rejected" &&
+          !(rated ?? []).some((r) => r.assignment_id === row.assignment_id),
+      )
+      .map((row) => row.assignment_id),
+  );
   const items: HoursToApprove[] = (toApprove as Timesheet[]).map((row) => ({
     id: row.timesheet_id,
     name: row.worker_name,
@@ -222,7 +242,7 @@ export default async function BusinessTimesheetsPage() {
           title="Approved"
           description="The last eight weeks. Charges exclude GST."
         >
-          <HoursList rows={done as Timesheet[]} showCharge />
+          <HoursList rows={done as Timesheet[]} showCharge unrated={unrated} />
         </Section>
       ) : null}
     </div>
@@ -232,9 +252,12 @@ export default async function BusinessTimesheetsPage() {
 function HoursList({
   rows,
   showCharge = false,
+  unrated,
 }: {
   rows: Timesheet[];
   showCharge?: boolean;
+  /** Bookings whose worker the business hasn't rated yet. */
+  unrated?: Set<string>;
 }) {
   return (
     <ul className="divide-y rounded-lg border">
@@ -257,6 +280,9 @@ function HoursList({
               <StatusBadge status={businessTimesheetStatuses[row.status!]} />
               {showCharge && row.bill_cents !== null ? (
                 <span>{formatCents(row.bill_cents)}</span>
+              ) : null}
+              {unrated?.has(row.assignment_id) ? (
+                <span className="font-medium text-primary">Rate them</span>
               ) : null}
             </span>
           </Link>

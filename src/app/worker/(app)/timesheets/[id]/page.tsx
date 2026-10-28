@@ -3,15 +3,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { RatingForm } from "@/components/ratings/rating-form";
 import { WhatsNext } from "@/components/status/whats-next";
 import { NoteForm } from "@/components/timesheets/note-form";
 import { TimesheetDetails } from "@/components/timesheets/timesheet-details";
+import { SITE_TAGS } from "@/domain/ratings";
+import { isPayable } from "@/domain/timesheets";
 import { formatDateTime, formatDayShort } from "@/lib/format";
+import { ratingGiven } from "@/lib/rating-format";
 import { workerTimesheetStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
 import type { WorkerTimesheet } from "@/lib/timesheets";
 
-import { disputeTimesheet, noteTimesheet } from "../actions";
+import { disputeTimesheet, noteTimesheet, rateSite } from "../actions";
 
 export const metadata: Metadata = { title: "Timesheet" };
 
@@ -32,6 +36,22 @@ export default async function WorkerTimesheetPage({
     .maybeSingle();
   const sheet = data as WorkerTimesheet | null;
   if (!sheet) notFound();
+  // Once the hours are approved, the worker rates the site (brief §4.7).
+  const { data: booking } = isPayable(sheet.status)
+    ? await supabase
+        .from("timesheets")
+        .select("assignment_id")
+        .eq("id", id)
+        .single()
+    : { data: null };
+  const { data: rating } = booking
+    ? await supabase
+        .from("ratings")
+        .select("score, tags")
+        .eq("assignment_id", booking.assignment_id)
+        .eq("direction", "site")
+        .maybeSingle()
+    : { data: null };
   const status = workerTimesheetStatuses[sheet.status];
   const canQuery =
     ["approved", "auto_approved", "adjusted"].includes(sheet.status) &&
@@ -106,6 +126,33 @@ export default async function WorkerTimesheetPage({
             submitLabel="Save note"
             pendingText="Saving…"
           />
+        </section>
+      ) : null}
+
+      {booking ? (
+        <section
+          aria-labelledby="rate"
+          className="space-y-3 rounded-xl border bg-card p-4"
+        >
+          <h2 id="rate" className="font-semibold">
+            {rating ? "Your rating for the site" : "Rate the site"}
+          </h2>
+          {rating ? (
+            <p className="text-sm">{ratingGiven(rating, "site")}</p>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Other workers see {sheet.business_name}&apos;s average, not what
+                you say. Any comments go only to our team.
+              </p>
+              <RatingForm
+                action={rateSite.bind(null, booking.assignment_id, id)}
+                idPrefix="rate-site"
+                starsLegend={`How was ${sheet.site_name}?`}
+                tags={SITE_TAGS}
+              />
+            </>
+          )}
         </section>
       ) : null}
 

@@ -23,6 +23,11 @@ export type SeedWorkedShift = {
     outcome?: "approved" | "disputed";
     /** The business's reason for a query. */
     note?: string;
+    /** Once approved: how each side rated the other (brief §4.7). */
+    ratings?: {
+      worker: { score: number; tags: string[]; note?: string };
+      site: { score: number; tags: string[]; note?: string };
+    };
   }[];
 };
 
@@ -54,6 +59,18 @@ export const DEMO_WORKED: SeedWorkedShift[] = [
         clockIn: "06:52",
         clockOut: "15:34",
         outcome: "approved",
+        ratings: {
+          worker: {
+            score: 5,
+            tags: ["punctual", "hard_working", "would_rehire"],
+            note: "Great with the residents while we stripped their units.",
+          },
+          site: {
+            score: 4,
+            tags: ["safe_site", "clear_instructions"],
+            note: "The wash station ran out of water after lunch.",
+          },
+        },
       },
       {
         name: "Rangi Parata",

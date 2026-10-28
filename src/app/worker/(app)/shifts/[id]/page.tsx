@@ -20,6 +20,7 @@ import {
   JOB_TYPES,
   PPE_SUPPLIERS_FOR_WORKERS,
 } from "@/domain/jobs";
+import { ratingSummary } from "@/domain/ratings";
 import { formatCents, formatDayShort, formatTime } from "@/lib/format";
 import { shiftHours } from "@/lib/job-format";
 import { attendanceOf, cancellable, liveShift } from "@/lib/my-shifts";
@@ -240,7 +241,12 @@ export default async function WorkerJobPage({
             <Badge variant="warning">{JOB_TYPES.urgent.label}</Badge>
           ) : null}
         </div>
-        <p className="text-muted-foreground">for {job.business_name}</p>
+        <p className="text-muted-foreground">
+          for {job.business_name}
+          {job.business_rating !== null
+            ? `, ${ratingSummary(Number(job.business_rating), job.business_rating_count)}`
+            : ""}
+        </p>
       </div>
 
       {reported ? (
