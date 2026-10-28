@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { expectAccessible, signInAsDemo } from "./helpers";
+import { expectAccessible, postTestJob, signInAsDemo } from "./helpers";
 
 test("a worker sees work they can take, without the address", async ({
   page,
@@ -54,12 +54,14 @@ test("a worker sees work they can take, without the address", async ({
 test("a business sees how many workers its job was offered to", async ({
   page,
 }) => {
+  const { jobId } = await postTestJob({
+    business: "Harbour Restoration",
+    site: "Granville flood job",
+    category: "Restoration labourer",
+    fillMode: "pick",
+  });
   await signInAsDemo(page, "Lisa Nguyen");
-  await page.goto("/business/jobs");
-  await page
-    .getByRole("link", { name: /Restoration labourer at Granville flood job/ })
-    .first()
-    .click();
+  await page.goto(`/business/jobs/${jobId}`);
   await expect(
     page.getByText(/^Offered to \d+ workers? who match/),
   ).toBeVisible();

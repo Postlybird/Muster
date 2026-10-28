@@ -126,6 +126,176 @@ export type Database = {
           },
         ];
       };
+      applications: {
+        Row: {
+          created_at: string;
+          decided_at: string | null;
+          id: string;
+          shift_id: string;
+          status: Database["public"]["Enums"]["application_status"];
+          updated_at: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          decided_at?: string | null;
+          id?: string;
+          shift_id: string;
+          status?: Database["public"]["Enums"]["application_status"];
+          updated_at?: string;
+          worker_id: string;
+        };
+        Update: {
+          created_at?: string;
+          decided_at?: string | null;
+          id?: string;
+          shift_id?: string;
+          status?: Database["public"]["Enums"]["application_status"];
+          updated_at?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "applications_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "applications_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      assignment_rates: {
+        Row: {
+          assignment_id: string;
+          bill_hourly_cents: number;
+          bill_rate_rule_id: string | null;
+          cost_rules: NonNullable<Json>;
+          created_at: string;
+          estimate_bill_cents: number;
+          estimate_margin_cents: number;
+          estimate_pay_cents: number;
+          pay_hourly_cents: number;
+          rate_card_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          assignment_id: string;
+          bill_hourly_cents: number;
+          bill_rate_rule_id?: string | null;
+          cost_rules: NonNullable<Json>;
+          created_at?: string;
+          estimate_bill_cents: number;
+          estimate_margin_cents: number;
+          estimate_pay_cents: number;
+          pay_hourly_cents: number;
+          rate_card_id: string;
+        };
+        Update: {
+          assignment_id?: string;
+          bill_hourly_cents?: number;
+          bill_rate_rule_id?: string | null;
+          cost_rules?: NonNullable<Json>;
+          created_at?: string;
+          estimate_bill_cents?: number;
+          estimate_margin_cents?: number;
+          estimate_pay_cents?: number;
+          pay_hourly_cents?: number;
+          rate_card_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assignment_rates_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: true;
+            referencedRelation: "assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assignment_rates_bill_rate_rule_id_fkey";
+            columns: ["bill_rate_rule_id"];
+            isOneToOne: false;
+            referencedRelation: "bill_rate_rules";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assignment_rates_rate_card_id_fkey";
+            columns: ["rate_card_id"];
+            isOneToOne: false;
+            referencedRelation: "rate_cards";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      assignments: {
+        Row: {
+          confirmed_at: string;
+          confirmed_by: string | null;
+          created_at: string;
+          id: string;
+          reminded_day_before_at: string | null;
+          reminded_soon_at: string | null;
+          shift_id: string;
+          status: Database["public"]["Enums"]["assignment_status"];
+          updated_at: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          confirmed_at?: string;
+          confirmed_by?: string | null;
+          created_at?: string;
+          id?: string;
+          reminded_day_before_at?: string | null;
+          reminded_soon_at?: string | null;
+          shift_id: string;
+          status?: Database["public"]["Enums"]["assignment_status"];
+          updated_at?: string;
+          worker_id: string;
+        };
+        Update: {
+          confirmed_at?: string;
+          confirmed_by?: string | null;
+          created_at?: string;
+          id?: string;
+          reminded_day_before_at?: string | null;
+          reminded_soon_at?: string | null;
+          shift_id?: string;
+          status?: Database["public"]["Enums"]["assignment_status"];
+          updated_at?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assignments_confirmed_by_fkey";
+            columns: ["confirmed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assignments_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assignments_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       audit_log: {
         Row: {
           action: string;
@@ -1160,6 +1330,8 @@ export type Database = {
           estimate_gst_cents: number | null;
           favourites_first_minutes: number | null;
           fill_mode: Database["public"]["Enums"]["fill_mode"];
+          filled_emailed_at: string | null;
+          first_applicant_emailed_at: string | null;
           hazard_controls: string;
           hazard_notes: string;
           headcount: number;
@@ -1196,6 +1368,8 @@ export type Database = {
           estimate_gst_cents?: number | null;
           favourites_first_minutes?: number | null;
           fill_mode?: Database["public"]["Enums"]["fill_mode"];
+          filled_emailed_at?: string | null;
+          first_applicant_emailed_at?: string | null;
           hazard_controls?: string;
           hazard_notes?: string;
           headcount?: number;
@@ -1231,6 +1405,8 @@ export type Database = {
           estimate_gst_cents?: number | null;
           favourites_first_minutes?: number | null;
           fill_mode?: Database["public"]["Enums"]["fill_mode"];
+          filled_emailed_at?: string | null;
+          first_applicant_emailed_at?: string | null;
           hazard_controls?: string;
           hazard_notes?: string;
           headcount?: number;
@@ -1685,25 +1861,57 @@ export type Database = {
       };
       shift_pay: {
         Row: {
+          bill_hourly_cents: number | null;
+          bill_rate_rule_id: string | null;
           computed_at: string;
+          cost_rules: Json | null;
+          estimate_bill_cents: number | null;
           estimate_cents: number;
+          estimate_margin_cents: number | null;
           hourly_cents: number;
+          rate_card_id: string | null;
           shift_id: string;
         };
         ComputedFields: never;
         Insert: {
+          bill_hourly_cents?: number | null;
+          bill_rate_rule_id?: string | null;
           computed_at?: string;
+          cost_rules?: Json | null;
+          estimate_bill_cents?: number | null;
           estimate_cents: number;
+          estimate_margin_cents?: number | null;
           hourly_cents: number;
+          rate_card_id?: string | null;
           shift_id: string;
         };
         Update: {
+          bill_hourly_cents?: number | null;
+          bill_rate_rule_id?: string | null;
           computed_at?: string;
+          cost_rules?: Json | null;
+          estimate_bill_cents?: number | null;
           estimate_cents?: number;
+          estimate_margin_cents?: number | null;
           hourly_cents?: number;
+          rate_card_id?: string | null;
           shift_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "shift_pay_bill_rate_rule_id_fkey";
+            columns: ["bill_rate_rule_id"];
+            isOneToOne: false;
+            referencedRelation: "bill_rate_rules";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_pay_rate_card_id_fkey";
+            columns: ["rate_card_id"];
+            isOneToOne: false;
+            referencedRelation: "rate_cards";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "shift_pay_shift_id_fkey";
             columns: ["shift_id"];
@@ -2196,7 +2404,48 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: string;
       };
+      accept_shifts: {
+        Args: { p_shift_ids: string[] };
+        Returns: {
+          result: string;
+          shift_id: string;
+        }[];
+      };
       activate_worker: { Args: { p_worker_id: string }; Returns: undefined };
+      apply_for_shifts: {
+        Args: { p_shift_ids: string[] };
+        Returns: {
+          result: string;
+          shift_id: string;
+        }[];
+      };
+      book_applicant: {
+        Args: { p_job_id: string; p_worker_id: string };
+        Returns: {
+          result: string;
+          shift_id: string;
+        }[];
+      };
+      book_worker: {
+        Args: {
+          p_check_visible: boolean;
+          p_shift_id: string;
+          p_worker_id: string;
+        };
+        Returns: string;
+      };
+      booked_worker_can_see_photo: {
+        Args: { p_path: string };
+        Returns: boolean;
+      };
+      business_can_see_worker: {
+        Args: { p_worker_id: string };
+        Returns: boolean;
+      };
+      business_can_see_worker_folder: {
+        Args: { p_folder: string };
+        Returns: boolean;
+      };
       can_edit_job: { Args: { p_job_id: string }; Returns: boolean };
       can_see_job: { Args: { p_job_id: string }; Returns: boolean };
       can_see_site: { Args: { p_site_id: string }; Returns: boolean };
@@ -2223,7 +2472,38 @@ export type Database = {
         Returns: boolean;
       };
       is_business_owner: { Args: { p_business_id: string }; Returns: boolean };
+      job_applicants: {
+        Args: { p_job_id: string };
+        Returns: {
+          applied_at: string;
+          display_name: string;
+          photo_path: string;
+          rank_score: number;
+          rating: number;
+          reliability: number;
+          shift_ids: string[];
+          shifts_completed: number;
+          tickets: string[];
+          worker_id: string;
+        }[];
+      };
+      job_bookings: {
+        Args: { p_job_id: string };
+        Returns: {
+          assignment_id: string;
+          confirmed_at: string;
+          display_name: string;
+          mobile: string;
+          photo_path: string;
+          rating: number;
+          reliability: number;
+          shift_id: string;
+          shifts_completed: number;
+          worker_id: string;
+        }[];
+      };
       job_offer_count: { Args: { p_job_id: string }; Returns: number };
+      job_open_to_all_at: { Args: { p_job_id: string }; Returns: string };
       log_access_event: {
         Args: {
           p_action: string;
@@ -2241,16 +2521,37 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: Database["public"]["Enums"]["business_role"];
       };
-      my_job_offer: {
+      my_job: {
         Args: { p_job_id: string };
         Returns: {
+          access_notes: string;
+          address_line1: string;
+          booked: boolean;
+          business_name: string;
+          category_name: string;
           fill_mode: Database["public"]["Enums"]["fill_mode"];
           hazard_controls: string;
           hazard_notes: string;
+          hazards: string[];
           induction: string;
           instructions: string;
           job_id: string;
+          job_type: Database["public"]["Enums"]["job_type"];
+          lat: number;
+          lng: number;
+          no_known_hazards: boolean;
+          parking_notes: string;
+          photo_paths: string[];
+          police_check_required: boolean;
+          postcode: string;
+          ppe: string[];
           ppe_notes: string;
+          ppe_supplied_by: Database["public"]["Enums"]["ppe_supplier"];
+          report_to_name: string;
+          report_to_phone: string;
+          state: string;
+          suburb: string;
+          tickets: string[];
         }[];
       };
       my_role: {
@@ -2282,6 +2583,25 @@ export type Database = {
           tickets: string[];
         }[];
       };
+      my_shifts: {
+        Args: { p_job_id?: string };
+        Returns: {
+          application_status: Database["public"]["Enums"]["application_status"];
+          assignment_id: string;
+          assignment_status: Database["public"]["Enums"]["assignment_status"];
+          break_minutes: number;
+          business_name: string;
+          category_name: string;
+          ends_at: string;
+          estimate_cents: number;
+          hourly_cents: number;
+          job_id: string;
+          job_type: Database["public"]["Enums"]["job_type"];
+          shift_id: string;
+          starts_at: string;
+          suburb: string;
+        }[];
+      };
       my_worker_id: { Args: Record<PropertyKey, never>; Returns: string };
       normalise_auth_phone: { Args: { raw: string }; Returns: string };
       post_job: { Args: { p_job_id: string }; Returns: undefined };
@@ -2299,6 +2619,10 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
       };
+      withdraw_applications: {
+        Args: { p_shift_ids: string[] };
+        Returns: number;
+      };
     };
     Enums: {
       agreement_kind:
@@ -2308,6 +2632,13 @@ export type Database = {
         | "casual_employment_information_statement"
         | "privacy_collection_notice"
         | "worker_supply_notice";
+      application_status: "applied" | "booked" | "declined" | "withdrawn";
+      assignment_status:
+        | "confirmed"
+        | "cancelled_by_worker"
+        | "cancelled_by_business"
+        | "no_show"
+        | "completed";
       bill_method: "markup" | "fixed";
       business_role: "owner" | "manager" | "supervisor";
       business_status: "draft" | "pending" | "approved" | "suspended";
@@ -2464,6 +2795,14 @@ export const Constants = {
         "casual_employment_information_statement",
         "privacy_collection_notice",
         "worker_supply_notice",
+      ],
+      application_status: ["applied", "booked", "declined", "withdrawn"],
+      assignment_status: [
+        "confirmed",
+        "cancelled_by_worker",
+        "cancelled_by_business",
+        "no_show",
+        "completed",
       ],
       bill_method: ["markup", "fixed"],
       business_role: ["owner", "manager", "supervisor"],

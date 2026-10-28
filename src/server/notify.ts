@@ -55,3 +55,22 @@ export async function emailBusinessOwners(
     }
   }
 }
+
+/** Emails one person, e.g. whoever posted a job, about their work. */
+export async function emailPerson(
+  profileId: string,
+  message: { subject: string; text: string; tag: string },
+) {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("profiles")
+    .select("email")
+    .eq("id", profileId)
+    .maybeSingle();
+  if (!data?.email) return;
+  try {
+    await getEmailSender().send({ to: data.email, ...message });
+  } catch (error) {
+    console.error("Couldn't send an email", error);
+  }
+}

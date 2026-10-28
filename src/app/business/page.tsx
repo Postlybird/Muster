@@ -98,9 +98,10 @@ async function UpcomingShifts({ businessId }: { businessId: string }) {
   const { data: shifts } = await supabase
     .from("shifts")
     .select(
-      "id, starts_at, ends_at, headcount, status, jobs!inner(id, business_id, status, categories(name), sites(name))",
+      "id, starts_at, ends_at, headcount, status, jobs!inner(id, business_id, status, categories(name), sites(name)), assignments(status)",
     )
     .eq("jobs.business_id", businessId)
+    .eq("assignments.status", "confirmed")
     .eq("jobs.status", "posted")
     .gt("ends_at", now.toISOString())
     .lt("starts_at", new Date(now.getTime() + 14 * 86_400_000).toISOString())
@@ -139,7 +140,7 @@ async function UpcomingShifts({ businessId }: { businessId: string }) {
                 </span>
               </span>
               <span className="text-sm text-muted-foreground">
-                0 of {shift.headcount} booked
+                {shift.assignments.length} of {shift.headcount} booked
               </span>
             </Link>
           </li>

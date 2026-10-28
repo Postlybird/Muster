@@ -9,12 +9,16 @@ import {
   type ShiftFacts,
   type WorkerFacts,
 } from "@/domain/eligibility";
-import { STATE_TIME_ZONES, type StateCode } from "@/domain/pay";
+import {
+  hourlyBillCents,
+  STATE_TIME_ZONES,
+  type StateCode,
+} from "@/domain/pay";
 import { makePricer, type PricingData } from "@/domain/pricing";
-import { hourlyPayCents, rateCardFromRow } from "@/domain/rates";
+import { hourlyPayCents } from "@/domain/rates";
 
 import { loadPricingData } from "./pricing";
-import type { Database } from "./supabase/database.types";
+import type { Database, Json } from "./supabase/database.types";
 
 /**
  * Matching workers to open shifts (brief §4.4). Loads the facts, applies
@@ -44,7 +48,9 @@ type ShiftContext = {
   startMinute: number;
 };
 
-type Candidate = WorkerFacts & {
+type Candidate = Omit<WorkerFacts, "bookings"> & {
+  /** Shifts they're booked on. */
+  bookings: { shiftId: string; start: Date; end: Date }[];
   profileId: string;
   rating: number | null;
   reliability: number | null;
@@ -175,10 +181,11 @@ async function loadCandidates(
   let query = client
     .from("workers")
     .select(
-      "id, profile_id, status, home_lat, home_lng, travel_radius_km, rating_avg, reliability_score, urgent_opt_in, available_now_until, worker_categories!inner(category_id, level, years_experience), worker_credentials(credential_type_id, issued_on, expires_on, status, archived_at, credential_types(kind)), work_rights(status, basis, visa_expiry, next_check_due, work_limit_flag), availability_blocks(date), availability_weekly(weekday, start_time, end_time)",
+      "id, profile_id, status, home_lat, home_lng, travel_radius_km, rating_avg, reliability_score, urgent_opt_in, available_now_until, worker_categories!inner(category_id, level, years_experience), worker_credentials(credential_type_id, issued_on, expires_on, status, archived_at, credential_types(kind)), work_rights(status, basis, visa_expiry, next_check_due, work_limit_flag), availability_blocks(date), availability_weekly(weekday, start_time, end_time), assignments(shift_id, status, shifts(starts_at, ends_at))",
     )
     .eq("status", "active")
-    .is("archived_at", null);
+    .is("archived_at", null)
+    .eq("assignments.status", "confirmed");
   query =
     "workerId" in filter
       ? query.eq("id", filter.workerId)
@@ -215,8 +222,17 @@ async function loadCandidates(
         }
       : null,
     blockedDates: worker.availability_blocks.map((block) => block.date),
-    // Booked shifts arrive with assignments in step 1.8.
-    bookings: [],
+    bookings: worker.assignments.flatMap((booking) =>
+      booking.shifts
+        ? [
+            {
+              shiftId: booking.shift_id,
+              start: new Date(booking.shifts.starts_at),
+              end: new Date(booking.shifts.ends_at),
+            },
+          ]
+        : [],
+    ),
     rating: worker.rating_avg === null ? null : Number(worker.rating_avg),
     reliability:
       worker.reliability_score === null
@@ -306,10 +322,20 @@ async function saveMatches(
       )
       .map((worker) => ({
         worker,
-        result: checkEligibility(worker, shift.facts, {
-          blockedWorkerIds: blockedBy.get(shift.businessId) ?? new Set(),
-          policeCheckMaxAgeMonths: settings.police_check_max_age_months,
-        }),
+        // Being booked on this very shift isn't a clash with it.
+        result: checkEligibility(
+          {
+            ...worker,
+            bookings: worker.bookings.filter(
+              (booking) => booking.shiftId !== shift.shiftId,
+            ),
+          },
+          shift.facts,
+          {
+            blockedWorkerIds: blockedBy.get(shift.businessId) ?? new Set(),
+            policeCheckMaxAgeMonths: settings.police_check_max_age_months,
+          },
+        ),
         isFavourite: favourite.has(key(shift.businessId, worker.id)),
       }));
     // Matching one worker can't tell whether a favourite can take the
@@ -378,7 +404,10 @@ async function saveMatches(
   return urgent;
 }
 
-/** What each shift pays one worker, saved for the worker's offers. */
+/**
+ * What each shift pays one worker and bills the business, saved for offers
+ * and copied onto each booking (brief §4.8).
+ */
 async function saveShiftPay(
   client: Client,
   jobId: string,
@@ -417,13 +446,23 @@ async function saveShiftPay(
       urgent: shift.urgent,
     });
     if (!quote.ok) return [];
-    const card = data.cards.find((c) => c.id === quote.card.id);
-    if (!card) return [];
+    const { rules, cost } = quote;
     return [
       {
         shift_id: shift.shiftId,
-        hourly_cents: hourlyPayCents(rateCardFromRow(card), "ordinary"),
-        estimate_cents: quote.cost.payCents,
+        hourly_cents: hourlyPayCents(rules.card, "ordinary"),
+        estimate_cents: cost.payCents,
+        rate_card_id: quote.card.id,
+        bill_rate_rule_id: quote.billRule?.id ?? null,
+        cost_rules: rules as unknown as Json,
+        bill_hourly_cents: hourlyBillCents(
+          rules.card,
+          rules.billRule,
+          rules.onCostPct,
+          "ordinary",
+        ),
+        estimate_bill_cents: cost.billCents,
+        estimate_margin_cents: cost.marginCents,
         computed_at: new Date().toISOString(),
       },
     ];

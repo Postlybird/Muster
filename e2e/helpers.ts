@@ -2,8 +2,13 @@ import { createHmac } from "node:crypto";
 import { existsSync } from "node:fs";
 
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Page } from "@playwright/test";
-import { createClient } from "@supabase/supabase-js";
+import { expect, test, type Browser, type Page } from "@playwright/test";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+import { loadMatchingSettings } from "../scripts/seed/steps/matches";
+import { fromSydneyTime } from "../src/lib/format";
+import { matchJob } from "../src/lib/matching";
+import type { Database } from "../src/lib/supabase/database.types";
 
 /** A random Australian mobile number in the 04xx range. */
 export function randomMobile(): { local: string; e164: string } {
@@ -371,4 +376,117 @@ export async function acceptCurrentAgreement(tradingName: string) {
       user_agent: "Browser test setup",
     });
   }
+}
+
+/**
+ * A one-shift job posted straight into the local database, with workers
+ * matched to it as posting through the app would (without texting). It's
+ * two hours at a random time on a random day 30 to 170 days ahead, so it
+ * doesn't clash with bookings from earlier test runs.
+ */
+export async function postTestJob(options: {
+  business: string;
+  site: string;
+  category: string;
+  fillMode: "pick" | "auto";
+  headcount?: number;
+}): Promise<{ jobId: string; shiftId: string }> {
+  const supabase = serviceClient() as unknown as SupabaseClient<Database>;
+  const pick = (min: number, max: number) =>
+    min + Math.floor(Math.random() * (max - min + 1));
+  const [{ data: business }, { data: category }] = await Promise.all([
+    supabase
+      .from("businesses")
+      .select("id, business_users(profile_id, role)")
+      .eq("trading_name", options.business)
+      .single(),
+    supabase
+      .from("categories")
+      .select(
+        "id, default_level, police_check_required, category_credentials(credential_type_id)",
+      )
+      .eq("name", options.category)
+      .single(),
+  ]);
+  if (!business || !category) throw new Error("Demo data is missing");
+  const { data: site } = await supabase
+    .from("sites")
+    .select("id")
+    .eq("business_id", business.id)
+    .eq("name", options.site)
+    .single();
+  if (!site) throw new Error(`No site called ${options.site}`);
+
+  const headcount = options.headcount ?? 1;
+  const { data: job, error } = await supabase
+    .from("jobs")
+    .insert({
+      business_id: business.id,
+      site_id: site.id,
+      category_id: category.id,
+      level: category.default_level,
+      headcount,
+      fill_mode: options.fillMode,
+      police_check_required: category.police_check_required,
+      no_known_hazards: true,
+      instructions: "Browser test job.",
+      steps: ["what", "when", "needs", "safety", "review"],
+      status: "posted",
+      posted_at: new Date().toISOString(),
+      posted_by:
+        business.business_users.find((u) => u.role === "owner")?.profile_id ??
+        null,
+    })
+    .select("id")
+    .single();
+  if (!job) throw new Error(`Couldn't post a test job: ${error?.message}`);
+  const tickets = category.category_credentials.map((c) => ({
+    job_id: job.id,
+    credential_type_id: c.credential_type_id,
+  }));
+  if (tickets.length > 0)
+    await supabase.from("job_credentials").insert(tickets);
+
+  const day = new Date(Date.now() + pick(30, 170) * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  const minutes = pick(24, 72) * 15; // 6:00 am to 6:00 pm
+  const time = (m: number) =>
+    `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+  const { data: shift } = await supabase
+    .from("shifts")
+    .insert({
+      job_id: job.id,
+      starts_at: fromSydneyTime(day, time(minutes)).toISOString(),
+      ends_at: fromSydneyTime(day, time(minutes + 120)).toISOString(),
+      headcount,
+    })
+    .select("id")
+    .single();
+  if (!shift) throw new Error("Couldn't add a shift to the test job");
+  await matchJob(supabase, job.id, await loadMatchingSettings(supabase), {
+    notify: false,
+  });
+  return { jobId: job.id, shiftId: shift.id };
+}
+
+/**
+ * A second person signed in on their own browser, the same size as the
+ * test's, for flows where two people act at once. Close its context after.
+ */
+export async function pageAs(browser: Browser, name: string): Promise<Page> {
+  const use = test.info().project.use;
+  const context = await browser.newContext({
+    baseURL: use.baseURL,
+    locale: use.locale,
+    timezoneId: use.timezoneId,
+    viewport: use.viewport,
+    userAgent: use.userAgent,
+    deviceScaleFactor: use.deviceScaleFactor,
+    isMobile: use.isMobile,
+    hasTouch: use.hasTouch,
+  });
+  const page = await context.newPage();
+  await signInAsDemo(page, name);
+  return page;
 }

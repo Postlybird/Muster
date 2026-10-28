@@ -3,6 +3,7 @@
  * missing. See scripts/seed/data for the people and catalogues.
  */
 import { createSeedClient, loadEnv } from "./client";
+import { seedBookings } from "./steps/bookings";
 import { seedBusinesses } from "./steps/businesses";
 import { seedCatalogues } from "./steps/catalogues";
 import { seedCompliance } from "./steps/compliance";
@@ -44,6 +45,11 @@ async function main() {
 
   const matches = await seedMatches(client);
   console.log(`  workers matched to ${matches.jobs} open jobs`);
+
+  const bookings = await seedBookings(client);
+  console.log(
+    `  demo applications: ${bookings.applied} new, bookings: ${bookings.booked} new`,
+  );
 
   console.log("Done.");
 }

@@ -7,6 +7,7 @@ import {
   STATE_TIME_ZONES,
   sumCosts,
   totalOnCostPct,
+  type CostRules,
   type CostTotals,
   type MinutesByType,
   type ShiftCost,
@@ -88,6 +89,8 @@ export type ShiftQuote =
       date: string;
       minutes: MinutesByType;
       cost: ShiftCost;
+      /** The rates and loadings used, kept with each booking (brief §4.8). */
+      rules: CostRules;
       card: { id: string; businessOwn: boolean; effectiveFrom: string };
       /** Null when the default margin applies. */
       billRule: { id: string; businessOwn: boolean } | null;
@@ -152,7 +155,7 @@ export function makePricer(scope: PricingScope, data: PricingData) {
           error instanceof RangeError ? error.message : "Check the times.",
       };
     }
-    const cost = costShift(minutes, {
+    const rules: CostRules = {
       card: rateCardFromRow(card),
       billRule: billRuleFromRow(rule, settings.margin_pct),
       onCostPct: totalOnCostPct(
@@ -171,12 +174,13 @@ export function makePricer(scope: PricingScope, data: PricingData) {
           }
         : null,
       gstPct: settings.gst_pct,
-    });
+    };
     return {
       ok: true,
       date,
       minutes,
-      cost,
+      cost: costShift(minutes, rules),
+      rules,
       card: {
         id: card.id,
         businessOwn: card.business_id !== null,

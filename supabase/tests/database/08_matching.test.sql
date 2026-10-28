@@ -73,7 +73,7 @@ select is(
 );
 
 select is(
-  (select instructions from public.my_job_offer('f1111111-0000-0000-0000-000000000001')),
+  (select instructions from public.my_job('f1111111-0000-0000-0000-000000000001')),
   'Bring a smile',
   'an offer in full includes the instructions'
 );
@@ -87,7 +87,7 @@ select set_config('request.jwt.claims', '{"sub": "22222222-2222-2222-2222-222222
 
 select is_empty($$ select * from public.my_shift_offers() $$, 'a worker who can''t do it isn''t offered it');
 select is_empty(
-  $$ select * from public.my_job_offer('f1111111-0000-0000-0000-000000000001') $$,
+  $$ select * from public.my_job('f1111111-0000-0000-0000-000000000001') $$,
   'nor shown the job''s instructions'
 );
 

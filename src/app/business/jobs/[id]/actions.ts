@@ -3,10 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { pickOutcome } from "@/domain/bookings";
 import { failure, success, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
+import { textBooked } from "@/server/booking-notices";
 import { canManage, getMyBusiness } from "@/server/businesses";
 import { saveFailed } from "@/server/errors";
+import { refreshWorkerMatches } from "@/server/matching";
 
 const name = z
   .string()
@@ -45,4 +48,39 @@ export async function saveTemplate(
   revalidatePath(`/business/jobs/${jobId}`);
   revalidatePath("/business/post");
   return success(`Saved as "${parsed.data}"`);
+}
+
+/**
+ * Books an applicant on every shift of the job they applied for that still
+ * has room (plan: picking confirms instantly). Their eligibility is checked
+ * again first (brief §4.4).
+ */
+export async function pickApplicant(
+  jobId: string,
+  workerId: string,
+  name: string,
+): Promise<ActionState> {
+  const { business, role } = await getMyBusiness();
+  if (!business || !canManage(role)) {
+    return failure("Only owners and managers pick workers.");
+  }
+  await refreshWorkerMatches(workerId, { notify: false });
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("book_applicant", {
+    p_job_id: jobId,
+    p_worker_id: workerId,
+  });
+  if (error) return saveFailed(error);
+  const rows = data ?? [];
+  const outcome = pickOutcome(
+    name,
+    rows.map((row) => row.result),
+  );
+  const booked = rows
+    .filter((row) => row.result === "booked")
+    .map((row) => row.shift_id);
+  if (booked.length > 0) await textBooked(workerId, jobId, booked);
+  revalidatePath(`/business/jobs/${jobId}`);
+  revalidatePath("/business");
+  return outcome.ok ? success(outcome.message) : failure(outcome.message);
 }

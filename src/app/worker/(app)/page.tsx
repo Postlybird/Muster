@@ -5,12 +5,14 @@ import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
 import { Markdown } from "@/components/markdown";
 import { ScrollBox } from "@/components/scroll-box";
+import { MyShiftCard } from "@/components/shifts/my-shift-card";
 import { OfferCard } from "@/components/shifts/offer-card";
 import { WhatsNext } from "@/components/status/whats-next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ONBOARDING_STEPS } from "@/domain/onboarding";
+import { groupMyShifts } from "@/lib/my-shifts";
 import { groupOffers } from "@/lib/offers";
 import {
   checkStatuses,
@@ -219,6 +221,33 @@ async function verificationItems(worker: WorkerRow): Promise<ChecklistItem[]> {
   return items;
 }
 
+/** The next shift they're booked on. */
+async function NextShift({ active }: { active: boolean }) {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("my_shifts");
+  const next = groupMyShifts(data ?? []).booked[0];
+  return (
+    <section aria-labelledby="next-shift" className="space-y-3">
+      <h2 id="next-shift" className="text-lg font-semibold">
+        Next shift
+      </h2>
+      {next ? (
+        <MyShiftCard job={{ ...next, shifts: [next.first] }} status="booked" />
+      ) : (
+        <EmptyState
+          icon={CalendarCheck}
+          title="No shifts booked yet"
+          description={
+            active
+              ? "Shifts you're booked on show here."
+              : "Once your details are verified, shifts that match your tickets will appear under Find shifts."
+          }
+        />
+      )}
+    </section>
+  );
+}
+
 /** The newest offers (brief §4.4), with a way into the full feed. */
 async function Offers() {
   const supabase = await createClient();
@@ -271,22 +300,6 @@ export default async function WorkerHomePage({
   const isDraft = worker.status === "draft";
   const active = worker.status === "active";
   const started = isDraft ? await hasStartedOnboarding(user.id) : true;
-  const nextShift = (
-    <section aria-labelledby="next-shift" className="space-y-3">
-      <h2 id="next-shift" className="text-lg font-semibold">
-        Next shift
-      </h2>
-      <EmptyState
-        icon={CalendarCheck}
-        title="No shifts booked yet"
-        description={
-          active
-            ? "Shifts you're booked on show here."
-            : "Once your details are verified, shifts that match your tickets will appear under Find shifts."
-        }
-      />
-    </section>
-  );
 
   return (
     <div className="space-y-6">
@@ -322,7 +335,7 @@ export default async function WorkerHomePage({
       {active ? (
         <>
           <Offers />
-          {nextShift}
+          <NextShift active={active} />
         </>
       ) : null}
 
@@ -344,7 +357,7 @@ export default async function WorkerHomePage({
         </>
       )}
 
-      {active ? null : nextShift}
+      {active ? null : <NextShift active={active} />}
     </div>
   );
 }

@@ -20,6 +20,7 @@ import { canManage, getMyBusiness } from "@/server/businesses";
 import { loadJobDetails } from "@/server/jobs";
 
 import { repeatJob } from "../../post/actions";
+import { Applicants, Booked } from "./people";
 import { SaveTemplateForm } from "./save-template-form";
 
 export const metadata: Metadata = { title: "Job" };
@@ -41,7 +42,13 @@ export default async function JobPage({
     .maybeSingle();
   if (!job) notFound();
   if (job.status === "draft") redirect(`/business/post/${job.id}`);
-  const [details, { data: template }, { data: offeredTo }] = await Promise.all([
+  const [
+    details,
+    { data: template },
+    { data: offeredTo },
+    { data: openToAllAt },
+    { data: booked },
+  ] = await Promise.all([
     loadJobDetails(job),
     supabase
       .from("job_templates")
@@ -50,14 +57,21 @@ export default async function JobPage({
       .is("archived_at", null)
       .maybeSingle(),
     supabase.rpc("job_offer_count", { p_job_id: job.id }),
+    supabase.rpc("job_open_to_all_at", { p_job_id: job.id }),
+    supabase
+      .from("assignments")
+      .select("shift_id, shifts!inner(job_id)")
+      .eq("shifts.job_id", job.id)
+      .eq("status", "confirmed"),
   ]);
+  const bookedOn = (shiftId: string) =>
+    (booked ?? []).filter((row) => row.shift_id === shiftId).length;
   const manager = canManage(role);
   const title = jobTitle(details.categoryName, details.site?.name);
+  // Only while the business's favourites have their head start.
   const favouritesUntil =
-    job.posted_at && job.favourites_first_minutes
-      ? new Date(
-          Date.parse(job.posted_at) + job.favourites_first_minutes * 60_000,
-        )
+    openToAllAt && new Date(openToAllAt) > new Date()
+      ? new Date(openToAllAt)
       : null;
 
   return (
@@ -84,8 +98,9 @@ export default async function JobPage({
       {posted ? (
         <Alert variant="success">
           <AlertDescription>
-            Posted. Workers who match can see it now, and we&apos;ll let you
-            know as they apply.
+            {job.fill_mode === "auto"
+              ? "Posted. Workers who match can see it now and are booked as they accept. We'll email you when it's fully booked."
+              : "Posted. Workers who match can see it now. Applicants show below as they apply, and we'll email you when the first one does."}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -102,7 +117,7 @@ export default async function JobPage({
             {offeredTo === 0
               ? "No workers match yet. We'll offer it to new workers as soon as they're verified."
               : `Offered to ${workersLabel(offeredTo)} who ${offeredTo === 1 ? "matches" : "match"}.`}
-            {favouritesUntil && favouritesUntil > new Date()
+            {favouritesUntil
               ? ` Your favourites see it first, until ${formatTime(favouritesUntil)}; then everyone who matches.`
               : ""}
           </p>
@@ -118,7 +133,7 @@ export default async function JobPage({
               </span>
               <span className="flex items-center gap-2">
                 <span className="text-muted-foreground">
-                  0 of {shift.headcount} booked
+                  {bookedOn(shift.id)} of {shift.headcount} booked
                 </span>
                 <StatusBadge status={shiftStatuses[shift.status]} />
               </span>
@@ -126,6 +141,12 @@ export default async function JobPage({
           ))}
         </ul>
       </section>
+
+      {job.status === "posted" && job.fill_mode === "pick" ? (
+        <Applicants jobId={job.id} shifts={details.shifts} canPick={manager} />
+      ) : null}
+
+      <Booked jobId={job.id} shifts={details.shifts} />
 
       {job.estimate_cents !== null ? (
         <section

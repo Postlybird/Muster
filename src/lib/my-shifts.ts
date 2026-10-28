@@ -1,0 +1,61 @@
+import type { Database } from "./supabase/database.types";
+
+type Row = Database["public"]["Functions"]["my_shifts"]["Returns"][number];
+
+/**
+ * One of the worker's shifts (from my_shifts()). The booking and pay can
+ * be missing, whatever the generated types say.
+ */
+export type MyShift = Omit<
+  Row,
+  "assignment_id" | "assignment_status" | "hourly_cents" | "estimate_cents"
+> & {
+  assignment_id: string | null;
+  assignment_status: Row["assignment_status"] | null;
+  hourly_cents: number | null;
+  estimate_cents: number | null;
+};
+
+export type MyJob = { jobId: string; first: MyShift; shifts: MyShift[] };
+
+export type MyShiftGroups = {
+  /** Booked, soonest first. */
+  booked: MyJob[];
+  /** Applied for, waiting on the business. */
+  applied: MyJob[];
+  /** Applied for, then filled by others. */
+  filled: MyJob[];
+};
+
+function byJob(rows: readonly MyShift[]): MyJob[] {
+  const jobs = new Map<string, MyShift[]>();
+  for (const row of [...rows].sort((a, b) =>
+    a.starts_at.localeCompare(b.starts_at),
+  )) {
+    jobs.set(row.job_id, [...(jobs.get(row.job_id) ?? []), row]);
+  }
+  return [...jobs].map(([jobId, shifts]) => ({
+    jobId,
+    first: shifts[0]!,
+    shifts,
+  }));
+}
+
+/** The worker's shifts still to finish, sorted into what they're waiting on. */
+export function groupMyShifts(
+  rows: readonly MyShift[],
+  now = new Date(),
+): MyShiftGroups {
+  const coming = rows.filter((row) => new Date(row.ends_at) > now);
+  return {
+    booked: byJob(
+      coming.filter((row) => row.assignment_status === "confirmed"),
+    ),
+    applied: byJob(
+      coming.filter((row) => row.application_status === "applied"),
+    ),
+    filled: byJob(
+      coming.filter((row) => row.application_status === "declined"),
+    ),
+  };
+}
