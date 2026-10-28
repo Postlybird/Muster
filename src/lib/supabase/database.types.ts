@@ -9,6 +9,116 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agreement_acceptances: {
+        Row: {
+          accepted_at: string;
+          agreement_id: string;
+          business_id: string | null;
+          created_at: string;
+          id: string;
+          ip: unknown;
+          profile_id: string;
+          user_agent: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          accepted_at?: string;
+          agreement_id: string;
+          business_id?: string | null;
+          created_at?: string;
+          id?: string;
+          ip?: unknown;
+          profile_id: string;
+          user_agent?: string | null;
+        };
+        Update: {
+          accepted_at?: string;
+          agreement_id?: string;
+          business_id?: string | null;
+          created_at?: string;
+          id?: string;
+          ip?: unknown;
+          profile_id?: string;
+          user_agent?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "agreement_acceptances_agreement_id_fkey";
+            columns: ["agreement_id"];
+            isOneToOne: false;
+            referencedRelation: "agreements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "agreement_acceptances_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      agreements: {
+        Row: {
+          archived_at: string | null;
+          body_md: string;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          is_current: boolean;
+          jurisdiction: string | null;
+          kind: Database["public"]["Enums"]["agreement_kind"];
+          published_at: string | null;
+          title: string;
+          updated_at: string;
+          version: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          body_md: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          is_current?: boolean;
+          jurisdiction?: string | null;
+          kind: Database["public"]["Enums"]["agreement_kind"];
+          published_at?: string | null;
+          title: string;
+          updated_at?: string;
+          version: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          body_md?: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          is_current?: boolean;
+          jurisdiction?: string | null;
+          kind?: Database["public"]["Enums"]["agreement_kind"];
+          published_at?: string | null;
+          title?: string;
+          updated_at?: string;
+          version?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "agreements_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "agreements_jurisdiction_fkey";
+            columns: ["jurisdiction"];
+            isOneToOne: false;
+            referencedRelation: "jurisdictions";
+            referencedColumns: ["code"];
+          },
+        ];
+      };
       audit_log: {
         Row: {
           action: string;
@@ -58,6 +168,85 @@ export type Database = {
         };
         Relationships: [];
       };
+      bill_rate_rules: {
+        Row: {
+          archived_at: string | null;
+          business_id: string | null;
+          category_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          effective_from: string;
+          effective_to: string | null;
+          fixed_night_cents: number | null;
+          fixed_ordinary_cents: number | null;
+          fixed_overtime_cents: number | null;
+          fixed_public_holiday_cents: number | null;
+          fixed_saturday_cents: number | null;
+          fixed_sunday_cents: number | null;
+          id: string;
+          margin_pct: number | null;
+          method: Database["public"]["Enums"]["bill_method"];
+          notes: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          business_id?: string | null;
+          category_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          effective_from: string;
+          effective_to?: string | null;
+          fixed_night_cents?: number | null;
+          fixed_ordinary_cents?: number | null;
+          fixed_overtime_cents?: number | null;
+          fixed_public_holiday_cents?: number | null;
+          fixed_saturday_cents?: number | null;
+          fixed_sunday_cents?: number | null;
+          id?: string;
+          margin_pct?: number | null;
+          method?: Database["public"]["Enums"]["bill_method"];
+          notes?: string;
+          updated_at?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          business_id?: string | null;
+          category_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          effective_from?: string;
+          effective_to?: string | null;
+          fixed_night_cents?: number | null;
+          fixed_ordinary_cents?: number | null;
+          fixed_overtime_cents?: number | null;
+          fixed_public_holiday_cents?: number | null;
+          fixed_saturday_cents?: number | null;
+          fixed_sunday_cents?: number | null;
+          id?: string;
+          margin_pct?: number | null;
+          method?: Database["public"]["Enums"]["bill_method"];
+          notes?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "bill_rate_rules_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bill_rate_rules_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       categories: {
         Row: {
           active: boolean;
@@ -72,6 +261,7 @@ export type Database = {
           police_check_required: boolean;
           sort_order: number;
           updated_at: string;
+          workers_comp_pct: number | null;
         };
         ComputedFields: never;
         Insert: {
@@ -87,6 +277,7 @@ export type Database = {
           police_check_required?: boolean;
           sort_order?: number;
           updated_at?: string;
+          workers_comp_pct?: number | null;
         };
         Update: {
           active?: boolean;
@@ -101,6 +292,7 @@ export type Database = {
           police_check_required?: boolean;
           sort_order?: number;
           updated_at?: string;
+          workers_comp_pct?: number | null;
         };
         Relationships: [];
       };
@@ -295,6 +487,94 @@ export type Database = {
         };
         Relationships: [];
       };
+      jurisdictions: {
+        Row: {
+          code: string;
+          created_at: string;
+          licence_required: boolean;
+          licensing_body: string | null;
+          name: string;
+          notes: string;
+          show_licence_on_invoice: boolean;
+          updated_at: string;
+          worker_notice_required: boolean;
+        };
+        ComputedFields: never;
+        Insert: {
+          code: string;
+          created_at?: string;
+          licence_required?: boolean;
+          licensing_body?: string | null;
+          name: string;
+          notes?: string;
+          show_licence_on_invoice?: boolean;
+          updated_at?: string;
+          worker_notice_required?: boolean;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          licence_required?: boolean;
+          licensing_body?: string | null;
+          name?: string;
+          notes?: string;
+          show_licence_on_invoice?: boolean;
+          updated_at?: string;
+          worker_notice_required?: boolean;
+        };
+        Relationships: [];
+      };
+      licences: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          expires_on: string | null;
+          holder_name: string;
+          id: string;
+          issued_on: string | null;
+          jurisdiction: string;
+          licence_number: string;
+          notes: string;
+          status: Database["public"]["Enums"]["licence_status"];
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          expires_on?: string | null;
+          holder_name: string;
+          id?: string;
+          issued_on?: string | null;
+          jurisdiction: string;
+          licence_number: string;
+          notes?: string;
+          status?: Database["public"]["Enums"]["licence_status"];
+          updated_at?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          expires_on?: string | null;
+          holder_name?: string;
+          id?: string;
+          issued_on?: string | null;
+          jurisdiction?: string;
+          licence_number?: string;
+          notes?: string;
+          status?: Database["public"]["Enums"]["licence_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "licences_jurisdiction_fkey";
+            columns: ["jurisdiction"];
+            isOneToOne: false;
+            referencedRelation: "jurisdictions";
+            referencedColumns: ["code"];
+          },
+        ];
+      };
       ppe_items: {
         Row: {
           active: boolean;
@@ -369,6 +649,119 @@ export type Database = {
         };
         Relationships: [];
       };
+      public_holidays: {
+        Row: {
+          created_at: string;
+          date: string;
+          id: string;
+          name: string;
+          state: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          date: string;
+          id?: string;
+          name: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          date?: string;
+          id?: string;
+          name?: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      rate_cards: {
+        Row: {
+          archived_at: string | null;
+          base_rate_cents: number;
+          business_id: string | null;
+          category_id: string;
+          checked_by: string | null;
+          checked_on: string | null;
+          created_at: string;
+          created_by: string | null;
+          effective_from: string;
+          effective_to: string | null;
+          id: string;
+          level: number;
+          night_multiplier: number;
+          notes: string;
+          ordinary_multiplier: number;
+          overtime_multiplier: number;
+          public_holiday_multiplier: number;
+          saturday_multiplier: number;
+          sunday_multiplier: number;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          base_rate_cents: number;
+          business_id?: string | null;
+          category_id: string;
+          checked_by?: string | null;
+          checked_on?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          effective_from: string;
+          effective_to?: string | null;
+          id?: string;
+          level?: number;
+          night_multiplier?: number;
+          notes?: string;
+          ordinary_multiplier?: number;
+          overtime_multiplier?: number;
+          public_holiday_multiplier?: number;
+          saturday_multiplier?: number;
+          sunday_multiplier?: number;
+          updated_at?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          base_rate_cents?: number;
+          business_id?: string | null;
+          category_id?: string;
+          checked_by?: string | null;
+          checked_on?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          effective_from?: string;
+          effective_to?: string | null;
+          id?: string;
+          level?: number;
+          night_multiplier?: number;
+          notes?: string;
+          ordinary_multiplier?: number;
+          overtime_multiplier?: number;
+          public_holiday_multiplier?: number;
+          saturday_multiplier?: number;
+          sunday_multiplier?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rate_cards_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rate_cards_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       settings: {
         Row: {
           created_at: string;
@@ -435,7 +828,16 @@ export type Database = {
       normalise_auth_phone: { Args: { raw: string }; Returns: string };
     };
     Enums: {
+      agreement_kind:
+        | "labour_hire_services"
+        | "casual_employment_contract"
+        | "fair_work_information_statement"
+        | "casual_employment_information_statement"
+        | "privacy_collection_notice"
+        | "worker_supply_notice";
+      bill_method: "markup" | "fixed";
       credential_kind: "ticket" | "licence" | "police_check" | "wwcc";
+      licence_status: "active" | "expired" | "suspended" | "cancelled";
       user_role: "worker" | "business_user" | "admin";
       verification_method: "manual" | "register_check" | "provider_api";
     };
@@ -565,7 +967,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      agreement_kind: [
+        "labour_hire_services",
+        "casual_employment_contract",
+        "fair_work_information_statement",
+        "casual_employment_information_statement",
+        "privacy_collection_notice",
+        "worker_supply_notice",
+      ],
+      bill_method: ["markup", "fixed"],
       credential_kind: ["ticket", "licence", "police_check", "wwcc"],
+      licence_status: ["active", "expired", "suspended", "cancelled"],
       user_role: ["worker", "business_user", "admin"],
       verification_method: ["manual", "register_check", "provider_api"],
     },

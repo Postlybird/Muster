@@ -4,6 +4,7 @@
  */
 import { createSeedClient, loadEnv } from "./client";
 import { seedCatalogues } from "./steps/catalogues";
+import { seedCompliance } from "./steps/compliance";
 import { seedSettings } from "./steps/settings";
 import { seedUsers } from "./steps/users";
 
@@ -17,6 +18,9 @@ async function main() {
 
   const catalogues = await seedCatalogues(client);
   console.log("  catalogues added:", catalogues);
+
+  const compliance = await seedCompliance(client);
+  console.log("  rates and compliance added:", compliance);
 
   const users = await seedUsers(client);
   console.log(`  demo logins: ${users.users} (${users.newUsers} new)`);

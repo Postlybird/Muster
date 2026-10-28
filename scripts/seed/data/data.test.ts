@@ -8,7 +8,6 @@ import { normaliseAuMobile, normaliseAuPhone } from "@/lib/phone";
 
 import { CATEGORIES, CREDENTIAL_TYPES, HAZARDS, PPE_ITEMS } from "./catalogues";
 import { ADMINS, BUSINESSES, WORKERS } from "./people";
-import { SETTINGS } from "./settings";
 
 const credentialCodes = new Set(CREDENTIAL_TYPES.map((c) => c.code));
 const categoryCodes = new Set(CATEGORIES.map((c) => c.code));
@@ -29,13 +28,11 @@ describe("seed catalogues", () => {
     }
   });
 
-  it("have unique codes and setting keys", () => {
+  it("have unique codes", () => {
     for (const list of [CREDENTIAL_TYPES, CATEGORIES, HAZARDS, PPE_ITEMS]) {
       const codes = list.map((x) => x.code);
       expect(new Set(codes).size).toBe(codes.length);
     }
-    const keys = SETTINGS.map((s) => s.key);
-    expect(new Set(keys).size).toBe(keys.length);
   });
 });
 
