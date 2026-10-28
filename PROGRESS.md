@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.10 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.11 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -216,15 +216,30 @@ _Last updated: 28/10/2026_
   - **Possible no-shows:** a scheduled job (`/api/cron/attendance`) flags anyone booked who hasn't clocked in 30 minutes after the start (a setting), once each, and emails whoever posted the job.
   - Tests: 226 pgTAP, 273 unit and 148 browser tests passing.
 
+- **1.11 Timesheets** (Phase 1):
+  - **Made automatically:** clocking out makes the timesheet. Paid time runs from the clock-in (or the rostered start, if they clocked in early) to the clock-out, less the rostered break. If someone clocks in but not out, an hour after the shift the timesheet uses the rostered finish; a late clock-out still fills it in until the business has looked at it. Nobody can clock in or out once the hours are in.
+  - **Businesses** (owners, managers and the site's supervisors) get an email when hours are ready, then on **Timesheets**:
+    - approve everything waiting in one go (all ticked), or open one to check it
+    - change the hours and break, with a note we text to the worker; that approves them
+    - query them with our team
+    - for someone who didn't clock in, add their hours, or report a no-show
+  - **Auto-approval:** hours nobody approves or queries within 48 hours (a setting) are approved as they are, and whoever posted the job is emailed.
+  - **Workers** see their timesheets with the pay once approved. They can add a note for the business, and query approved or changed hours once.
+  - **Queries** go to a new admin **Queues** page with both sides' notes. An admin pays the hours (changed if need be) or finds they weren't worked, and both sides are told. The page also lists other open matters (no-shows, safety reports and so on); acting on those arrives in step 1.15.
+  - **Costs:** approved hours are costed straight away with the rates kept on the booking: pay (with any urgent allowance), on-costs, the charge and our margin, topped up to the minimum engagement. Businesses see the charge excluding GST; workers see their pay.
+  - **Reliability** now counts a booking once its hours are in. A start after the grace period (5 minutes, a placeholder setting) counts as a late arrival.
+  - **The job page** shows each booking's timesheet, and "Add their hours" once a shift is over.
+  - **Demo data:** last night's Westside clean with two timesheets to approve (one with no clock-out), and a Harbour shift last week with approved hours and a query for admins.
+  - Tests: 268 pgTAP, 307 unit and 156 browser tests passing.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Once the site has an address:** schedule the `reminders`, `finish-shifts` and `attendance` jobs (every 10 minutes) with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET`. Vercel's free plan only runs scheduled jobs once a day.
-- **Phase 1, step 1.11:** timesheets:
-  - a timesheet created at clock-out (start, finish, break, hours by rate type, allowances)
-  - the business approves or disputes within 48 hours (a setting), adjusting times and breaks; otherwise it approves itself, with a notification
-  - disputes go to the admin queue with both sides' notes
+- **Once the site has an address:** schedule the `reminders`, `finish-shifts`, `attendance` and `timesheets` jobs (every 10 minutes) with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET`. Vercel's free plan only runs scheduled jobs once a day.
+- **Phase 1, step 1.12:** ratings, favourites and blocks:
+  - after approval, the business rates the worker (1–5 with tags; favourite or block) and the worker rates the site
+  - averages are visible; written comments go privately to admins
 
 ## Decisions
 
@@ -298,6 +313,13 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | Safety reports are seen by the reporter and admins only; admins follow up with the business. | Workers can raise issues without the business seeing who reported them. |
 | 28/10/2026 | Supervisors adjust times and record breaks on the timesheet (step 1.11) rather than on the day. | One place for the hours that get paid and billed. |
 | 28/10/2026 | The most specific bill rule wins: the business's rule for the category, then its rule for all categories, then the category's standard rule, then the default margin. Only one rule per business, category and start date. | Plan: a margin with per-category and per-business overrides. The pay and bill engine (step 1.5) always finds exactly one rule. |
+| 28/10/2026 | Paid time starts at the rostered start even if the worker clocks in early, and ends at the clock-out. The business can change either. | Arriving early isn't working early unless the business asked. A late finish is paid as clocked, so staying back isn't lost; the business sees it before approving. See the open question. |
+| 28/10/2026 | With no clock-out an hour after the shift, the timesheet uses the rostered finish. A later clock-out still fills it in until the business looks at it. With no clock-in at all, there's no timesheet: the business adds the hours or reports a no-show. | Brief §4.6: a timesheet at clock-out. Hours with nothing recorded aren't paid automatically; the possible no-show flag is already with admins. |
+| 28/10/2026 | Changing hours approves them in one step, with a note we text to the worker. A query from either side goes to admins, and those hours aren't paid or charged until it's settled. Workers can query approved hours once; our team's decision then stands. | Brief §4.6: the business approves or disputes; disputes go to the admin queue with both sides' notes. One query each keeps it from going round in circles. |
+| 28/10/2026 | Approved hours are costed when they're approved, with the rates kept on the booking, and saved. Overtime and night hours follow today's settings. | Brief §4.8. The weekly run (step 1.13) adds up saved costs, and workers and businesses see their side straight away. |
+| 28/10/2026 | A booking counts towards reliability once its hours are in (replacing the step 1.9 rule). Hours starting after the grace period count as a late arrival. | Reliability now follows what was recorded, not just the roster. |
+| 28/10/2026 | A no-show can't be reported for someone who clocked in at the site, whose arrival the business confirmed, or whose hours are in: query the hours instead. A clock-in from somewhere else can still be reported. | A no-show and paid hours for the same shift would contradict each other. |
+| 28/10/2026 | "Hours ready to approve" and "approved automatically" emails go to whoever posted the job, one email per run of the timesheets job. | Fewer emails when a crew clocks out together. Step 1.14 adds preferences and push. |
 
 ## Open questions for the owner
 
@@ -307,6 +329,7 @@ _Last updated: 28/10/2026_
 - **Company details for tax invoices** (legal name, ABN, address, bank details). Placeholders until provided.
 - **Texts for bookings and reminders.** The brief keeps texts for login codes and urgent work. Until the app can send push notifications (step 1.14), we text workers when a business books them and for reminders. Once push is available, should these still go by text to workers who haven't installed the app? Each text costs a few cents once Twilio is set up.
 - **Late cancellations by a business.** Each booking is charged 3 hours for now (a placeholder setting). Should the worker also be paid those hours if they hadn't arrived yet? (Workers who have arrived are always paid at least the minimum engagement, brief §4.5.) The setting is off for now.
+- **Early starts and late finishes.** Paid time starts at the rostered start even if a worker clocks in early, and a late finish is paid as clocked unless the business changes it. Is that the rule you want, or should both follow the roster unless the business approves extra time?
 - **Changing a posted job.** For now a business can't edit a job once it's posted, because workers decide on what they were shown. From step 1.9 they'll be able to cancel and post again. Should they be able to change small things, like the instructions or who to report to, after posting?
 
 ## Before launch (not now)
