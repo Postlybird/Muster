@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.13 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.14 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -251,15 +251,34 @@ _Last updated: 28/10/2026_
   - **Settings:** our details for invoices (legal name, ABN, address, contact) and bank account, and the invoice number prefix. The run won't go ahead without the legal name, ABN and bank account. The demo data fills them with made-up details.
   - Tests: 316 pgTAP, 328 unit and 166 browser tests passing.
 
+- **1.14 Notifications, expiry checks and push** (Phase 1):
+  - **Notifications:** every message now goes through one system and is kept. Workers see theirs on **Notifications**, with a count on the menu.
+  - **Push:** workers who install the app and turn notifications on (in **Settings**) get messages there instead of by text. Urgent call-outs still come by text too. Businesses and our team get emails, as before.
+  - **Choosing what you get:** workers turn shift reminders and timesheet messages on or off. Businesses choose emails about applicants, the day and timesheets. Messages about bookings, accounts, tickets and safety always go.
+  - **Quiet hours:** non-urgent messages wait until 6 am (a setting). Urgent ones go straight away: urgent call-outs, cancellations, safety reports, bookings at risk, reminders two hours before, and anything about a shift starting within a day.
+  - **Message templates:** admins can change the words of every text, email and notification on **Message templates**, with a preview. "Use the standard wording" undoes it.
+  - **Push setup:** free, but it needs a pair of keys in the hosting settings. **Admin → Settings → Push notifications** makes them, with the steps. Until then workers get texts (in the demo, pushes go to the outbox).
+  - **Expiry checks** (a new hourly job, `compliance`):
+    - workers are warned 30, 14 and 7 days (a setting) before a ticket, police check or visa runs out, unless they've already added a renewal
+    - on expiry it's marked expired, and they stop being offered work that needs it
+    - any booked shift that won't pass the rules on the day (account, tickets, right to work, police check) is flagged in admin **Queues**, and the worker and admins are told, once
+    - VEVO re-checks due within a week are listed in **Queues** and emailed to admins
+  - Tests: 332 pgTAP, 348 unit and 178 browser tests passing.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Once the site has an address:** schedule the `reminders`, `finish-shifts`, `attendance` and `timesheets` jobs (every 10 minutes), and `pay-run` (once a day, early morning; it only runs on the run day), with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET`. Vercel's free plan only runs scheduled jobs once a day.
-- **Phase 1, step 1.14:** the expiry engine, VEVO re-checks, notifications and push:
-  - nightly checks warn workers before tickets and visas expire, and remove eligibility on expiry, alerting the worker and admins about booked shifts that no longer pass
-  - re-checking bookings 24 hours before the shift
-  - the notifications system: templates, preferences, quiet hours, and web push for the installed app
+- **Once the site has an address:** schedule the jobs with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET` (Vercel's free plan only runs scheduled jobs once a day):
+  - every 10 minutes: `reminders`, `finish-shifts`, `attendance`, `timesheets` and `notifications`
+  - hourly: `compliance`
+  - once a day, early morning: `pay-run` (it only runs on the run day)
+- **Optional, any time:** turn on push notifications (Admin → Settings → Push notifications has the steps).
+- **Phase 1, step 1.15:** the rest of the admin console:
+  - workers and businesses lists with filters (category, ticket, suburb, status, expiring soon)
+  - the shift board (open, filled, in progress; unfilled shifts within 24 hours in red)
+  - acting on queue items: no-shows, safety reports, suspensions and bookings at risk
+  - reports and the audit log viewer
 
 ## Decisions
 
@@ -353,6 +372,15 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | Invoices are marked paid by hand, with the date and the bank's reference, and can be marked unpaid again. | v1 is bank transfer on account terms; Stripe arrives in Phase 2. Undo covers a payment matched to the wrong invoice. |
 | 28/10/2026 | Invoice PDFs use the PDF format's built-in Helvetica font, so no font files are bundled. Letters it can't show are written without their accents (Nguyễn becomes Nguyen). | Smaller and simpler. Names keep their accents on screen and in emails. |
 | 28/10/2026 | The payroll file lists people by legal name ("Last, First") with their payroll employee ID, and adds a notes column for minimum engagement top-ups and paid cancellations. | Payroll works from legal names. The notes explain pay that isn't just the hours worked. |
+| 28/10/2026 | Workers get push notifications in the installed app once they turn them on, and texts otherwise. Urgent call-outs come by text as well. Businesses and our team get emails. | Brief §5 channels. Push is free; texts cost a few cents each once Twilio is on. |
+| 28/10/2026 | Every message is kept and listed on the worker's Notifications page, including ones they've turned off (those just don't buzz or text). | One place to look back at what we've said. |
+| 28/10/2026 | Messages about bookings and cancellations, accounts, tickets and visas, safety and compliance can't be turned off. Workers choose shift reminders and timesheet messages; businesses choose applicants, on the day and timesheet emails. Urgent call-outs stay on the Availability page. | Brief §5: per-user preferences, except critical messages. |
+| 28/10/2026 | Quiet hours hold every non-urgent message, whatever the channel. A booking or a worker cancelling a shift that starts within a day counts as urgent. Setting both quiet hours times the same turns them off. | Brief §5. Someone booked tonight for tomorrow morning needs to know tonight. |
+| 28/10/2026 | Message words live in code, and admins' changes are saved separately, so "Use the standard wording" puts them back. In the app and push notifications the sentence with the link is left out, as tapping opens it. | Brief §5: templates editable by admin. |
+| 28/10/2026 | Push keys are made on Admin → Settings and added to Vercel by the owner. They're never stored in the database or the code. | Keeps the private key with the hosting secrets. Web push is free and needs no account. |
+| 28/10/2026 | A booked shift is flagged as soon as we know it won't pass on the day (say a ticket it needs expires first), not only the day before. The checks look at the worker's status and papers, not travel or availability. | Brief §4.4 and §4.9. Earlier warning gives the worker time to renew and the business time to rebook. |
+| 28/10/2026 | An expired visa is marked expired, so the worker can enter their new one for a VEVO check. A ticket with a renewal already added gets no warnings. | Brief §4.9. Nobody is nagged about something they've already done. |
+| 28/10/2026 | The expiry checks run every hour, not nightly. Each warning and expiry still goes once, by date. | Brief §4.4 checks bookings again 24 hours before the start; running hourly checks each one close to that point. |
 
 ## Open questions for the owner
 
@@ -361,7 +389,7 @@ _Last updated: 28/10/2026_
 - **Employment Hero timesheet import template.** The payroll file uses draft columns until we have it.
 - **Company details for tax invoices** (legal name, ABN, address, contact and bank account). Enter them in Settings → Pay and billing; the demo shows made-up ones.
 - **The weekly run day.** It's Monday for now. Businesses have 48 hours to approve hours, so weekend shifts are usually still waiting on Monday and get paid a week later. Running on Wednesday would catch them. Which day suits you?
-- **Texts for bookings and reminders.** The brief keeps texts for login codes and urgent work. Until the app can send push notifications (step 1.14), we text workers when a business books them and for reminders. Once push is available, should these still go by text to workers who haven't installed the app? Each text costs a few cents once Twilio is set up.
+- **Texts for bookings and reminders.** The brief keeps texts for login codes and urgent work. Workers who install the app and turn notifications on now get bookings and reminders there instead. Workers who haven't still get them by text: should they? Each text costs a few cents once Twilio is set up.
 - **Late cancellations by a business.** Each booking is charged 3 hours for now (a placeholder setting). Should the worker also be paid those hours if they hadn't arrived yet? (Workers who have arrived are always paid at least the minimum engagement, brief §4.5.) The setting is off for now.
 - **Early starts and late finishes.** Paid time starts at the rostered start even if a worker clocks in early, and a late finish is paid as clocked unless the business changes it. Is that the rule you want, or should both follow the roster unless the business approves extra time?
 - **Changing a posted job.** For now a business can't edit a job once it's posted, because workers decide on what they were shown. From step 1.9 they'll be able to cancel and post again. Should they be able to change small things, like the instructions or who to report to, after posting?
@@ -374,6 +402,7 @@ _Last updated: 28/10/2026_
 - Turn on CAPTCHA for code requests (Cloudflare Turnstile is free) to stop SMS-pumping fraud once real texts cost money.
 - Upgrade to Vercel Pro and Supabase Pro (commercial use, backups, no pausing). Ask the owner first.
 - Enter our real company and bank details in Settings → Pay and billing (the dev project's demo data has made-up ones).
+- Before we pass about 1,000 active workers, or 1,000 shifts in a week: the matching engine and the weekly pay run read at most 1,000 rows at a time, so they need to read in pages, as the expiry checks already do.
 
 ## Owner setup checklist
 
