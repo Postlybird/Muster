@@ -72,3 +72,15 @@ export async function expectAccessible(page: Page) {
   );
   expect(summary, `Accessibility problems on ${page.url()}`).toEqual([]);
 }
+
+/** Demo mode: signs in as a seeded account by name ("Alex Morgan" is an admin). */
+export async function signInAsDemo(page: Page, name: string) {
+  await page.goto("/login");
+  const button = page.getByRole("button", { name: new RegExp(name) });
+  if (!(await button.isVisible())) {
+    // Worker accounts are folded away by default.
+    await page.getByText(/Worker accounts/).click();
+  }
+  await button.click();
+  await page.waitForURL(/\/(admin|business|worker)$/);
+}
