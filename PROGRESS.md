@@ -6,7 +6,7 @@ _Last updated: 28/10/2026_
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
 
-**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.7 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, in progress** (steps 1.1 to 1.8 done). The plan was approved with Phase 0. The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 ## Done
 
@@ -187,15 +187,27 @@ _Last updated: 28/10/2026_
   - **Businesses** see how many workers can see each posted job (never who), and blocks and suspensions take effect at once.
   - Tests: 158 pgTAP, 253 unit and 126 browser tests passing.
 
+- **1.8 Taking work** (Phase 1):
+  - **"I'll choose" jobs:** workers apply for all the days of a job or the days they choose, and can withdraw until they're picked. Applying is a promise to work if picked (plan default). The business sees applicants best match first, with their photo, first name and initial, rating, reliability, shifts done and verified tickets, and books someone with one tap for every day they applied for. Whoever posted the job gets an email when the first worker applies.
+  - **"First in" jobs:** the first eligible workers to accept are booked straight away. Whoever posted the job gets an email when it's fully booked.
+  - **Rules at booking:** eligibility is checked again (brief §4.4), a shift never takes more workers than it needs (even when two accept at once), no one is booked on two shifts at the same time, and blocks and suspensions apply. When a shift fills, the other applicants are told it's been filled.
+  - **Rates kept with each booking:** pay, bill and margin are copied from what the shift was priced at when posted, so later rate changes never rewrite history (brief §4.8). Only admins see the rates behind them.
+  - **Once booked**, the worker sees the full address, getting-in and parking notes, who to report to (with their phone), the job's photos, directions, and an "Add to calendar" file. The business sees the worker's full name and mobile number.
+  - **Worker app:** "My shifts" lists booked shifts, applications and shifts filled by others; the home screen shows the next booked shift. A job that's been filled or taken down says so (for old links in texts).
+  - **Business:** each shift shows how many are booked, on the job page and the dashboard.
+  - **Reminders:** the day before and two hours before, by text, never twice. They run when the scheduler calls `/api/cron/reminders` with the `CRON_SECRET`; the scheduler is set up once the site has an address (see Next).
+  - **Demo data:** applicants and a booked worker on the Harbour flood job, and a booked cleaner on the Westside evening clean. Liam O'Brien is left free to try applying.
+  - Tests: 188 pgTAP, 263 unit and 132 browser tests passing.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), then send the site address.
 - **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Phase 1, step 1.8:** taking work:
-  - workers apply (pick mode) or accept (first in), for all days of a job or chosen days
-  - businesses pick from applicants in ranked order, seeing photo, preferred name, rating, reliability, verified ticket names and shifts completed
-  - pay, bill and margin fixed on each booking, then the address and report-to details revealed
-  - a calendar file, and reminders 24 hours and 2 hours before
+- **Once the site has an address:** schedule the reminders job (every 10 minutes) with Supabase's free scheduler (pg_cron), calling `/api/cron/reminders` with the `CRON_SECRET`. Vercel's free plan only runs scheduled jobs once a day.
+- **Phase 1, step 1.9:** cancellations and no-shows:
+  - workers cancelling (late cancellations inside a set window lower reliability), and businesses cancelling (charged inside a set window)
+  - no-shows flagged 30 minutes after the start without a clock-in; two in 30 days suspends the worker pending admin review
+  - re-offering a shift automatically when a booked worker drops out, and telling the business
 
 ## Decisions
 
@@ -254,6 +266,11 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | Workers see the ordinary hourly rate (casual loading included) and an estimate for each shift with penalty rates and any urgent loading, worked out when the job is posted. The rate is fixed when they're booked (step 1.8). | Brief §4.4: workers see hourly pay before they accept. |
 | 28/10/2026 | Job photos are shown to workers once they're booked, with the address. | Photos can show the property; the brief keeps location details until confirmation. |
 | 28/10/2026 | "Favourites first" lets no one in early when none of the business's favourites can take the work, and doesn't apply to urgent call-outs. | Holding work back for nobody only delays it. Urgent call-outs go to every eligible worker nearby (brief §4.3). |
+| 28/10/2026 | Bookings copy the pay and bill worked out when the job was posted, rather than pricing again at booking. | Both sides get the terms they were shown: the business its estimate, the worker the pay in their offer. Later rate changes never touch existing bookings (brief §4.8). |
+| 28/10/2026 | A business picks an applicant for every day they applied for, in one tap; there's no picking day by day. | One main action per screen. A worker who can only do some days applies for those days. |
+| 28/10/2026 | When a shift fills, the other applicants are marked "filled by others" rather than kept on a waiting list. | Workers know where they stand and can plan. Re-offers when someone drops out come with step 1.9. |
+| 28/10/2026 | Businesses see an applicant's first name and initial; the full name and mobile number once they're booked. | Brief §4.4 ("preferred name") and the plan's contact rule ("the business sees the worker's mobile" after confirmation). |
+| 28/10/2026 | Until push notifications arrive (step 1.14), workers are texted when a business books them and for reminders; businesses get emails. Workers who accept "First in" aren't texted: they see it on screen. | Brief §5 reserves texts for login codes and urgent work, but workers need these messages and push isn't built yet. See the open question about texts. |
 | 28/10/2026 | The most specific bill rule wins: the business's rule for the category, then its rule for all categories, then the category's standard rule, then the default margin. Only one rule per business, category and start date. | Plan: a margin with per-category and per-business overrides. The pay and bill engine (step 1.5) always finds exactly one rule. |
 
 ## Open questions for the owner
@@ -262,6 +279,7 @@ _Last updated: 28/10/2026_
 - **How quickly will new workers be checked?** The app tells workers "usually within two business days". Change it if that's not realistic.
 - **Employment Hero timesheet import template.** Needed by step 1.13.
 - **Company details for tax invoices** (legal name, ABN, address, bank details). Placeholders until provided.
+- **Texts for bookings and reminders.** The brief keeps texts for login codes and urgent work. Until the app can send push notifications (step 1.14), we text workers when a business books them and for reminders. Once push is available, should these still go by text to workers who haven't installed the app? Each text costs a few cents once Twilio is set up.
 - **Changing a posted job.** For now a business can't edit a job once it's posted, because workers decide on what they were shown. From step 1.9 they'll be able to cancel and post again. Should they be able to change small things, like the instructions or who to report to, after posting?
 
 ## Before launch (not now)
