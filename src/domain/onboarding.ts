@@ -48,8 +48,7 @@ export function previousStep(key: OnboardingStepKey): OnboardingStepKey | null {
 /** Where to pick up: the first step not finished yet, or the final check. */
 export function resumeStep(done: readonly string[]): OnboardingStepKey {
   return (
-    STEP_KEYS.find((key) => key !== "submit" && !done.includes(key)) ??
-    "submit"
+    STEP_KEYS.find((key) => key !== "submit" && !done.includes(key)) ?? "submit"
   );
 }
 
@@ -204,6 +203,7 @@ export type OnboardingSnapshot = {
   hasRightToWork: boolean;
   hasIdentityCheck: boolean;
   categoryCount: number;
+  hasAvailability: boolean;
   /** Current employment documents not yet accepted. */
   unacceptedDocuments: number;
 };
@@ -226,6 +226,7 @@ export function missingSteps(
   if (!snapshot.hasRightToWork) missing.push("right-to-work");
   if (!snapshot.hasIdentityCheck) missing.push("identity");
   if (snapshot.categoryCount === 0) missing.push("work-types");
+  if (!snapshot.hasAvailability) missing.push("availability");
   if (snapshot.unacceptedDocuments > 0) missing.push("paperwork");
   return missing;
 }

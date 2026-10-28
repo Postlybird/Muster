@@ -5,7 +5,12 @@ import {
   type Suburb,
 } from "@/data/sydney-suburbs";
 
-import type { AddressSuggestion, GeocodedAddress, Geocoder } from "./types";
+import type {
+  AddressSuggestion,
+  GeocodedAddress,
+  Geocoder,
+  SuggestOptions,
+} from "./types";
 
 type Encoded = { line1: string | null; suburb: string };
 
@@ -69,9 +74,19 @@ function suburbInText(text: string): { suburb: Suburb; before: string } | null {
 export class MockGeocoder implements Geocoder {
   readonly name = "mock";
 
-  async suggest(query: string): Promise<AddressSuggestion[]> {
+  async suggest(
+    query: string,
+    options: SuggestOptions = {},
+  ): Promise<AddressSuggestion[]> {
     const text = query.trim();
     if (text.length < 2) return [];
+
+    if (options.kind === "suburb") {
+      return searchSuburbs(text, 6).map((sub) => ({
+        id: encode({ line1: null, suburb: sub.name }),
+        label: label(null, sub),
+      }));
+    }
 
     const found = suburbInText(text);
     if (found) {

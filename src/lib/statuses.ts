@@ -93,3 +93,24 @@ export const businessStatuses: Record<BusinessStatus, StatusInfo> = {
     next: "You can't post new work for now. We'll be in touch.",
   },
 };
+
+export type PayrollStatus = "not_started" | "invited" | "complete";
+
+/** Payroll setup happens in the payroll provider's own onboarding (brief §4.1 step 9). */
+export const payrollStatuses: Record<PayrollStatus, StatusInfo> = {
+  not_started: {
+    label: "Not started",
+    tone: "neutral",
+    next: "Once we've verified you, our payroll provider will email you a link to add your tax, super and bank details.",
+  },
+  invited: {
+    label: "Waiting for you",
+    tone: "warning",
+    next: "Open the email from our payroll provider and finish setting up your pay.",
+  },
+  complete: {
+    label: "Done",
+    tone: "success",
+    next: "Nothing to do.",
+  },
+};

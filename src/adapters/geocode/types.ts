@@ -19,8 +19,16 @@ export type GeocodedAddress = {
  * Address autocomplete and geocoding for sites (brief §4.2) and worker home
  * suburbs. Real provider: Google Maps Places (brief §8), later Mapbox.
  */
+export type SuggestOptions = {
+  /** "suburb" for a worker's home suburb; "address" (default) for sites. */
+  kind?: "address" | "suburb";
+};
+
 export interface Geocoder {
   readonly name: string;
-  suggest(query: string): Promise<AddressSuggestion[]>;
+  suggest(
+    query: string,
+    options?: SuggestOptions,
+  ): Promise<AddressSuggestion[]>;
   resolve(id: string): Promise<GeocodedAddress | null>;
 }

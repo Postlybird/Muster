@@ -21,6 +21,20 @@ describe("suburb search", () => {
 describe("mock geocoder", () => {
   const geocoder = new MockGeocoder();
 
+  it("suggests suburbs only when asked for a suburb", async () => {
+    const suggestions = await geocoder.suggest("12 George St, Parramatta", {
+      kind: "suburb",
+    });
+    expect(suggestions).toEqual([]);
+    const [suburb] = await geocoder.suggest("parra", { kind: "suburb" });
+    expect(suburb?.label).toBe("Parramatta NSW 2150");
+    expect(await geocoder.resolve(suburb!.id)).toMatchObject({
+      line1: null,
+      suburb: "Parramatta",
+      postcode: "2150",
+    });
+  });
+
   it("turns a street address and suburb into one suggestion", async () => {
     const [suggestion] = await geocoder.suggest("12 george st, parramatta");
     expect(suggestion?.label).toBe("12 George St, Parramatta NSW 2150");

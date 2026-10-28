@@ -1,26 +1,22 @@
-import { ArrowLeft, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 export type WizardStep = { key: string; title: string; optional?: boolean };
 
 type Props = {
-  steps: WizardStep[];
+  steps: readonly WizardStep[];
   currentKey: string;
-  completedKeys?: string[];
+  completedKeys?: readonly string[];
   title: string;
   description?: React.ReactNode;
-  /** The step's <form id>. The main button submits it. */
-  formId: string;
-  primaryLabel?: string;
-  backHref?: string;
   /** Leave and come back later. Each step saves on "continue". */
   exitHref?: string;
   /** Builds the link for each step in the side list (desktop). */
   stepHref?: (key: string) => string;
+  /** The step's form, ending with <WizardActions>. */
   children: React.ReactNode;
 };
 
@@ -34,9 +30,6 @@ export function WizardShell({
   completedKeys = [],
   title,
   description,
-  formId,
-  primaryLabel = "Save and continue",
-  backHref,
   exitHref,
   stepHref,
   children,
@@ -47,7 +40,9 @@ export function WizardShell({
   );
   const current = steps[index];
   const done = new Set(completedKeys);
-  const percent = Math.round((done.size / steps.length) * 100);
+  const percent = Math.round(
+    (steps.filter((s) => done.has(s.key)).length / steps.length) * 100,
+  );
 
   return (
     <div className="mx-auto grid w-full max-w-5xl gap-8 lg:grid-cols-[16rem_1fr]">
@@ -136,27 +131,6 @@ export function WizardShell({
         </div>
 
         {children}
-
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
-          <div className="mx-auto flex max-w-5xl gap-3 lg:max-w-none">
-            {backHref ? (
-              <Button asChild variant="outline" size="lg" className="shrink-0">
-                <Link href={backHref}>
-                  <ArrowLeft aria-hidden />
-                  <span className="sr-only sm:not-sr-only">Back</span>
-                </Link>
-              </Button>
-            ) : null}
-            <Button
-              type="submit"
-              form={formId}
-              size="lg"
-              className="flex-1 lg:flex-none"
-            >
-              {primaryLabel}
-            </Button>
-          </div>
-        </div>
       </div>
     </div>
   );

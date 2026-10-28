@@ -209,6 +209,7 @@ describe("missing steps", () => {
     hasRightToWork: true,
     hasIdentityCheck: true,
     categoryCount: 1,
+    hasAvailability: true,
     unacceptedDocuments: 0,
   };
 
@@ -223,8 +224,9 @@ describe("missing steps", () => {
         photoPath: null,
         email: null,
         categoryCount: 0,
+        hasAvailability: false,
         unacceptedDocuments: 2,
       }),
-    ).toEqual(["about", "contact", "work-types", "paperwork"]);
+    ).toEqual(["about", "contact", "work-types", "availability", "paperwork"]);
   });
 });
