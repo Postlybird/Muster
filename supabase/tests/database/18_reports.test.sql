@@ -19,6 +19,7 @@ insert into auth.users (id, email, email_confirmed_at, raw_user_meta_data) value
 update public.profiles set role = 'admin' where id = '18444444-4444-4444-4444-444444444444';
 select id as worker_a from public.workers where profile_id = '18111111-1111-1111-1111-111111111111' \gset
 select id as worker_b from public.workers where profile_id = '18222222-2222-2222-2222-222222222222' \gset
+update public.workers set status = 'active' where id = :'worker_a';
 
 insert into public.businesses (id, abn, legal_name, trading_name, abn_status, abr_checked_at, status,
   account_terms_approved, created_by) values
@@ -109,7 +110,7 @@ select results_eq(
   'no-shows among bookings that started, and who worked'
 );
 select ok(
-  (select active_workers > 0 from public.admin_report_summary('2020-03-01 00:00+11', '2020-04-01 00:00+11')),
+  (select active_workers >= 1 from public.admin_report_summary('2020-03-01 00:00+11', '2020-04-01 00:00+11')),
   'active workers are counted'
 );
 select results_eq(
