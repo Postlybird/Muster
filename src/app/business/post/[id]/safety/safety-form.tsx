@@ -82,7 +82,7 @@ export function SafetyForm({
             </div>
           ))}
         </div>
-        <div className="flex items-start gap-3 rounded-lg border p-3">
+        <div className="flex items-start gap-3 rounded-lg border bg-card p-3">
           <Checkbox
             id="no_known_hazards"
             name="no_known_hazards"

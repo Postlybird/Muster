@@ -104,7 +104,7 @@ export default async function AgreementPage({
               to make changes.
             </AlertDescription>
           </Alert>
-          <article className="max-w-3xl rounded-xl border p-6">
+          <article className="max-w-3xl rounded-xl border bg-card p-6">
             <h2 className="mb-4 text-xl font-semibold">{agreement.title}</h2>
             <Markdown>{agreement.body_md}</Markdown>
           </article>

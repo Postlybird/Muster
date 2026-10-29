@@ -80,7 +80,7 @@ export default async function LicencesPage() {
             ))}
           </ul>
         )}
-        <details className="rounded-xl border p-4">
+        <details className="rounded-xl border bg-card p-4">
           <summary className="cursor-pointer font-medium">
             Add a licence
           </summary>

@@ -100,7 +100,7 @@ export default async function AdminWorkersPage({
         action="/admin/workers"
         role="search"
         aria-label="Filter workers"
-        className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2 lg:grid-cols-3"
+        className="grid gap-4 rounded-lg border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3"
       >
         <FormField id="q" label="Name, mobile or email">
           {(field) => (

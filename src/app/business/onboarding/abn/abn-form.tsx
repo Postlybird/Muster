@@ -77,7 +77,7 @@ export function AbnForm() {
       }}
       className="max-w-xl space-y-6"
     >
-      <dl className="space-y-3 rounded-lg border p-4">
+      <dl className="space-y-3 rounded-lg border bg-card p-4">
         {[
           ["ABN", formatAbn(found.abn)],
           ["Legal name", found.legalName],

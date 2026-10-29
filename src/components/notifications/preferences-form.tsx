@@ -35,7 +35,7 @@ export function PreferencesForm({
         {choices.map((choice) => (
           <li
             key={choice.key}
-            className="flex items-start justify-between gap-4 rounded-lg border p-4"
+            className="flex items-start justify-between gap-4 rounded-lg border bg-card p-4"
           >
             <Label
               htmlFor={`pref-${choice.key}`}

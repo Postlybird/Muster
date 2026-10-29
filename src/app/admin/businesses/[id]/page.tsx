@@ -225,7 +225,7 @@ export default async function AdminBusinessPage({
             .
           </p>
           <AccountTermsForm businessId={business.id} terms={terms} />
-          <details className="rounded-md border">
+          <details className="rounded-md border bg-card">
             <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-medium">
               Put on hold
             </summary>

@@ -23,7 +23,7 @@ export function DocumentView({
           href={url}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-2 rounded-md border p-4 text-sm font-medium text-primary underline-offset-4 hover:underline"
+          className="flex items-center gap-2 rounded-md border bg-card p-4 text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
           <FileText className="size-5" aria-hidden />
           Open {label} (PDF)

@@ -49,7 +49,10 @@ export function PaperworkForm({
         {documents.map((document) => {
           const error = errors?.[`agreement_${document.id}`]?.[0];
           return (
-            <li key={document.id} className="space-y-3 rounded-lg border p-4">
+            <li
+              key={document.id}
+              className="space-y-3 rounded-lg border bg-card p-4"
+            >
               <h2 className="font-semibold">{document.title}</h2>
               <details className="group rounded-md bg-muted/50">
                 <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-medium text-primary underline-offset-4 hover:underline">

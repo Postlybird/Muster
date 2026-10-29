@@ -68,7 +68,7 @@ function ItemRow({ item, table }: { item: Item; table: Table }) {
   );
   const archived = !!item.archived_at;
   return (
-    <li className="space-y-2 rounded-lg border p-3">
+    <li className="space-y-2 rounded-lg border bg-card p-3">
       <form
         onSubmit={onSubmit}
         noValidate

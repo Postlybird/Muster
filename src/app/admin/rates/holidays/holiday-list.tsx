@@ -49,7 +49,7 @@ export function HolidayList({ holidays }: { holidays: Holiday[] }) {
         onSubmit={onSubmit}
         noValidate
         aria-label="Add a public holiday"
-        className="grid gap-4 rounded-xl border p-4 sm:grid-cols-[8rem_12rem_1fr_auto] sm:items-end"
+        className="grid gap-4 rounded-xl border bg-card p-4 sm:grid-cols-[8rem_12rem_1fr_auto] sm:items-end"
       >
         <FormField id="state" label="State" error={fieldErrors?.state}>
           {(props) => (
@@ -92,7 +92,7 @@ export function HolidayList({ holidays }: { holidays: Holiday[] }) {
           <h2 id={`year-${year}`} className="text-lg font-semibold">
             {year}
           </h2>
-          <ul className="divide-y rounded-xl border">
+          <ul className="divide-y rounded-xl border bg-card">
             {holidays
               .filter((h) => h.date.startsWith(year))
               .map((holiday) => (

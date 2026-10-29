@@ -49,7 +49,7 @@ export default async function BusinessInvoicesPage() {
         description={`One a week for the hours you approved, emailed to ${business.accounts_email ?? "your accounts email"}.`}
       />
       {invoices?.length ? (
-        <ul className="divide-y rounded-lg border">
+        <ul className="divide-y rounded-lg border bg-card">
           {invoices.map((invoice) => {
             const status =
               businessInvoiceStatuses[invoiceStatus(invoice, today)];

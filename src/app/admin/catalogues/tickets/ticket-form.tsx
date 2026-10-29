@@ -145,7 +145,7 @@ export function TicketForm({ values }: { values: TicketFormValues }) {
         )}
       </FormField>
 
-      <div className="space-y-4 rounded-lg border p-4">
+      <div className="space-y-4 rounded-lg border bg-card p-4">
         <SwitchRow
           id="has_number"
           label="Has a number"

@@ -100,7 +100,7 @@ export default async function AdminBusinessesPage({
         action="/admin/businesses"
         role="search"
         aria-label="Filter businesses"
-        className="grid gap-4 rounded-lg border p-4 sm:grid-cols-3"
+        className="grid gap-4 rounded-lg border bg-card p-4 sm:grid-cols-3"
       >
         <FormField id="q" label="Name or ABN">
           {(field) => (

@@ -43,7 +43,7 @@ export function ConsoleNav({
         <NavLink
           item={businessPostWork}
           onNavigate={onNavigate}
-          className="flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          className="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
         />
       ) : null}
       {groups.map((group, i) => (
@@ -60,8 +60,8 @@ export function ConsoleNav({
                   item={item}
                   exact={item.href === `/${area}`}
                   onNavigate={onNavigate}
-                  className="flex min-h-10 items-center gap-3 rounded-md px-3 text-sm text-sidebar-foreground hover:bg-muted"
-                  activeClassName="bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                  className="flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm text-sidebar-foreground hover:bg-accent/60"
+                  activeClassName="bg-sidebar-accent font-semibold text-sidebar-accent-foreground"
                 />
               </li>
             ))}

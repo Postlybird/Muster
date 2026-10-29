@@ -15,7 +15,7 @@ function Checkbox({
       data-slot="checkbox"
       className={cn(
         // 24px box inside a larger label gives a comfortable tap target.
-        "peer size-6 shrink-0 cursor-pointer rounded-[5px] border border-input bg-background shadow-xs transition-shadow outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
+        "peer size-6 shrink-0 cursor-pointer rounded-[5px] border border-input bg-card shadow-xs transition-shadow outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
         className,
       )}
       {...props}

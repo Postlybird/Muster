@@ -67,7 +67,7 @@ export default async function OutboxPage({
           name="to"
           defaultValue={to}
           placeholder="Filter by phone or email"
-          className="h-11 flex-1 rounded-md border border-input bg-background px-3 text-base"
+          className="h-11 flex-1 rounded-md border border-input bg-card px-3 text-base"
         />
         <button
           type="submit"

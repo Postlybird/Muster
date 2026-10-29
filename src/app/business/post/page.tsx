@@ -95,7 +95,7 @@ export default async function PostWorkPage() {
             {(drafts ?? []).map((draft) => (
               <li
                 key={draft.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4"
               >
                 <div>
                   <p className="font-medium">
@@ -184,7 +184,7 @@ export default async function PostWorkPage() {
             {(templates ?? []).map((template) => (
               <li
                 key={template.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4"
               >
                 <div className="flex items-start gap-3">
                   <FileText

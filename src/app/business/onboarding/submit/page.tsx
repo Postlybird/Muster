@@ -29,7 +29,7 @@ export default async function SubmitStepPage() {
       description="We'll review your business, usually within one business day."
     >
       <div className="max-w-xl space-y-6">
-        <ul className="divide-y rounded-lg border">
+        <ul className="divide-y rounded-lg border bg-card">
           {steps.map((step) => {
             const state = missing.has(step.key)
               ? "missing"

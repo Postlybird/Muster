@@ -401,7 +401,7 @@ export default async function WorkerReviewPage({
               return (
                 <li
                   key={ticket.id}
-                  className="grid gap-4 rounded-lg border p-4 md:grid-cols-2"
+                  className="grid gap-4 rounded-lg border bg-card p-4 md:grid-cols-2"
                 >
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2">

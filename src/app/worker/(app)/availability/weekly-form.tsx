@@ -164,7 +164,7 @@ export function WeeklyForm({
         ) : null}
       </fieldset>
 
-      <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+      <div className="flex items-start justify-between gap-4 rounded-lg border bg-card p-4">
         <Label htmlFor="urgent_opt_in" className="flex-col items-start gap-1">
           <span className="text-base">Urgent call-outs</span>
           <span className="font-normal text-muted-foreground">

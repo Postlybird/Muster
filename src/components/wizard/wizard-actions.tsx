@@ -25,7 +25,7 @@ export function WizardActions({
   secondary?: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-card/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-3 lg:max-w-none">
         {backHref ? (
           <Button asChild variant="outline" size="lg" className="shrink-0">

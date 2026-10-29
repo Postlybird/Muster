@@ -20,7 +20,7 @@ export function WorkerShell({
 }) {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="sticky top-(--banner-h) z-30 border-b bg-background/95 backdrop-blur">
+      <header className="sticky top-(--banner-h) z-30 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-4">
           <BrandMark href="/worker" />
           <WorkerMenu user={user} unread={unread} />

@@ -33,7 +33,10 @@ export default async function TeamStepPage() {
         {(invites ?? []).length > 0 ? (
           <ul className="space-y-2">
             {(invites ?? []).map((invite) => (
-              <li key={invite.id} className="rounded-lg border p-3 text-sm">
+              <li
+                key={invite.id}
+                className="rounded-lg border bg-card p-3 text-sm"
+              >
                 <span className="font-medium">{invite.invite_email}</span>
                 <span className="block text-muted-foreground">
                   {BUSINESS_ROLES[invite.role].label} · invite sent

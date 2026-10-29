@@ -69,7 +69,7 @@ export function TemplateForm({
         <h2 id="preview" className="text-lg font-semibold">
           Preview, with example details
         </h2>
-        <div className="space-y-1 rounded-lg border p-4">
+        <div className="space-y-1 rounded-lg border bg-card p-4">
           <p className="text-sm text-muted-foreground">
             {worker ? "By text" : "By email"}
           </p>
@@ -79,7 +79,7 @@ export function TemplateForm({
           </p>
         </div>
         {worker ? (
-          <div className="space-y-1 rounded-lg border p-4">
+          <div className="space-y-1 rounded-lg border bg-card p-4">
             <p className="text-sm text-muted-foreground">
               In the app and as a push notification (tapping it opens the link)
             </p>

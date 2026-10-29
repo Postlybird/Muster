@@ -35,7 +35,7 @@ export function ApproveForm({ items }: { items: HoursToApprove[] }) {
   });
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
-      <ul className="divide-y rounded-lg border">
+      <ul className="divide-y rounded-lg border bg-card">
         {items.map((item) => (
           <li key={item.id} className="flex items-start gap-3 p-4">
             <Checkbox

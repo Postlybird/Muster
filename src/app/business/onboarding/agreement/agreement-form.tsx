@@ -37,7 +37,7 @@ export function AgreementForm({
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
       <div className="space-y-1">
-        <div className="flex items-start gap-3 rounded-lg border p-3">
+        <div className="flex items-start gap-3 rounded-lg border bg-card p-3">
           <Checkbox
             id="accept"
             name="accept"

@@ -30,7 +30,7 @@ export function InvoiceLines({
 }) {
   return (
     <div className="space-y-4">
-      <ul className="divide-y rounded-lg border">
+      <ul className="divide-y rounded-lg border bg-card">
         {lines.map((line) => (
           <li
             key={line.line_id}

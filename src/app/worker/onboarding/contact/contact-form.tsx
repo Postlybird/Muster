@@ -44,7 +44,7 @@ const copy: Record<
 
 function Confirmed({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start gap-3 rounded-lg border p-4">
+    <div className="flex items-start gap-3 rounded-lg border bg-card p-4">
       <CheckCircle2
         className="mt-0.5 size-5 shrink-0 text-success"
         aria-hidden

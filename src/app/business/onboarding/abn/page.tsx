@@ -21,7 +21,7 @@ export default async function AbnStepPage() {
     >
       {business ? (
         <div className="max-w-xl space-y-6">
-          <dl className="space-y-3 rounded-lg border p-4 text-sm">
+          <dl className="space-y-3 rounded-lg border bg-card p-4 text-sm">
             <div className="grid grid-cols-[9rem_1fr] gap-2">
               <dt className="text-muted-foreground">ABN</dt>
               <dd className="font-medium">{formatAbn(business.abn)}</dd>

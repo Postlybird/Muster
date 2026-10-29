@@ -6,30 +6,33 @@
 /*
  * Design tokens. Brand colours come from src/config/brand.ts (set as
  * --brand-* on <html> in the root layout); the fallbacks below match it.
- * Every foreground/background pair meets WCAG 2.1 AA contrast.
+ * Every foreground/background pair meets WCAG 2.1 AA contrast, and field
+ * borders (--input) reach 3:1 on both the page and cards.
  */
 :root {
   /* Height of the demo-mode banner; sticky headers sit below it. */
   --banner-h: 0px;
-  --radius: 0.625rem;
+  --radius: 0.75rem;
 
-  --background: #ffffff;
-  --foreground: #1c1917;
+  /* A soft warm page, white cards and navy ink: calm in the sun on a phone. */
+  --background: #f6f5f1;
+  --foreground: #172033;
   --card: #ffffff;
-  --card-foreground: #1c1917;
+  --card-foreground: #172033;
   --popover: #ffffff;
-  --popover-foreground: #1c1917;
+  --popover-foreground: #172033;
 
-  --primary: var(--brand-primary, #0b5d57);
+  --primary: var(--brand-primary, #1b365d);
   --primary-foreground: var(--brand-primary-foreground, #ffffff);
-  --secondary: #f1f5f4;
-  --secondary-foreground: #1c1917;
-  --muted: #f4f4f2;
-  --muted-foreground: #57534e;
-  --accent: #ecf5f3;
-  --accent-foreground: #0b3f3b;
-  --highlight: var(--brand-accent, #f2b53a);
-  --highlight-foreground: var(--brand-accent-foreground, #1c1917);
+  --secondary: #edf1f7;
+  --secondary-foreground: #172033;
+  --muted: #efede8;
+  --muted-foreground: #556070;
+  --accent: #e8eef7;
+  --accent-foreground: #1b365d;
+  --highlight: var(--brand-accent, #f4a340);
+  --highlight-foreground: var(--brand-accent-foreground, #172033);
+  --highlight-soft: #fdebd6;
 
   --destructive: #b42318;
   --destructive-foreground: #ffffff;
@@ -41,19 +44,21 @@
   --info: #175cd3;
   --info-soft: #eff8ff;
 
-  --border: #e2e0dc;
-  --input: #8a847e;
-  --ring: #0b5d57;
+  --border: #e3e0d9;
+  --input: #7d8594;
+  --ring: #1b365d;
 
-  --sidebar: #f7f7f5;
-  --sidebar-foreground: #1c1917;
-  --sidebar-accent: #e8f1ef;
-  --sidebar-accent-foreground: #0b3f3b;
-  --sidebar-border: #e2e0dc;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #172033;
+  --sidebar-accent: #e8eef7;
+  --sidebar-accent-foreground: #1b365d;
+  --sidebar-border: #e3e0d9;
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans:
+    "Figtree Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --color-background: var(--background);
@@ -72,6 +77,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-highlight: var(--highlight);
   --color-highlight-foreground: var(--highlight-foreground);
+  --color-highlight-soft: var(--highlight-soft);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
@@ -94,6 +100,12 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+}
+
+@theme {
+  /* Soft, navy-tinted shadow for cards: present but quiet. */
+  --shadow-soft:
+    0 1px 2px rgb(23 32 51 / 0.04), 0 2px 10px -2px rgb(23 32 51 / 0.06);
 }
 
 @layer base {

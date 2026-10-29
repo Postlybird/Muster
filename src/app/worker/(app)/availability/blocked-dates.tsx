@@ -57,7 +57,7 @@ export function BlockedDates({
   return (
     <div className="space-y-4">
       {blocks.length > 0 ? (
-        <ul className="divide-y rounded-lg border">
+        <ul className="divide-y rounded-lg border bg-card">
           {blocks.map((block) => (
             <li
               key={block.id}

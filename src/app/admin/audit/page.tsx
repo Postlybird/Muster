@@ -154,7 +154,7 @@ export default async function AuditLogPage({
         action="/admin/audit"
         role="search"
         aria-label="Filter the audit log"
-        className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2 lg:grid-cols-3"
+        className="grid gap-4 rounded-lg border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3"
       >
         {filters.subject ? (
           <input type="hidden" name="subject" value={filters.subject} />

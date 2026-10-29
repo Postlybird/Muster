@@ -80,7 +80,7 @@ export default async function BusinessSettingsPage() {
           </h2>
           <StatusBadge status={businessStatuses[business.status]} />
         </div>
-        <dl className="space-y-2 rounded-lg border p-4">
+        <dl className="space-y-2 rounded-lg border bg-card p-4">
           <Row label="Legal name" value={business.legal_name} />
           <Row label="ABN" value={formatAbn(business.abn)} />
           <Row label="Business type" value={business.entity_type} />
@@ -128,7 +128,7 @@ export default async function BusinessSettingsPage() {
             }}
           />
         ) : (
-          <dl className="space-y-2 rounded-lg border p-4">
+          <dl className="space-y-2 rounded-lg border bg-card p-4">
             <Row label="Contact" value={business.billing_contact_name} />
             <Row
               label="Phone"
@@ -176,7 +176,7 @@ export default async function BusinessSettingsPage() {
                 {formatDate(latest.accepted_at)}
                 {acceptedBy}.
               </p>
-              <details className="rounded-md border">
+              <details className="rounded-md border bg-card">
                 <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-medium text-primary underline-offset-4 hover:underline">
                   Read the agreement
                 </summary>
@@ -202,7 +202,7 @@ export default async function BusinessSettingsPage() {
               </Alert>
               <ScrollBox
                 label={agreement.title}
-                className="max-h-96 rounded-lg border p-4"
+                className="max-h-96 rounded-lg border bg-card p-4"
               >
                 <Markdown>{agreement.body_md}</Markdown>
               </ScrollBox>

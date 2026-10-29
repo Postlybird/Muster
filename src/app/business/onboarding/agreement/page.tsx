@@ -40,7 +40,7 @@ export default async function AgreementStepPage() {
         <div className="max-w-2xl space-y-6">
           <ScrollBox
             label={agreement.title}
-            className="max-h-[28rem] rounded-lg border p-4"
+            className="max-h-[28rem] rounded-lg border bg-card p-4"
           >
             <h2 className="mb-3 font-semibold">
               {agreement.title}{" "}

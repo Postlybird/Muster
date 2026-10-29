@@ -24,7 +24,7 @@ export function AvailableNow({
   const [pending, startTransition] = useTransition();
 
   return (
-    <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+    <div className="flex items-start justify-between gap-4 rounded-lg border bg-card p-4">
       <Label htmlFor="available_now" className="flex-col items-start gap-1">
         <span className="text-base">Available now</span>
         <span className="font-normal text-muted-foreground">

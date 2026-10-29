@@ -1,22 +1,30 @@
 /**
- * Generates the app icons from the brand (first letter on the brand colour).
- * Run `npm run icons` after changing the name or colours in src/config/brand.ts.
+ * Generates the app icons from the logo mark and brand colours.
+ * Run `npm run icons` after changing src/config/logo.ts or the colours in
+ * src/config/brand.ts.
  */
 import { writeFileSync } from "node:fs";
 
 import { chromium } from "@playwright/test";
 
 import { brand } from "../src/config/brand";
+import { logo } from "../src/config/logo";
 
-const letter = brand.name.trim().charAt(0).toUpperCase();
-
-/** maskable icons keep the letter inside the central "safe zone". */
+/**
+ * Maskable icons fill the square and keep the mark inside the central
+ * "safe zone"; Apple rounds its own icons, so those are square too.
+ */
 function svg(size: number, { maskable = false, rounded = true } = {}): string {
-  const radius = rounded && !maskable ? size * 0.22 : 0;
-  const fontSize = size * (maskable ? 0.42 : 0.58);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <rect width="${size}" height="${size}" rx="${radius}" fill="${brand.colours.primary}"/>
-  <text x="50%" y="50%" dy="0.36em" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="${fontSize}" fill="${brand.colours.primaryForeground}">${letter}</text>
+  const radius = rounded && !maskable ? logo.radius : 0;
+  // Shrink the mark around the centre to fit a maskable icon's safe zone.
+  const scale = maskable ? 0.72 : 1;
+  const offset = 16 * (1 - scale);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="${logo.viewBox}">
+  <rect width="32" height="32" rx="${radius}" fill="${brand.colours.primary}"/>
+  <g transform="translate(${offset} ${offset}) scale(${scale})">
+    <path d="${logo.letter}" fill="none" stroke="${brand.colours.primaryForeground}" stroke-width="${logo.strokeWidth}" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${logo.dot.cx}" cy="${logo.dot.cy}" r="${logo.dot.r}" fill="${brand.colours.accent}"/>
+  </g>
 </svg>`;
 }
 

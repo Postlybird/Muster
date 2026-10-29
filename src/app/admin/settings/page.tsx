@@ -77,7 +77,7 @@ export default async function SettingsPage() {
       )}
       <section
         aria-labelledby="push"
-        className="space-y-3 rounded-lg border p-4"
+        className="space-y-3 rounded-lg border bg-card p-4"
       >
         <h2 id="push" className="text-lg font-semibold">
           Push notifications

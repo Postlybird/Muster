@@ -47,7 +47,7 @@ export default async function AgreementsPage() {
             <section
               key={kind}
               aria-labelledby={`kind-${kind}`}
-              className="space-y-3 rounded-xl border p-4"
+              className="space-y-3 rounded-xl border bg-card p-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -71,7 +71,7 @@ export default async function AgreementsPage() {
                   No versions yet.
                 </p>
               ) : (
-                <ul className="divide-y rounded-lg border">
+                <ul className="divide-y rounded-lg border bg-card">
                   {versions.map((version) => (
                     <li
                       key={version.id}

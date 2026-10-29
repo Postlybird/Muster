@@ -46,7 +46,7 @@ export default async function WorkerNotificationsPage() {
       />
       {unread.length > 0 ? <MarkRead ids={unread} action={markRead} /> : null}
       {messages?.length ? (
-        <ul className="divide-y rounded-lg border">
+        <ul className="divide-y rounded-lg border bg-card">
           {messages.map((message) => (
             <li key={message.id} className="space-y-1 p-4">
               <div className="flex flex-wrap items-center gap-2">

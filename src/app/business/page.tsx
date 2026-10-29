@@ -143,7 +143,7 @@ async function UpcomingShifts({ businessId }: { businessId: string }) {
       <h2 id="coming-up" className="text-lg font-semibold">
         Coming up
       </h2>
-      <ul className="divide-y rounded-lg border">
+      <ul className="divide-y rounded-lg border bg-card">
         {shifts.map((shift) => (
           <li key={shift.id}>
             <Link

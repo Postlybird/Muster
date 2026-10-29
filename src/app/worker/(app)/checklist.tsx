@@ -16,7 +16,7 @@ export type ChecklistItem = {
 /** The worker's verification checklist: each check, its status and what to do. */
 export function Checklist({ items }: { items: ChecklistItem[] }) {
   return (
-    <ul className="divide-y rounded-lg border">
+    <ul className="divide-y rounded-lg border bg-card">
       {items.map((item) => (
         <li key={item.title} className="space-y-1 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">

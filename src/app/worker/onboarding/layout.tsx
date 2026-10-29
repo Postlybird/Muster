@@ -7,7 +7,7 @@ export default function OnboardingLayout({
 }: LayoutProps<"/worker/onboarding">) {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="sticky top-(--banner-h) z-30 border-b bg-background/95 backdrop-blur">
+      <header className="sticky top-(--banner-h) z-30 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
           <BrandMark href="/worker" />
           <SignOutButton />

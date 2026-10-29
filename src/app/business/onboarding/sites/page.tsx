@@ -37,7 +37,7 @@ export default async function SitesStepPage() {
             {(sites ?? []).map((site) => (
               <li
                 key={site.id}
-                className="flex items-start gap-3 rounded-lg border p-3"
+                className="flex items-start gap-3 rounded-lg border bg-card p-3"
               >
                 <MapPin
                   className="mt-0.5 size-5 shrink-0 text-primary"

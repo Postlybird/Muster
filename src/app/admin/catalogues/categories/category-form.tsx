@@ -170,7 +170,7 @@ export function CategoryForm({
         </div>
       </fieldset>
 
-      <div className="space-y-4 rounded-lg border p-4">
+      <div className="space-y-4 rounded-lg border bg-card p-4">
         <div className="flex items-center justify-between gap-4">
           <Label
             htmlFor="police_check_required"

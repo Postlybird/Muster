@@ -26,7 +26,7 @@ export default async function SubmitPage() {
       description="Make sure everything's there, then send it to us to check."
     >
       <div className="max-w-xl space-y-6">
-        <ul className="divide-y rounded-lg border">
+        <ul className="divide-y rounded-lg border bg-card">
           {steps.map((step) => {
             const state = missing.has(step.key)
               ? "missing"

@@ -300,6 +300,11 @@ _Last updated: 28/10/2026_
   - **Core flows:** every flow in the brief has browser tests; `docs/testing.md` lists which. New in this step: favourite workers get their head start on new work.
   - Tests: 388 pgTAP, 364 unit and 208 browser tests passing, plus the acceptance run.
 
+- **New look** (owner's request, 29/10/2026):
+  - Navy and a soft hi-vis orange instead of green, on a calm off-white page with white cards, rounder corners and the friendlier Figtree font. Green now only marks things that are done or verified.
+  - A logo: a rounded "m" with an orange dot (the point in "muster point"), also on the app icons.
+  - A new home page: two clear doors ("I need workers", "I want work"), an example of a shift as workers see it, a four-step guide for businesses and for workers with how long each step takes, what we check and handle, the work we cover, quick answers, and a closing call to action.
+
 ## Next
 
 - **Owner:** set up Vercel (steps in the README), with a `CRON_SECRET` that also goes in GitHub as an Actions secret, then send the site address.
@@ -414,6 +419,7 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | The expiry checks run every hour, not nightly. Each warning and expiry still goes once, by date. | Brief §4.4 checks bookings again 24 hours before the start; running hourly checks each one close to that point. |
 | 28/10/2026 | Our team can take a worker off a booked shift. It doesn't count against their reliability, the business isn't charged, and the shift is offered to others. The worker is told why; the business is told without the reason. | The plan: admins decide about bookings at risk and the bookings of workers on hold. The reason may be about the worker's papers, which businesses never see. |
 | 28/10/2026 | An excused no-show is set aside like a booking our team cancelled, so it no longer counts towards reliability or a hold. Who reported it, and when, stays on record. | Brief §4.5: no-shows are reviewed by admin. |
+| 29/10/2026 | Navy (#1b365d) with a soft hi-vis orange accent, Figtree, and an "m." logo, replacing the green. Every colour pair still meets WCAG 2.1 AA. | The owner asked for a gentler, friendlier look in a darker blue, nothing that looks generated. Navy and orange echo workwear and hi-vis; the home page shows a real shift rather than stock art. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner

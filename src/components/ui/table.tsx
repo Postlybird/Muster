@@ -10,12 +10,20 @@ import { cn } from "@/lib/utils";
 function Table({
   className,
   label,
+  bare = false,
   ...props
-}: React.ComponentProps<"table"> & { label?: string }) {
+}: React.ComponentProps<"table"> & {
+  label?: string;
+  /** No frame of its own, for a table inside a card or panel. */
+  bare?: boolean;
+}) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      className={cn(
+        "relative w-full overflow-x-auto outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        !bare && "rounded-xl border bg-card shadow-soft",
+      )}
       {...(label ? { role: "region", "aria-label": label, tabIndex: 0 } : {})}
     >
       <table
@@ -78,7 +86,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+        "h-11 px-2 text-left align-middle font-medium whitespace-nowrap text-muted-foreground first:pl-4 last:pr-4 [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}
@@ -91,7 +99,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle [&:has([role=checkbox])]:pr-0",
+        "p-2 align-middle first:pl-4 last:pr-4 [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}

@@ -232,7 +232,7 @@ export function SettingsGroupForm({
       onSubmit={onSubmit}
       noValidate
       aria-labelledby={`group-${group}`}
-      className="space-y-4 rounded-xl border p-4 sm:p-6"
+      className="space-y-4 rounded-xl border bg-card p-4 sm:p-6"
     >
       <h2 id={`group-${group}`} className="text-lg font-semibold">
         {title}

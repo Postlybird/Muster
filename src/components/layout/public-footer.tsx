@@ -2,34 +2,65 @@ import Link from "next/link";
 
 import { brand } from "@/config/brand";
 
-const links = [
-  { href: "/faq", label: "FAQ" },
-  { href: "/privacy", label: "Privacy" },
-  { href: "/terms", label: "Terms" },
-  { href: "/contact", label: "Contact" },
+import { BrandMark } from "./brand-mark";
+
+const columns = [
+  {
+    title: "Businesses",
+    links: [
+      { href: "/login?as=business", label: "Hire workers" },
+      { href: "/#hire-workers", label: "How it works for businesses" },
+    ],
+  },
+  {
+    title: "Workers",
+    links: [
+      { href: "/login?as=worker", label: "Find work" },
+      { href: "/#find-work", label: "How it works for workers" },
+    ],
+  },
+  {
+    title: brand.name,
+    links: [
+      { href: "/faq", label: "Questions" },
+      { href: "/contact", label: "Contact" },
+      { href: "/privacy", label: "Privacy" },
+      { href: "/terms", label: "Terms" },
+    ],
+  },
 ];
 
 export function PublicFooter() {
   return (
-    <footer className="border-t bg-muted/40">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-8 text-sm sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-muted-foreground">
-          © {new Date().getFullYear()} {brand.name}. Labour hire for property
-          services and trades, {brand.launchCity}.
-        </p>
-        <nav aria-label="Footer">
-          <ul className="flex flex-wrap gap-x-4 gap-y-2">
-            {links.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="underline-offset-4 hover:underline"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+    <footer className="border-t bg-card">
+      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 text-sm md:grid-cols-[1.2fr_2fr]">
+        <div className="space-y-3">
+          <BrandMark />
+          <p className="max-w-xs text-muted-foreground">
+            Labour hire for restoration and cleaning, {brand.launchCity}.
+          </p>
+          <p className="text-muted-foreground">
+            © {new Date().getFullYear()} {brand.name}
+          </p>
+        </div>
+        <nav aria-label="Footer" className="grid gap-8 sm:grid-cols-3">
+          {columns.map((column) => (
+            <div key={column.title} className="space-y-3">
+              <h2 className="font-semibold text-foreground">{column.title}</h2>
+              <ul className="space-y-2">
+                {column.links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </nav>
       </div>
     </footer>

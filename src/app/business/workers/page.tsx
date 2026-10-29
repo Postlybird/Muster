@@ -69,7 +69,7 @@ function Section({
         </h2>
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
-      <ul className="divide-y rounded-lg border">
+      <ul className="divide-y rounded-lg border bg-card">
         {workers.map((worker) => (
           <li key={worker.worker_id} className="p-4">
             <WorkerCard

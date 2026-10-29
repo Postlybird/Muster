@@ -12,10 +12,11 @@ export const brand = {
   supportPhone: "+61 2 0000 0000",
   /** Hex colours. Each pair has been checked for WCAG 2.1 AA contrast. */
   colours: {
-    primary: "#0b5d57",
+    /** Navy, like workwear; the accent is a soft hi-vis orange. */
+    primary: "#1b365d",
     primaryForeground: "#ffffff",
-    accent: "#f2b53a",
-    accentForeground: "#1c1917",
+    accent: "#f4a340",
+    accentForeground: "#172033",
   },
 } as const;
 

@@ -148,12 +148,12 @@ export default async function ReviewStepPage({
                   : `${details.shifts.length} shifts`}{" "}
                 ({formatHours(estimate.totals.paidMinutes)} in all).
               </p>
-              <details className="rounded-md border">
+              <details className="rounded-md border bg-card">
                 <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-medium text-primary underline-offset-4 hover:underline">
                   How we worked this out
                 </summary>
                 <div className="space-y-2 border-t p-3">
-                  <Table label="Estimate by rate">
+                  <Table label="Estimate by rate" bare>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Rate</TableHead>

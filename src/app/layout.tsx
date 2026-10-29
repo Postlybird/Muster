@@ -1,5 +1,5 @@
+import "@fontsource-variable/figtree";
 import { GeistMono } from "geist/font/mono";
-import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
 
@@ -37,7 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en-AU"
-      className={`${GeistSans.variable} ${GeistMono.variable} h-full`}
+      className={`${GeistMono.variable} h-full`}
       style={brandVariables}
     >
       <body

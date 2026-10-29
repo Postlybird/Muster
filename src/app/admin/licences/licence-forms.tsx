@@ -53,7 +53,7 @@ export function JurisdictionRow({
       onSubmit={onSubmit}
       noValidate
       aria-label={values.name}
-      className="space-y-4 rounded-xl border p-4"
+      className="space-y-4 rounded-xl border bg-card p-4"
     >
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="font-semibold">{values.name}</h3>

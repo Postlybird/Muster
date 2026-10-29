@@ -39,7 +39,7 @@ export function ConsoleShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-(--banner-h) z-30 flex h-14 items-center gap-2 border-b bg-background/95 px-2 backdrop-blur lg:hidden">
+        <header className="sticky top-(--banner-h) z-30 flex h-14 items-center gap-2 border-b bg-card/95 px-2 backdrop-blur lg:hidden">
           <ConsoleMobileNav area={area} user={user} areaLabel={areaLabel} />
           <BrandMark href={`/${area}`} />
           <span className="text-sm text-muted-foreground">{areaLabel}</span>

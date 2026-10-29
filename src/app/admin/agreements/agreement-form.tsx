@@ -124,7 +124,7 @@ export function AgreementForm({ values }: { values: AgreementFormValues }) {
           </FormField>
         </TabsContent>
         <TabsContent value="preview">
-          <div className="rounded-lg border p-4">
+          <div className="rounded-lg border bg-card p-4">
             <Markdown>{body || "_Nothing written yet._"}</Markdown>
           </div>
         </TabsContent>

@@ -175,7 +175,7 @@ export default async function BusinessTimesheetsPage() {
           title="No hours yet"
           description="These shifts are over but we don't have the hours."
         >
-          <ul className="divide-y rounded-lg border">
+          <ul className="divide-y rounded-lg border bg-card">
             {missing.map((row) => {
               const day = formatDayShort(row.shift_starts_at);
               return (
@@ -260,7 +260,7 @@ function HoursList({
   unrated?: Set<string>;
 }) {
   return (
-    <ul className="divide-y rounded-lg border">
+    <ul className="divide-y rounded-lg border bg-card">
       {rows.map((row) => (
         <li key={row.timesheet_id}>
           <Link
