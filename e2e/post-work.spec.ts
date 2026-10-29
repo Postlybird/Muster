@@ -100,6 +100,26 @@ test("a manager posts a shift and sees the cost first", async ({ page }) => {
   await expectAccessible(page);
 });
 
+test("a business posts a past job again from its dashboard", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await acceptCurrentAgreement("Harbour Restoration");
+  await signInAsDemo(page, "Lisa Nguyen");
+  // Same work, site and crew: only the dates are left to choose.
+  await page
+    .getByRole("region", { name: "Post again" })
+    .getByRole("button", { name: /^Post again/ })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/\/when$/);
+  await page.getByRole("button", { name: "Save and continue" }).click();
+  await expect(page).toHaveURL(/\/review$/);
+  await page.getByRole("button", { name: "Post work" }).click();
+  await expect(page).toHaveURL(/\?posted=1$/);
+  await releaseTestJob(new URL(page.url()).pathname.split("/").at(-1)!);
+});
+
 test("a template posts a week of shifts in a few clicks", async ({ page }) => {
   test.setTimeout(90_000);
   await acceptCurrentAgreement("Harbour Restoration");

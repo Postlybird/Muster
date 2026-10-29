@@ -3,6 +3,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { EmptyState } from "@/components/empty-state";
+import {
+  PostShortcutList,
+  recentJobShortcuts,
+  templateShortcuts,
+} from "@/components/jobs/quick-post";
 import { PageHeader } from "@/components/page-header";
 import { WhatsNext } from "@/components/status/whats-next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -16,6 +21,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   businessName,
   businessSnapshot,
+  canManage,
   getMyBusiness,
   type BusinessRow,
 } from "@/server/businesses";
@@ -110,6 +116,29 @@ async function TimesheetsToApprove() {
         </Link>
       </AlertDescription>
     </Alert>
+  );
+}
+
+/** Templates and recent jobs, each posted again in a couple of taps. */
+async function PostAgain({ businessId }: { businessId: string }) {
+  const [templates, recent] = await Promise.all([
+    templateShortcuts(businessId),
+    recentJobShortcuts(businessId),
+  ]);
+  const shortcuts = [...templates, ...recent].slice(0, 5);
+  if (shortcuts.length === 0) return null;
+  return (
+    <section aria-labelledby="post-again" className="max-w-3xl space-y-3">
+      <div className="space-y-1">
+        <h2 id="post-again" className="text-lg font-semibold">
+          Post again
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Same work, site and crew as before. You only choose the dates.
+        </p>
+      </div>
+      <PostShortcutList shortcuts={shortcuts} />
+    </section>
   );
 }
 
@@ -255,6 +284,9 @@ export default async function BusinessDashboardPage({
             </Alert>
           ) : null}
           <TimesheetsToApprove />
+          {canPost && canManage(role) ? (
+            <PostAgain businessId={business.id} />
+          ) : null}
           <UpcomingShifts businessId={business.id} />
         </>
       ) : (

@@ -1,10 +1,14 @@
-import { Copy, FileText, Plus } from "lucide-react";
+import { FileText, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ActionButton } from "@/components/forms/action-button";
 import { ConfirmAction } from "@/components/forms/confirm-action";
+import {
+  PostShortcutList,
+  recentJobShortcuts,
+} from "@/components/jobs/quick-post";
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -17,7 +21,6 @@ import { postingProblem } from "@/server/jobs";
 import {
   discardDraft,
   removeTemplate,
-  repeatJob,
   startFromTemplate,
   startJob,
 } from "./actions";
@@ -54,36 +57,28 @@ export default async function PostWorkPage() {
   }
 
   const supabase = await createClient();
-  const [{ data: drafts }, { data: last }, { data: templates }] =
-    await Promise.all([
-      supabase
-        .from("jobs")
-        .select(JOB_SUMMARY)
-        .eq("business_id", business.id)
-        .eq("status", "draft")
-        .is("archived_at", null)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("jobs")
-        .select(JOB_SUMMARY)
-        .eq("business_id", business.id)
-        .neq("status", "draft")
-        .order("posted_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      supabase
-        .from("job_templates")
-        .select("id, name, jobs(headcount, categories(name), sites(name))")
-        .eq("business_id", business.id)
-        .is("archived_at", null)
-        .order("name"),
-    ]);
+  const [{ data: drafts }, { data: templates }, recent] = await Promise.all([
+    supabase
+      .from("jobs")
+      .select(JOB_SUMMARY)
+      .eq("business_id", business.id)
+      .eq("status", "draft")
+      .is("archived_at", null)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("job_templates")
+      .select("id, name, jobs(headcount, categories(name), sites(name))")
+      .eq("business_id", business.id)
+      .is("archived_at", null)
+      .order("name"),
+    recentJobShortcuts(business.id),
+  ]);
 
   return (
     <div className="max-w-3xl space-y-8">
       <PageHeader
         title="Post work"
-        description="Start from a template or your last job to post in under a minute."
+        description="Post something you've posted before in a few taps, or start a new job."
       />
 
       {(drafts ?? []).length > 0 ? (
@@ -140,38 +135,30 @@ export default async function PostWorkPage() {
         <h2 id="start" className="text-lg font-semibold">
           Start a job
         </h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {last ? (
-            <div className="space-y-3 rounded-xl border bg-card p-5">
-              <div className="flex items-center gap-2">
-                <Copy className="size-5 text-primary" aria-hidden />
-                <h3 className="font-semibold">Repeat your last job</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {jobTitle(last.categories?.name, last.sites?.name)},{" "}
-                {workersLabel(last.headcount)}. You choose the dates.
-              </p>
-              <ActionButton action={repeatJob.bind(null, last.id)}>
-                Repeat it
-              </ActionButton>
-            </div>
-          ) : null}
-          <div className="space-y-3 rounded-xl border bg-card p-5">
-            <div className="flex items-center gap-2">
-              <Plus className="size-5 text-primary" aria-hidden />
-              <h3 className="font-semibold">A new job</h3>
-            </div>
+        {recent.length > 0 ? (
+          <div className="space-y-2">
+            <h3 className="font-semibold">Post again</h3>
             <p className="text-sm text-muted-foreground">
-              Five short steps: what and where, when, tickets and instructions,
-              safety, then check the cost and post.
+              Same work, site and crew as before. You only choose the dates.
             </p>
-            <ActionButton
-              action={startJob}
-              variant={last ? "outline" : "default"}
-            >
-              Start
-            </ActionButton>
+            <PostShortcutList shortcuts={recent} />
           </div>
+        ) : null}
+        <div className="space-y-3 rounded-xl border bg-card p-5">
+          <div className="flex items-center gap-2">
+            <Plus className="size-5 text-primary" aria-hidden />
+            <h3 className="font-semibold">A new job</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Five short steps: what and where, when, tickets and instructions,
+            safety, then check the cost and post.
+          </p>
+          <ActionButton
+            action={startJob}
+            variant={recent.length > 0 ? "outline" : "default"}
+          >
+            Start
+          </ActionButton>
         </div>
       </section>
 

@@ -304,6 +304,7 @@ _Last updated: 28/10/2026_
   - Navy and a soft hi-vis orange instead of green, on a calm off-white page with white cards, rounder corners and the friendlier Figtree font. Green now only marks things that are done or verified.
   - A logo: a rounded "m" with an orange dot (the point in "muster point"), also on the app icons.
   - A new home page: two clear doors ("I need workers", "I want work"), an example of a shift as workers see it, a four-step guide for businesses and for workers with how long each step takes, what we check and handle, the work we cover, quick answers, and a closing call to action.
+  - Quicker posting: the business dashboard and Post work now offer "Post again" for the business's templates and its three most recent different jobs (work type, site and crew size). One tap copies the job, the dates are filled in, and it's "Save and continue", then "Post work".
 
 ## Next
 
