@@ -46,6 +46,17 @@ function bookingMonday(today: string): string {
   return day;
 }
 
+// On a failure, say where the browser was and what the page said, so a CI
+// log is enough to see what went wrong.
+test.afterEach(async ({ page }, testInfo) => {
+  if (testInfo.status === testInfo.expectedStatus) return;
+  const text = await page
+    .locator("body")
+    .innerText()
+    .catch(() => "(no page)");
+  console.log(`Failed at ${page.url()}\n${text.slice(0, 3000)}`);
+});
+
 test("Phase 1 acceptance: 10 workers and 3 businesses onboarded, 20 shifts filled and worked, then payroll and invoices", async ({
   page,
   browser,
