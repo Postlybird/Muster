@@ -1,9 +1,10 @@
-# Muster
+# Shifta
 
-On-demand labour hire for property services and trades. Businesses request
-workers for shifts; vetted workers pick up shifts from their phones. We are
-the labour hire provider. "Muster" is a working name, set in
-`src/config/brand.ts`.
+Staff today, not someday. On-demand labour hire for every industry:
+businesses book checked staff for shifts, and workers pick up shifts on their
+phones. We are the labour hire provider. The name, slogan and contact details
+are set in `src/config/brand.ts`. (The repository and the Supabase project
+`muster-dev` keep the earlier working name, Muster.)
 
 - **Spec:** [`BRIEF.md`](BRIEF.md)
 - **Approved plan:** [`docs/plan.md`](docs/plan.md)

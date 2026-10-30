@@ -44,7 +44,7 @@ test.describe("sign-in", () => {
     const email = randomEmail("owner");
     await page.goto("/login?as=business");
     await expect(
-      page.getByRole("heading", { name: "Hire workers" }),
+      page.getByRole("heading", { name: "Hire staff" }),
     ).toBeVisible();
 
     await page.getByLabel("Email address").fill(email);

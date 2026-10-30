@@ -16,7 +16,7 @@ const DEMO_VALUES: { [K in SettingKey]?: SettingValue<K> } = {
     abn: "00000000000",
     address: "1 Demo Street, Sydney NSW 2000",
     email: brand.supportEmail,
-    phone: brand.supportPhone,
+    phone: brand.supportPhone ?? "",
   },
   bank_details: {
     account_name: `${brand.name} Labour Hire (demo)`,

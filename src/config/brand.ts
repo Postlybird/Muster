@@ -1,15 +1,18 @@
 /**
- * Brand settings. "Muster" is a working name: change `name` here and it
- * changes everywhere in the app.
+ * Brand settings. Change `name` here and it changes everywhere in the app.
  */
 export const brand = {
-  name: "Muster",
-  tagline: "Vetted workers for restoration and cleaning, on demand.",
+  name: "Shifta",
+  /** The slogan, said to businesses. */
+  tagline: "Staff today, not someday.",
+  /** The same promise, said to workers. */
+  workerTagline: "Work today, not someday.",
   description:
-    "On-demand labour hire for property services and trades. Businesses book vetted workers for shifts; workers pick up shifts from their phone.",
+    "On-demand staff for every industry. Businesses book checked, job-ready staff in minutes; workers pick up shifts on their phone and get paid every week.",
   launchCity: "Sydney",
-  supportEmail: "support@muster.example",
-  supportPhone: "+61 2 0000 0000",
+  supportEmail: "support@shifta.com.au",
+  /** Shown only once we have a number to give out. */
+  supportPhone: null as string | null,
   /** Hex colours. Each pair has been checked for WCAG 2.1 AA contrast. */
   colours: {
     /** A friendly mid blue; the accent is a soft hi-vis orange. */
@@ -21,3 +24,10 @@ export const brand = {
 } as const;
 
 export type Brand = typeof brand;
+
+/** "Questions? Email … or call …", leaving out the phone until there is one. */
+export function contactLine(): string {
+  return brand.supportPhone
+    ? `Questions? Email ${brand.supportEmail} or call ${brand.supportPhone}.`
+    : `Questions? Email ${brand.supportEmail}.`;
+}

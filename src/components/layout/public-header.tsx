@@ -30,7 +30,7 @@ export function PublicHeader() {
             <Link href="/login">Sign in</Link>
           </Button>
           <Button asChild size="sm" className="hidden sm:inline-flex">
-            <Link href="/login?as=business">Hire workers</Link>
+            <Link href="/login?as=business">Hire staff</Link>
           </Button>
         </nav>
       </Container>

@@ -1,7 +1,7 @@
 import {
   CalendarDays,
   Check,
-  HardHat,
+  IdCard,
   MapPin,
   TriangleAlert,
   Wallet,
@@ -29,11 +29,9 @@ export function ShiftPreview() {
           <div className="space-y-3 rounded-2xl border bg-card p-4 shadow-soft">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="font-semibold text-foreground">
-                  Restoration labourer
-                </p>
+                <p className="font-semibold text-foreground">Bartender</p>
                 <p className="text-sm text-muted-foreground">
-                  Flood strip-out · 4 shifts
+                  Wedding reception · 2 shifts
                 </p>
               </div>
               <span className="rounded-full bg-highlight-soft px-2 py-0.5 text-xs font-semibold text-foreground">
@@ -43,35 +41,35 @@ export function ShiftPreview() {
             <ul className="space-y-1.5 text-sm text-foreground">
               <li className="flex items-center gap-2">
                 <CalendarDays className="size-4 text-muted-foreground" />
-                Tue to Fri, 7:00 am – 3:30 pm
+                Fri and Sat, 5:00 – 11:30 pm
               </li>
               <li className="flex items-center gap-2">
                 <MapPin className="size-4 text-muted-foreground" />
-                Granville, 6 km from home
+                The Rocks, 6 km from home
               </li>
               <li className="flex items-center gap-2">
                 <Wallet className="size-4 text-muted-foreground" />
-                $33.13 an hour, paid weekly
+                $36.40 an hour, paid weekly
               </li>
               <li className="flex items-center gap-2">
-                <HardHat className="size-4 text-muted-foreground" />
-                White Card
+                <IdCard className="size-4 text-muted-foreground" />
+                RSA
               </li>
               <li className="flex items-center gap-2 text-muted-foreground">
                 <TriangleAlert className="size-4" />
-                Mould, wet carpet, heavy lifting
+                Glassware, busy service
               </li>
             </ul>
             <div className="flex h-11 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
-              Accept 4 shifts
+              Accept 2 shifts
             </div>
           </div>
           <div className="rounded-2xl border bg-card/70 p-4">
             <p className="font-semibold text-foreground/70">
-              Commercial cleaner
+              Warehouse pick-packer
             </p>
             <p className="text-sm text-muted-foreground">
-              Parramatta · Sat, 6:00 – 10:00 am
+              Wetherill Park · Mon, 6:00 am – 2:30 pm
             </p>
           </div>
         </div>
@@ -83,7 +81,7 @@ export function ShiftPreview() {
         </span>
         <div className="text-sm">
           <p className="font-semibold text-foreground">Liam O. is booked</p>
-          <p className="text-muted-foreground">Tue, 7:00 am · White Card</p>
+          <p className="text-muted-foreground">Fri, 5:00 pm · RSA</p>
         </div>
       </div>
     </div>

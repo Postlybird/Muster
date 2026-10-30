@@ -98,7 +98,7 @@ export function ReviewForm({
           <FormField
             id="template_name"
             label="Template name"
-            hint="Like 'Flood strip-out crew'."
+            hint="Like 'Saturday wedding crew'."
             error={errors?.template_name}
           >
             {(props) => (

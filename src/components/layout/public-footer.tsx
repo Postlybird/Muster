@@ -9,8 +9,8 @@ const columns = [
   {
     title: "Businesses",
     links: [
-      { href: "/login?as=business", label: "Hire workers" },
-      { href: "/#hire-workers", label: "How it works for businesses" },
+      { href: "/login?as=business", label: "Hire staff" },
+      { href: "/#hire-staff", label: "How it works for businesses" },
     ],
   },
   {
@@ -37,8 +37,11 @@ export function PublicFooter() {
       <Container className="grid gap-10 py-14 text-sm md:grid-cols-[1.2fr_2fr]">
         <div className="space-y-3">
           <BrandMark tone="light" />
+          <p className="text-xl font-extrabold tracking-tight">
+            {brand.tagline}
+          </p>
           <p className="max-w-xs text-deep-foreground/80">
-            Labour hire for restoration and cleaning, {brand.launchCity}.
+            On-demand staff for every industry. Now in {brand.launchCity}.
           </p>
           <p className="text-deep-foreground/80">
             © {new Date().getFullYear()} {brand.name}

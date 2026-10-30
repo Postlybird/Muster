@@ -312,6 +312,12 @@ _Last updated: 30/10/2026_
   - Scheduled jobs: Supabase's scheduler calls the site every 10 minutes for reminders, finished shifts, possible no-shows, timesheets and held notifications; hourly for compliance; and early each morning for the pay run (it only runs on the run day). The site's address and `CRON_SECRET` are kept in the project's Vault, put there by the database workflow, which runs one job to check the site accepts the secret. Switched on 30/10/2026, once the owner added `CRON_SECRET` to GitHub: the live site ran the check job. Locally and in CI the jobs do nothing.
   - Tests: 399 pgTAP, 364 unit and 210 browser tests passing, plus the acceptance run.
 
+- **Shifta** (30/10/2026), once the owner chose the name and bought shifta.com.au:
+  - The name is Shifta and the slogan is "Staff today, not someday." (workers see "Work today, not someday."). The logo is a rounded "s" with the orange dot, on the app icons too.
+  - The website now speaks to every industry: hospitality, events, warehousing, manufacturing, retail, cleaning, construction, office work and restoration. The example shift on the home page is a bartender.
+  - The support email is support@shifta.com.au. The phone number is hidden until the owner gives us one.
+  - The demo company and bank names on demo invoices are renamed to Shifta, unless an admin has already changed them.
+
 ## Next
 
 - **Try it:** sign up on the live site as a worker or a business, with test details only (in demo mode anyone with the outbox link can see the codes). Codes appear at `/dev/outbox`.
@@ -425,11 +431,12 @@ _Last updated: 30/10/2026_
 | 30/10/2026 | A lighter blue (#1d68cf) with deep blue (#123a6e) for headlines and dark bands. Menus are always on show: sidebars from tablet width, and on phones bottom tabs plus a visible row of the other pages. The public site is full screen. | The owner asked for a friendlier, lighter blue, menus that are always open when signed in, and a full-screen site with a big brand presence, like Sidekicker. A sidebar can't stay open on a phone, so phones show every page as tabs or a row instead of a menu button. |
 | 30/10/2026 | The hosted project's sign-in settings live in their own file, `deploy/muster-dev/supabase/config.toml`, not the local `supabase/config.toml`. | `supabase config push` changes every setting the file declares. The local file also sets database pool sizes, storage and test-friendly rate limits that the hosted project shouldn't take. |
 | 30/10/2026 | Scheduled jobs run on Supabase's scheduler (pg_cron), which calls the site with pg_net. The site's address and `CRON_SECRET` are in Vault, copied there from GitHub by the database workflow. | Free, and runs every 10 minutes (Vercel's free plan runs jobs once a day; GitHub's scheduler is often late). Nobody has to handle the secret. Supabase's pg_net lets the API roles call its functions, which our database role can't take back; they're still out of reach of the website and API, as on every Supabase project with webhooks. |
+| 30/10/2026 | The business is **Shifta** (shifta.com.au). Slogan: "Staff today, not someday." The repository and the Supabase project keep the working name Muster. | The owner's choice: short, memorable, a made-up word they can own on Google and as a trade mark. Renaming the infrastructure would only add risk. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
 
-- **The business name.** "Muster" is a working name (it lives only in `src/config/brand.ts`). The owner is weighing others, such as Shifta. The name must suit any industry: the business will grow beyond restoration and cleaning. Work types, tickets and rates are already set up in Admin, so a new industry is mostly data plus the website's wording.
+- **Contact phone number.** The contact page and messages show only the email until we have a number.
 - **The 10 questions in `docs/plan.md`.** Phase 1 uses our recommendations. Tell us if any should change.
 - **How quickly will new workers be checked?** The app tells workers "usually within two business days". Change it if that's not realistic.
 - **Employment Hero timesheet import template.** The payroll file uses draft columns until we have it.

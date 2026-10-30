@@ -6,7 +6,7 @@ test("the landing page shows both paths and how each works", async ({
   page,
 }) => {
   await page.goto("/");
-  for (const path of ["Find work", "Hire workers"]) {
+  for (const path of ["Find work", "Hire staff"]) {
     await expect(
       page.getByRole("region", { name: path }).getByRole("listitem"),
     ).toHaveCount(4);

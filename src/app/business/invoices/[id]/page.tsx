@@ -41,7 +41,7 @@ export default async function BusinessInvoicePage({
   const contact = [
     settings.company_details.email || brand.supportEmail,
     settings.company_details.phone || brand.supportPhone,
-  ];
+  ].filter((item): item is string => !!item);
 
   return (
     <div className="max-w-3xl space-y-6">

@@ -1,4 +1,4 @@
-import { brand } from "./brand";
+import { brand, contactLine } from "./brand";
 
 /**
  * Every message we send people (brief §5). This registry is the source of
@@ -128,7 +128,7 @@ function define<V extends Record<string, string>>(
 export const SHARED_VALUES = {
   brand: brand.name,
   link: "https://example.com/worker/shifts/…",
-  contact: `Questions? Email ${brand.supportEmail} or call ${brand.supportPhone}.`,
+  contact: contactLine(),
 } as const;
 
 export const TEMPLATES = {
@@ -646,7 +646,7 @@ export const TEMPLATES = {
       total: "$429.39",
       gst: "$39.04",
       due: "12/11/2026",
-      account_name: "Muster Labour Hire",
+      account_name: "Shifta Labour Hire",
       bsb: "062-000",
       account_number: "12345678",
       questions: "Questions about it? Contact us at accounts@example.com.",

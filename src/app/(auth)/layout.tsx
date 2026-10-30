@@ -4,7 +4,7 @@ import { BrandMark } from "@/components/layout/brand-mark";
 import { brand } from "@/config/brand";
 
 const POINTS = [
-  "Checked, ticketed workers for restoration and cleaning",
+  "Checked, job-ready staff for every industry",
   "Shifts posted in about a minute, picked up on a phone",
   "No passwords: we text or email you a code",
 ];
@@ -20,7 +20,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         <BrandMark tone="light" />
         <div className="space-y-8">
           <p className="text-5xl leading-[1.05] font-extrabold tracking-tight text-balance xl:text-6xl">
-            The right people on site, when you need them.
+            {brand.tagline}
           </p>
           <ul className="space-y-3 text-lg">
             {POINTS.map((point) => (
@@ -35,7 +35,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           </ul>
         </div>
         <p className="text-deep-foreground/80">
-          {brand.launchCity} · Labour hire for restoration and cleaning
+          On-demand staff for every industry · Now in {brand.launchCity}
         </p>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">

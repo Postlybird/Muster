@@ -13,7 +13,7 @@ const event = {
 
 describe("calendar files", () => {
   const ics = toIcs([event], {
-    productName: "Muster",
+    productName: "Shifta",
     now: new Date("2026-10-28T00:00:00Z"),
   });
   const lines = ics.split("\r\n");
@@ -38,7 +38,7 @@ describe("calendar files", () => {
 
   it("folds long lines and ends every line properly", () => {
     const long = toIcs([{ ...event, description: "é".repeat(100) }], {
-      productName: "Muster",
+      productName: "Shifta",
     });
     for (const line of long.split("\r\n")) {
       expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75);

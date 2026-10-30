@@ -28,7 +28,7 @@ const copy = {
       "Sign in, or create your worker account. It takes about 5 minutes to get set up.",
   },
   business: {
-    title: "Hire workers",
+    title: "Hire staff",
     description: "Sign in, or create an account for your business.",
   },
   default: {

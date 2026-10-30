@@ -3,7 +3,7 @@ import {
   BadgeCheck,
   BriefcaseBusiness,
   Clock3,
-  HardHat,
+  IdCard,
   ShieldCheck,
   Smartphone,
   Wallet,
@@ -26,12 +26,12 @@ const BUSINESS_STEPS: Step[] = [
   },
   {
     title: "Post the shift",
-    text: "Where, when, how many people, and any hazards. You see the cost before you post. Next time, repeat it in a couple of taps.",
+    text: "Where, when, how many people and what they'll do. You see the cost before you post. Next time, repeat it in a couple of taps.",
     time: "About a minute",
   },
   {
-    title: "Get checked workers",
-    text: "Choose from the people who apply, or let the first qualified workers book. Urgent job? We text workers nearby straight away.",
+    title: "Get checked staff",
+    text: "Choose from the people who apply, or let the first qualified workers book. Short notice? We text available workers nearby straight away.",
     time: "As soon as you post",
   },
   {
@@ -59,7 +59,7 @@ const WORKER_STEPS: Step[] = [
   },
   {
     title: "Clock in, get paid weekly",
-    text: "Clock in and out on site with your phone. You're our casual employee, so we pay your wages and super every week.",
+    text: "Clock in and out with your phone. You're our casual employee, so we pay your wages and super every week.",
     time: "Every week",
   },
 ];
@@ -71,9 +71,9 @@ const PROMISES = [
     text: "Photo ID, right to work and tickets are checked before anyone's offered work, and we keep an eye on expiry dates.",
   },
   {
-    icon: HardHat,
+    icon: IdCard,
     title: "The right tickets for the job",
-    text: "Each job lists what it needs, like a White Card or asbestos awareness. Only workers who hold them can take it.",
+    text: "Each job lists what it needs, like an RSA, a White Card or a forklift licence. Only workers who hold them can take it.",
   },
   {
     icon: Wallet,
@@ -87,15 +87,16 @@ const PROMISES = [
   },
 ];
 
-const WORK_TYPES = [
-  "Flood and storm clean-up",
-  "Water damage and drying",
-  "Mould remediation",
-  "Fire and smoke clean-up",
-  "Strip-out and make-safe",
-  "Contents pack-out",
-  "Carpet cleaning",
-  "Commercial cleaning",
+const INDUSTRIES = [
+  "Hospitality",
+  "Events",
+  "Warehousing and logistics",
+  "Manufacturing",
+  "Retail",
+  "Cleaning",
+  "Construction and labouring",
+  "Office and admin",
+  "Restoration",
 ];
 
 const QUICK_ANSWERS = [
@@ -107,7 +108,7 @@ const QUICK_ANSWERS = [
   {
     question: "How quickly can I get someone?",
     answer:
-      "Your shift goes to matching workers as soon as you post it. For urgent call-outs we also text workers nearby who take short-notice work.",
+      "Your shift goes to matching workers as soon as you post it. For short-notice shifts we also text workers nearby who take last-minute work.",
   },
   {
     question: "Who employs the workers?",
@@ -117,7 +118,7 @@ const QUICK_ANSWERS = [
   {
     question: "What do I need to start working?",
     answer:
-      "The right to work in Australia, photo ID, and the tickets for the work you want, like a White Card. Some jobs also need a police check.",
+      "The right to work in Australia, photo ID, and any tickets the work needs, like an RSA or a White Card. Some jobs also need a police check.",
   },
 ];
 
@@ -225,25 +226,26 @@ export default function HomePage() {
                 className="size-2.5 rounded-full bg-highlight"
                 aria-hidden
               />
-              {brand.launchCity} · Restoration and cleaning
+              Now in {brand.launchCity} · Every industry
             </p>
             <h1
               id="hero-title"
               className="max-w-3xl text-5xl leading-[1.02] font-extrabold tracking-tight text-balance text-deep sm:text-6xl xl:text-7xl"
             >
-              The right people on site, when you need them.
+              {brand.tagline}
             </h1>
             <p className="max-w-2xl text-xl text-muted-foreground">
-              {brand.name} is labour hire for restoration and cleaning work.
-              Businesses post a shift in about a minute. Workers pick the shifts
-              that suit them and get paid every week.
+              {brand.name} finds checked, job-ready staff for any business, from
+              cafés and warehouses to events, offices and building sites. Post a
+              shift in about a minute. Workers pick the shifts that suit them
+              and get paid every week.
             </p>
             <div className="grid max-w-3xl gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-5 rounded-3xl bg-primary p-6 text-primary-foreground shadow-soft">
                 <div className="space-y-1.5">
-                  <h2 className="text-2xl font-bold">I need workers</h2>
+                  <h2 className="text-2xl font-bold">I need staff</h2>
                   <p className="text-primary-foreground">
-                    Post a shift in about a minute. Checked, ticketed workers.
+                    Post a shift in about a minute. Checked, job-ready people.
                   </p>
                 </div>
                 <Button
@@ -252,7 +254,7 @@ export default function HomePage() {
                   className="mt-auto bg-primary-foreground text-primary hover:bg-primary-foreground/90"
                 >
                   <Link href="/login?as=business">
-                    Hire workers
+                    Hire staff
                     <ArrowRight aria-hidden />
                   </Link>
                 </Button>
@@ -263,7 +265,8 @@ export default function HomePage() {
                     I want work
                   </h2>
                   <p className="text-muted-foreground">
-                    Sign up on your phone in about 5 minutes. Pick your shifts.
+                    {brand.workerTagline} Sign up on your phone in about 5
+                    minutes.
                   </p>
                 </div>
                 <Button asChild size="lg" className="mt-auto">
@@ -300,10 +303,10 @@ export default function HomePage() {
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
             <StepList
-              id="hire-workers"
+              id="hire-staff"
               audience="For businesses"
-              title="Hire workers"
-              intro="Checked workers for restoration, cleaning and make-safe jobs, for a shift, a week or an urgent call-out."
+              title="Hire staff"
+              intro="Checked, job-ready people for one shift, a busy week or a last-minute gap, in any industry."
               steps={BUSINESS_STEPS}
               icon={BriefcaseBusiness}
               tone="deep"
@@ -321,7 +324,7 @@ export default function HomePage() {
               id="find-work"
               audience="For workers"
               title="Find work"
-              intro={`Restoration, cleaning and labouring shifts around ${brand.launchCity}, on your phone.`}
+              intro={`Shifts in hospitality, events, warehousing, retail, cleaning and more, around ${brand.launchCity}, on your phone.`}
               steps={WORKER_STEPS}
               icon={Smartphone}
               tone="light"
@@ -349,9 +352,8 @@ export default function HomePage() {
               Less chasing. More work done.
             </h2>
             <p className="text-xl text-deep-foreground/85">
-              No ringing around agencies, no paperwork for each new face on
-              site. We do the checking and the employing, so you can get on with
-              the job.
+              No ringing around agencies, no paperwork for each new face. We do
+              the checking and the employing, so you can get on with business.
             </p>
           </div>
           <ul className="grid gap-x-10 gap-y-10 sm:grid-cols-2">
@@ -382,21 +384,20 @@ export default function HomePage() {
               id="work-title"
               className="text-4xl font-extrabold tracking-tight text-balance text-deep sm:text-5xl"
             >
-              The work we cover
+              Staff for every industry
             </h2>
             <p className="text-xl text-muted-foreground">
-              Restoration and cleaning work across {brand.launchCity}, from a
-              single shift to a week-long job or an urgent call-out after a
-              storm.
+              One app for the shifts every business has to fill, from a single
+              shift to a busy season.
             </p>
           </div>
           <ul className="flex flex-wrap gap-3">
-            {WORK_TYPES.map((work) => (
+            {INDUSTRIES.map((industry) => (
               <li
-                key={work}
+                key={industry}
                 className="rounded-full border bg-card px-5 py-2.5 text-lg font-medium text-foreground shadow-soft"
               >
-                {work}
+                {industry}
               </li>
             ))}
           </ul>
@@ -447,7 +448,7 @@ export default function HomePage() {
               id="start-title"
               className="text-4xl font-extrabold tracking-tight text-balance sm:text-5xl"
             >
-              Got a job coming up?
+              Need staff this week?
             </h2>
             <p className="text-xl text-primary-foreground">
               Post it now and see who&apos;s available. Questions first?{" "}

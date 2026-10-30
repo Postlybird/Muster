@@ -27,18 +27,20 @@ export default function ContactPage() {
               {brand.supportEmail}
             </a>
           </li>
-          <li className="space-y-2 rounded-3xl border bg-card p-7 shadow-soft">
-            <h2 className="flex items-center gap-2 text-xl font-bold">
-              <Phone className="size-5 text-primary" aria-hidden />
-              Phone
-            </h2>
-            <a
-              href={`tel:${brand.supportPhone.replace(/\s/g, "")}`}
-              className="text-lg text-primary underline underline-offset-4 hover:no-underline"
-            >
-              {brand.supportPhone}
-            </a>
-          </li>
+          {brand.supportPhone ? (
+            <li className="space-y-2 rounded-3xl border bg-card p-7 shadow-soft">
+              <h2 className="flex items-center gap-2 text-xl font-bold">
+                <Phone className="size-5 text-primary" aria-hidden />
+                Phone
+              </h2>
+              <a
+                href={`tel:${brand.supportPhone.replace(/\s/g, "")}`}
+                className="text-lg text-primary underline underline-offset-4 hover:no-underline"
+              >
+                {brand.supportPhone}
+              </a>
+            </li>
+          ) : null}
         </ul>
       </Container>
     </main>

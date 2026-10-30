@@ -5,7 +5,7 @@ import { cache } from "react";
 import { getEmailSender, type EmailAttachment } from "@/adapters/email";
 import { getPushSender } from "@/adapters/push";
 import { getSmsSender } from "@/adapters/sms";
-import { brand } from "@/config/brand";
+import { brand, contactLine } from "@/config/brand";
 import {
   NOTIFICATION_CATEGORIES,
   TEMPLATES,
@@ -49,10 +49,6 @@ export async function templateText(
 ): Promise<{ title: string; body: string }> {
   const override = (await loadOverrides()).get(key);
   return override ?? { title: TEMPLATES[key].title, body: TEMPLATES[key].body };
-}
-
-function contactLine(): string {
-  return `Questions? Email ${brand.supportEmail} or call ${brand.supportPhone}.`;
 }
 
 async function render<K extends TemplateKey>(

@@ -70,7 +70,7 @@ test.describe("admin agreements and licences", () => {
     await page.getByRole("option", { name: "QLD" }).click();
     const number = `LHL-${Date.now()}`;
     await form.getByLabel("Licence number").fill(number);
-    await form.getByLabel("Licence holder").fill("Muster Labour Hire Pty Ltd");
+    await form.getByLabel("Licence holder").fill("Shifta Labour Hire Pty Ltd");
     await form.getByLabel("Expires").fill("2030-12-31");
     await form.getByRole("button", { name: "Add licence" }).click();
     await expect(page.getByText("Licence added")).toBeVisible();
