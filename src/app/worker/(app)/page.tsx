@@ -145,7 +145,7 @@ async function verificationItems(worker: WorkerRow): Promise<ChecklistItem[]> {
       .select("status, rejection_reason")
       .eq("worker_id", worker.id)
       .maybeSingle(),
-    loadTickets(worker.id),
+    loadTickets(worker.id, worker.home_state),
   ]);
 
   const items: ChecklistItem[] = [

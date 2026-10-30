@@ -20,6 +20,8 @@ export async function seedCatalogues(client: SeedClient) {
     needs_document: true,
     verification_method: c.verification ?? "manual",
     sort_order: (i + 1) * 10,
+    state: c.state ?? null,
+    family: c.family ?? null,
   }));
   const credentials = check(
     await client

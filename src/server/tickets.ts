@@ -7,6 +7,7 @@ import {
   type TicketSummary,
 } from "@/domain/tickets";
 import { sydneyDateKey } from "@/lib/format";
+import { heldInState, ticketForState } from "@/lib/state-tickets";
 import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import { getAllSettings } from "@/server/settings";
@@ -21,6 +22,8 @@ export type TicketType = Pick<
   | "has_number"
   | "has_expiry"
   | "needs_document"
+  | "state"
+  | "family"
 >;
 
 export type TicketRow = {
@@ -30,8 +33,12 @@ export type TicketRow = {
   summary: TicketSummary;
 };
 
-/** Every ticket type with where this worker stands, for the tickets step. */
-export async function loadTickets(workerId: string) {
+/**
+ * Every ticket type with where this worker stands, for the tickets step.
+ * Tickets issued state by state are their home state's version, plus any
+ * other state's they've added.
+ */
+export async function loadTickets(workerId: string, homeState: string) {
   const supabase = await createClient();
   const today = sydneyDateKey(new Date());
   const settings = await getAllSettings();
@@ -41,7 +48,7 @@ export async function loadTickets(workerId: string) {
       supabase
         .from("credential_types")
         .select(
-          "id, code, name, description, kind, has_number, has_expiry, needs_document",
+          "id, code, name, description, kind, has_number, has_expiry, needs_document, state, family",
         )
         .eq("active", true)
         .is("archived_at", null)
@@ -62,6 +69,7 @@ export async function loadTickets(workerId: string) {
         .is("archived_at", null),
     ]);
 
+  const catalogue = types ?? [];
   const neededFor = new Map<string, string[]>();
   const policeNeededFor: string[] = [];
   for (const row of categories ?? []) {
@@ -69,14 +77,20 @@ export async function loadTickets(workerId: string) {
     if (!category) continue;
     if (category.police_check_required) policeNeededFor.push(category.name);
     for (const link of category.category_credentials) {
-      neededFor.set(link.credential_type_id, [
-        ...(neededFor.get(link.credential_type_id) ?? []),
-        category.name,
-      ]);
+      // The worker's state's version of it.
+      const id = ticketForState(link.credential_type_id, homeState, catalogue);
+      neededFor.set(id, [...(neededFor.get(id) ?? []), category.name]);
     }
   }
+  const held = new Set((records ?? []).map((r) => r.credential_type_id));
 
-  const rows: TicketRow[] = (types ?? []).map((type) => {
+  const shown = catalogue.filter(
+    (type) =>
+      heldInState(type, homeState) ||
+      held.has(type.id) ||
+      neededFor.has(type.id),
+  );
+  const rows: TicketRow[] = shown.map((type) => {
     const isPolice = type.kind === "police_check";
     const mine: TicketRecord[] = (records ?? [])
       .filter((r) => r.credential_type_id === type.id)

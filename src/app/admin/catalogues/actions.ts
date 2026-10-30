@@ -183,17 +183,26 @@ async function syncCategoryLinks(
 // Tickets (credential types)
 // ---------------------------------------------------------------------------
 
-const ticketSchema = z.object({
-  name: z.string().trim().min(1, "Enter a name").max(80),
-  description: z.string().trim().max(500),
-  kind: z.enum(["ticket", "licence", "police_check", "wwcc"]),
-  issuer: z.string().trim().max(120).nullable(),
-  has_number: z.boolean(),
-  has_expiry: z.boolean(),
-  needs_document: z.boolean(),
-  verification_method: z.enum(["manual", "register_check", "provider_api"]),
-  active: z.boolean(),
-});
+const ticketSchema = z
+  .object({
+    name: z.string().trim().min(1, "Enter a name").max(80),
+    description: z.string().trim().max(500),
+    kind: z.enum(["ticket", "licence", "police_check", "wwcc"]),
+    issuer: z.string().trim().max(120).nullable(),
+    state: z
+      .enum(["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"])
+      .nullable(),
+    family: z.string().trim().max(80).nullable(),
+    has_number: z.boolean(),
+    has_expiry: z.boolean(),
+    needs_document: z.boolean(),
+    verification_method: z.enum(["manual", "register_check", "provider_api"]),
+    active: z.boolean(),
+  })
+  .refine((ticket) => !ticket.family || ticket.state, {
+    path: ["state"],
+    message: "Choose the state that issues this version",
+  });
 
 export async function saveTicket(
   id: string | null,
@@ -206,6 +215,8 @@ export async function saveTicket(
     description: formData.get("description") ?? "",
     kind: formData.get("kind"),
     issuer: optionalText(formData.get("issuer")),
+    state: formData.get("state") === "anywhere" ? null : formData.get("state"),
+    family: optionalText(formData.get("family")),
     has_number: formBoolean(formData.get("has_number")),
     has_expiry: formBoolean(formData.get("has_expiry")),
     needs_document: formBoolean(formData.get("needs_document")),
@@ -213,6 +224,13 @@ export async function saveTicket(
     active: formBoolean(formData.get("active")),
   });
   if (!parsed.success) return invalid(parsed.error);
+  // A state has one current version of each ticket.
+  const refused = (error: { code: string; message: string }) =>
+    error.code === "23505" && error.message.includes("family_state")
+      ? failure("Check the highlighted fields.", {
+          state: ["That state already has a version of this ticket"],
+        })
+      : failure(`Couldn't save: ${error.message}`);
 
   const supabase = await createClient();
   if (id) {
@@ -220,7 +238,7 @@ export async function saveTicket(
       .from("credential_types")
       .update(parsed.data)
       .eq("id", id);
-    if (error) return failure(`Couldn't save: ${error.message}`);
+    if (error) return refused(error);
     revalidatePath("/admin/catalogues/tickets");
     return success("Ticket saved");
   }
@@ -231,7 +249,7 @@ export async function saveTicket(
     .insert({ ...parsed.data, code })
     .select("id")
     .single();
-  if (error) return failure(`Couldn't save: ${error.message}`);
+  if (error) return refused(error);
   revalidatePath("/admin/catalogues/tickets");
   redirect(`/admin/catalogues/tickets/${data.id}?saved=1`);
 }

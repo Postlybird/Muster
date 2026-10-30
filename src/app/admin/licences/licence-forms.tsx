@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { ActionFeedback } from "@/components/forms/action-feedback";
 import { FormField } from "@/components/forms/form-field";
 import { SubmitButton } from "@/components/forms/submit-button";
@@ -40,9 +42,12 @@ type JurisdictionValues = {
 export function JurisdictionRow({
   values,
   licensed,
+  holidays,
 }: {
   values: JurisdictionValues;
   licensed: boolean;
+  /** Public holidays on file for the next 12 months. */
+  holidays: number;
 }) {
   const { state, onSubmit, pending } = useServerForm(
     saveJurisdiction.bind(null, values.code),
@@ -82,7 +87,8 @@ export function JurisdictionRow({
           <span className="text-sm font-normal text-muted-foreground">
             Businesses here can post work. Turn on once we have workers&apos;
             compensation cover here
-            {values.licence_required ? " and a current licence" : ""}.
+            {values.licence_required ? ", a current licence" : ""} and its
+            public holidays on file.
           </span>
         </Label>
         <Switch
@@ -95,6 +101,25 @@ export function JurisdictionRow({
         <p className="text-sm font-medium text-destructive">
           Open, but jobs here stay blocked until a current licence is recorded
           above.
+        </p>
+      ) : null}
+      <p className="text-sm text-muted-foreground">
+        {holidays === 1
+          ? "1 public holiday"
+          : `${holidays === 0 ? "No" : holidays} public holidays`}{" "}
+        on file for the next 12 months (
+        <Link
+          href="/admin/rates/holidays"
+          className="underline underline-offset-4"
+        >
+          public holidays
+        </Link>
+        ).
+      </p>
+      {values.open_for_work && holidays === 0 ? (
+        <p className="text-sm font-medium text-destructive">
+          Open, but shifts here are paid without public holiday rates until its
+          holidays are entered, from the state&apos;s official list.
         </p>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-3">

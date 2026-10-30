@@ -31,7 +31,7 @@ export const listIndustries = cache(async (): Promise<PublicIndustry[]> => {
   const { data, error } = await supabase
     .from("industries")
     .select(
-      "code, name, summary, description, icon, categories(name, description, sort_order, active, archived_at, police_check_required, category_credentials(credential_types(name, sort_order, active)))",
+      "code, name, summary, description, icon, categories(name, description, sort_order, active, archived_at, police_check_required, category_credentials(credential_types(name, family, sort_order, active)))",
     )
     .eq("active", true)
     .is("archived_at", null)

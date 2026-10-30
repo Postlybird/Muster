@@ -85,7 +85,7 @@ export default async function ProfilePage() {
         .from("availability_weekly")
         .select("weekday, start_time, end_time")
         .eq("worker_id", worker.id),
-      loadTickets(worker.id),
+      loadTickets(worker.id, worker.home_state),
     ]);
   const name = [worker.legal_first_name, worker.legal_last_name]
     .filter(Boolean)

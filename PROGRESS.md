@@ -334,11 +334,13 @@ _Last updated: 30/10/2026_
   - Pricing (night, weekend and holiday hours), matching, timesheet costing and pay runs already followed the site's own state and time zone.
   - Times now follow the site too: a Perth shift reads 7:00 am wherever it appears (shift cards and pages, clocking in and out, bookings, reminders and urgent texts, timesheets, invoice lines and the payroll file), and hours a business or our team types in are read in the site's time. Our team's screens say "(Perth time)" where it isn't Sydney's. A worker's quiet hours and availability follow the state they live in.
   - The website says Australia-wide throughout. A Locations page and a page for each of 11 cities (the capitals, the Gold Coast, Newcastle and Wollongong) show "Open now" or "Coming soon", straight from the admin switch. Coming-soon cities invite businesses to get their account ready and workers to sign up early. The sitemap lists them.
-  - Tests: 414 pgTAP, 372 unit and 224 browser tests passing, plus the acceptance run.
+  - Tickets each state issues itself, which don't carry across borders (the RSA, working with children checks and traffic control), now have a version for every state, such as RSA (Victoria), Blue Card (Queensland) and Ochre Card (Northern Territory). A worker is asked for their home state's version, and work at a site asks for its state's; the website names them by what they have in common ("Responsible Service of Alcohol (RSA)"). Admins manage the versions in Admin → Catalogues → Tickets ("Accepted in" and "Same ticket in other states"). Issuers and expiry rules are filled in only where we could confirm them.
+  - Admin → States and licences shows how many public holidays each state has on file for the next 12 months, and warns about an open state with none (its shifts would be paid without holiday rates).
+  - Tests: 423 pgTAP, 387 unit and 228 browser tests passing, plus the acceptance run.
 
 ## Next
 
-- **Australia-wide, still to come:** public holidays and state versions of tickets (RSA, working with children checks, traffic control) for every state. I'm working on these next.
+- **Before opening each new state:** enter its public holidays (Admin → Rates → Public holidays) from the state's official list, and check its tickets in Admin → Catalogues → Tickets (who issues them, and whether they expire). The official state websites are blocked from our build environment, so we haven't loaded their holiday dates; we only have NSW's.
 - **Owner: before opening another state**, see "Opening a state" in the open questions.
 - **Owner: connect shifta.com.au** (steps below in the owner setup checklist). Then I'll switch sign-in links and the scheduled jobs to it.
 - **Owner: email for support@shifta.com.au.** The site shows it, so mail to it needs to reach you: most domain sellers offer free email forwarding to your own inbox.
@@ -462,6 +464,7 @@ _Last updated: 30/10/2026_
 ## Open questions for the owner
 
 - **Opening a state.** We're the employer, so before you open a state (Admin → States and licences), you need workers' compensation cover there (each state has its own scheme, like icare in NSW and WorkSafe in Victoria), and in QLD, VIC, SA and the ACT a labour hire licence. NSW has no licence scheme today, but the government has promised one; we'll update its settings if it passes. Tell us which state you'd like next.
+- **Public holiday dates for other states.** We can load each state's 2026 and 2027 public holidays for you if you allow the state government websites in the cloud environment's network settings (for example vic.gov.au, qld.gov.au and wa.gov.au), or your team can enter them in Admin from each state's official list.
 - **A real address lookup.** The demo knows about 150 suburbs, so a business elsewhere can't add its site yet. Going national needs a real address service. The brief names Google Maps Places, which is a paid service (with a free monthly allowance); there are other options, such as the free national address file (G-NAF). We'll ask before adding one.
 - **Industries that need a licence.** Security, aged care and disability support (NDIS), childcare and licensed trades (like electricians) are left out: the business would need its own licence or registration first. Tell us if you want any of them.
 - **Contact phone number.** The contact page and messages show only the email until we have a number.

@@ -18,6 +18,8 @@ export default async function NewTicketPage() {
           description: "",
           kind: "ticket",
           issuer: null,
+          state: null,
+          family: null,
           has_number: true,
           has_expiry: true,
           needs_document: true,

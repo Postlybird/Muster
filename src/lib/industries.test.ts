@@ -71,4 +71,24 @@ describe("workTypeNeeds", () => {
       }),
     ).toEqual(["National Police Check"]);
   });
+
+  it("names a ticket issued state by state by what every state's has in common", () => {
+    const rsa = (name: string) => ({
+      credential_types: {
+        name,
+        family: "Responsible Service of Alcohol (RSA)",
+        sort_order: 10,
+        active: true,
+      },
+    });
+    expect(
+      workTypeNeeds({
+        police_check_required: false,
+        category_credentials: [
+          rsa("RSA (NSW Competency Card)"),
+          rsa("RSA (Victoria)"),
+        ],
+      }),
+    ).toEqual(["Responsible Service of Alcohol (RSA)"]);
+  });
 });

@@ -76,6 +76,8 @@ export default async function EditTicketPage({
           description: ticket.description,
           kind: ticket.kind,
           issuer: ticket.issuer,
+          state: ticket.state,
+          family: ticket.family,
           has_number: ticket.has_number,
           has_expiry: ticket.has_expiry,
           needs_document: ticket.needs_document,

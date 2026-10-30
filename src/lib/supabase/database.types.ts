@@ -1091,6 +1091,7 @@ export type Database = {
           code: string;
           created_at: string;
           description: string;
+          family: string | null;
           has_expiry: boolean;
           has_number: boolean;
           id: string;
@@ -1099,6 +1100,7 @@ export type Database = {
           name: string;
           needs_document: boolean;
           sort_order: number;
+          state: string | null;
           updated_at: string;
           verification_method: Database["public"]["Enums"]["verification_method"];
         };
@@ -1109,6 +1111,7 @@ export type Database = {
           code: string;
           created_at?: string;
           description?: string;
+          family?: string | null;
           has_expiry?: boolean;
           has_number?: boolean;
           id?: string;
@@ -1117,6 +1120,7 @@ export type Database = {
           name: string;
           needs_document?: boolean;
           sort_order?: number;
+          state?: string | null;
           updated_at?: string;
           verification_method?: Database["public"]["Enums"]["verification_method"];
         };
@@ -1126,6 +1130,7 @@ export type Database = {
           code?: string;
           created_at?: string;
           description?: string;
+          family?: string | null;
           has_expiry?: boolean;
           has_number?: boolean;
           id?: string;
@@ -1134,6 +1139,7 @@ export type Database = {
           name?: string;
           needs_document?: boolean;
           sort_order?: number;
+          state?: string | null;
           updated_at?: string;
           verification_method?: Database["public"]["Enums"]["verification_method"];
         };

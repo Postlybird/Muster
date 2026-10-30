@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { MAX_WORKERS } from "@/domain/jobs";
 import { failure, invalid, type ActionState } from "@/lib/forms";
+import { ticketsForState } from "@/lib/state-tickets";
 import { saveFailed } from "@/server/errors";
 import { draftForAction, finishPostStep } from "@/server/jobs";
 
@@ -39,24 +40,31 @@ export async function saveWhat(
   if (!parsed.success) return invalid(parsed.error);
   const { type, site_id, category_id, headcount } = parsed.data;
 
-  const [{ data: site }, { data: category }] = await Promise.all([
-    supabase
-      .from("sites")
-      .select("id, report_to_name, report_to_phone")
-      .eq("id", site_id)
-      .eq("business_id", job.business_id)
-      .is("archived_at", null)
-      .maybeSingle(),
-    supabase
-      .from("categories")
-      .select(
-        "id, police_check_required, category_credentials(credential_type_id), category_ppe(ppe_item_id)",
-      )
-      .eq("id", category_id)
-      .eq("active", true)
-      .is("archived_at", null)
-      .maybeSingle(),
-  ]);
+  const [{ data: site }, { data: category }, { data: catalogue }] =
+    await Promise.all([
+      supabase
+        .from("sites")
+        .select("id, state, report_to_name, report_to_phone")
+        .eq("id", site_id)
+        .eq("business_id", job.business_id)
+        .is("archived_at", null)
+        .maybeSingle(),
+      supabase
+        .from("categories")
+        .select(
+          "id, police_check_required, category_credentials(credential_type_id), category_ppe(ppe_item_id)",
+        )
+        .eq("id", category_id)
+        .eq("active", true)
+        .is("archived_at", null)
+        .maybeSingle(),
+      // For swapping in the site's state's version of each ticket.
+      supabase
+        .from("credential_types")
+        .select("id, state, family")
+        .eq("active", true)
+        .is("archived_at", null),
+    ]);
   if (!site)
     return failure("Check the highlighted fields.", {
       site_id: ["Choose one of your sites"],
@@ -97,7 +105,8 @@ export async function saveWhat(
     .eq("id", job.id);
   if (error) return saveFailed(error);
 
-  // A new work type brings its usual tickets and PPE.
+  // A new work type brings its usual tickets (the site's state's versions)
+  // and PPE.
   if (categoryChanged) {
     const results = await Promise.all([
       supabase.from("job_credentials").delete().eq("job_id", job.id),
@@ -105,10 +114,11 @@ export async function saveWhat(
     ]);
     const cleared = results.find((r) => r.error);
     if (cleared?.error) return saveFailed(cleared.error);
-    const tickets = category.category_credentials.map((link) => ({
-      job_id: job.id,
-      credential_type_id: link.credential_type_id,
-    }));
+    const tickets = ticketsForState(
+      category.category_credentials.map((link) => link.credential_type_id),
+      site.state,
+      catalogue ?? [],
+    ).map((id) => ({ job_id: job.id, credential_type_id: id }));
     const ppe = category.category_ppe.map((link) => ({
       job_id: job.id,
       ppe_item_id: link.ppe_item_id,
@@ -119,6 +129,29 @@ export async function saveWhat(
     ]);
     const failed = added.find((r) => r?.error);
     if (failed?.error) return saveFailed(failed.error);
+  } else if (siteChanged) {
+    // A site in another state needs that state's versions of the tickets.
+    const { data: chosen } = await supabase
+      .from("job_credentials")
+      .select("credential_type_id")
+      .eq("job_id", job.id);
+    const before = (chosen ?? []).map((row) => row.credential_type_id);
+    const after = ticketsForState(before, site.state, catalogue ?? []);
+    if (after.join() !== before.join()) {
+      const { error: clearError } = await supabase
+        .from("job_credentials")
+        .delete()
+        .eq("job_id", job.id);
+      if (clearError) return saveFailed(clearError);
+      if (after.length > 0) {
+        const { error: ticketError } = await supabase
+          .from("job_credentials")
+          .insert(
+            after.map((id) => ({ job_id: job.id, credential_type_id: id })),
+          );
+        if (ticketError) return saveFailed(ticketError);
+      }
+    }
   }
   // Shifts already set up take the new number of workers.
   if (headcount !== job.headcount) {

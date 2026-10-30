@@ -1,3 +1,5 @@
+import type { StateCode } from "@/domain/pay";
+
 /**
  * Launch catalogues: the BRIEF.md appendix for restoration and cleaning, and
  * starting work types for the other industries (30/10/2026). Admins can edit
@@ -13,7 +15,14 @@ export type SeedCredentialType = {
   hasExpiry: boolean;
   verification?: "manual" | "register_check";
   description?: string;
+  /** For tickets issued state by state: the state, and the family its versions share. */
+  state?: StateCode;
+  family?: string;
 };
+
+const RSA = "Responsible Service of Alcohol (RSA)";
+const WWC = "Working with children check";
+const TRAFFIC = "Traffic controller accreditation";
 
 export const CREDENTIAL_TYPES: SeedCredentialType[] = [
   {
@@ -147,12 +156,14 @@ export const CREDENTIAL_TYPES: SeedCredentialType[] = [
   },
   {
     code: "wwcc",
-    name: "Working with Children Check",
+    name: "Working with Children Check (NSW)",
     kind: "wwcc",
     issuer: "Office of the Children's Guardian",
     hasNumber: true,
     hasExpiry: true,
     verification: "register_check",
+    state: "NSW",
+    family: WWC,
   },
   {
     code: "respirator_fit_test",
@@ -170,16 +181,20 @@ export const CREDENTIAL_TYPES: SeedCredentialType[] = [
     hasExpiry: true,
     verification: "register_check",
     description: "Responsible Service of Alcohol. Needed to serve alcohol.",
+    state: "NSW",
+    family: RSA,
   },
   {
     code: "traffic_controller",
-    name: "Traffic controller card",
+    name: "Traffic controller card (NSW)",
     kind: "licence",
     issuer: "Transport for NSW",
     hasNumber: true,
     hasExpiry: true,
     verification: "register_check",
     description: "Traffic Controller and Implement Traffic Control Plans.",
+    state: "NSW",
+    family: TRAFFIC,
   },
   {
     code: "food_handler",
@@ -189,7 +204,101 @@ export const CREDENTIAL_TYPES: SeedCredentialType[] = [
     hasExpiry: false,
     description: "Food Handler Basics or equivalent.",
   },
+  ...otherStatesTickets(),
 ];
+
+/**
+ * The other states' versions of the tickets issued state by state. Where we
+ * couldn't confirm the issuer or whether it expires, it's left out; admins
+ * check each state's before opening it.
+ */
+function otherStatesTickets(): SeedCredentialType[] {
+  const rsa = (
+    state: StateCode,
+    name: string,
+    hasExpiry: boolean,
+    extra: Partial<SeedCredentialType> = {},
+  ): SeedCredentialType => ({
+    code: `rsa_${state.toLowerCase()}`,
+    name,
+    kind: "ticket",
+    hasNumber: true,
+    hasExpiry,
+    description: hasExpiry
+      ? "Responsible Service of Alcohol. Refreshed every three years: enter when the refresher is due."
+      : "Responsible Service of Alcohol. Needed to serve alcohol.",
+    state,
+    family: RSA,
+    ...extra,
+  });
+  const wwc = (
+    state: StateCode,
+    name: string,
+    issuer?: string,
+  ): SeedCredentialType => ({
+    code: `wwcc_${state.toLowerCase()}`,
+    name,
+    kind: "wwcc",
+    ...(issuer ? { issuer } : {}),
+    hasNumber: true,
+    hasExpiry: true,
+    verification: "register_check",
+    state,
+    family: WWC,
+  });
+  const traffic = (
+    state: StateCode,
+    name: string,
+    hasExpiry: boolean,
+    issuer?: string,
+  ): SeedCredentialType => ({
+    code: `traffic_controller_${state.toLowerCase()}`,
+    name,
+    kind: "licence",
+    ...(issuer ? { issuer } : {}),
+    hasNumber: true,
+    hasExpiry,
+    state,
+    family: TRAFFIC,
+  });
+  return [
+    rsa("VIC", "RSA (Victoria)", true, { issuer: "Liquor Control Victoria" }),
+    rsa("QLD", "RSA (Queensland)", false),
+    rsa("WA", "RSA (Western Australia)", false),
+    rsa("SA", "RSA (South Australia)", false),
+    rsa("TAS", "RSA (Tasmania)", false),
+    rsa("ACT", "RSA (ACT)", true),
+    rsa("NT", "RSA (Northern Territory)", true),
+    wwc("VIC", "Working with Children Check (Victoria)"),
+    wwc("QLD", "Blue Card (Queensland)", "Blue Card Services"),
+    wwc("WA", "Working with Children Check (WA)", "Department of Communities"),
+    wwc("SA", "Working with Children Check (SA)"),
+    wwc("TAS", "Registration to Work with Vulnerable People (Tasmania)"),
+    wwc(
+      "ACT",
+      "Working with Vulnerable People registration (ACT)",
+      "Access Canberra",
+    ),
+    wwc("NT", "Ochre Card (Northern Territory)"),
+    traffic("VIC", "Traffic controller (Victoria)", false),
+    traffic(
+      "QLD",
+      "Traffic controller accreditation (Queensland)",
+      true,
+      "Department of Transport and Main Roads",
+    ),
+    traffic(
+      "WA",
+      "Traffic controller accreditation (WA)",
+      false,
+      "Main Roads Western Australia",
+    ),
+    traffic("SA", "Traffic controller (South Australia)", false),
+    traffic("TAS", "Traffic controller (Tasmania)", false),
+    traffic("ACT", "Traffic controller (ACT)", false),
+    traffic("NT", "Traffic controller (Northern Territory)", false),
+  ];
+}
 
 export const HAZARDS: { code: string; name: string }[] = [
   { code: "asbestos", name: "Suspected or confirmed asbestos" },

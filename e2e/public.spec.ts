@@ -33,7 +33,10 @@ test("each industry has a page with the work and the tickets it needs", async ({
   const bartender = page
     .getByRole("listitem")
     .filter({ has: page.getByRole("heading", { name: "Bartender" }) });
-  await expect(bartender).toContainText("Needs: RSA (NSW Competency Card)");
+  // Tickets each state issues are named by what every state's has in common.
+  await expect(bartender).toContainText(
+    "Needs: Responsible Service of Alcohol (RSA)",
+  );
 
   // Every industry is listed, with a link to its page.
   await page.goto("/industries");

@@ -71,6 +71,21 @@ describe("seed catalogues", () => {
       expect(new Set(codes).size).toBe(codes.length);
     }
   });
+
+  it("have every state's version of the tickets issued state by state", () => {
+    const families = new Set(
+      CREDENTIAL_TYPES.flatMap((c) => (c.family ? [c.family] : [])),
+    );
+    expect(families.size).toBe(3);
+    for (const family of families) {
+      const states = CREDENTIAL_TYPES.filter((c) => c.family === family).map(
+        (c) => c.state,
+      );
+      expect(states.sort()).toEqual(
+        ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"].sort(),
+      );
+    }
+  });
 });
 
 describe("seed people", () => {

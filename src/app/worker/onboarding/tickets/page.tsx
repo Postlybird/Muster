@@ -17,7 +17,10 @@ export default async function TicketsPage({
 }: PageProps<"/worker/onboarding/tickets">) {
   const { worker, mode } = await loadStep();
   const { saved } = await searchParams;
-  const { rows, policeMaxAgeMonths } = await loadTickets(worker.id);
+  const { rows, policeMaxAgeMonths } = await loadTickets(
+    worker.id,
+    worker.home_state,
+  );
 
   const police = rows.filter((r) => r.type.kind === "police_check");
   const others = rows.filter((r) => r.type.kind !== "police_check");

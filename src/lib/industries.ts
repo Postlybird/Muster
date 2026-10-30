@@ -32,6 +32,8 @@ export type WorkTypeNeedsRow = {
   category_credentials: {
     credential_types: {
       name: string;
+      /** Shared by each state's version of a ticket issued state by state. */
+      family?: string | null;
       sort_order: number;
       active: boolean;
     } | null;
@@ -40,14 +42,16 @@ export type WorkTypeNeedsRow = {
 
 /**
  * What a work type needs, in the tickets' order: its active required
- * tickets, and a police check where one is required.
+ * tickets (by family for one issued state by state, since each state asks
+ * for its own), and a police check where one is required.
  */
 export function workTypeNeeds(category: WorkTypeNeedsRow): string[] {
   const needs = category.category_credentials
     .map((link) => link.credential_types)
     .filter((type): type is NonNullable<typeof type> => !!type?.active)
     .sort((a, b) => a.sort_order - b.sort_order)
-    .map((type) => type.name);
+    .map((type) => type.family ?? type.name)
+    .filter((need, i, all) => all.indexOf(need) === i);
   if (category.police_check_required && !needs.some((n) => /police/i.test(n))) {
     needs.push("National Police Check");
   }

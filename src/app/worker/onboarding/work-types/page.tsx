@@ -19,7 +19,7 @@ export default async function WorkTypesPage() {
     supabase
       .from("categories")
       .select(
-        "id, name, description, police_check_required, sort_order, industries(name, sort_order), category_credentials(credential_types(name, sort_order, active))",
+        "id, name, description, police_check_required, sort_order, industries(name, sort_order), category_credentials(credential_types(name, family, sort_order, active))",
       )
       .eq("active", true)
       .is("archived_at", null)

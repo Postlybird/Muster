@@ -16,7 +16,10 @@ export default async function TicketPage({
 }: PageProps<"/worker/onboarding/tickets/[code]">) {
   const { code } = await params;
   const { worker, mode } = await loadStep();
-  const { rows, today, policeMaxAgeMonths } = await loadTickets(worker.id);
+  const { rows, today, policeMaxAgeMonths } = await loadTickets(
+    worker.id,
+    worker.home_state,
+  );
   const row = rows.find((r) => r.type.code === code);
   if (!row) notFound();
 

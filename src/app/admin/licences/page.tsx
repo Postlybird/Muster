@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { requireAdmin } from "@/lib/auth";
+import { addDays } from "@/domain/onboarding";
 import { sydneyDateKey } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,16 +14,24 @@ export const metadata: Metadata = { title: "Licences" };
 export default async function LicencesPage() {
   await requireAdmin();
   const supabase = await createClient();
-  const [{ data: jurisdictions }, { data: licences }] = await Promise.all([
-    supabase.from("jurisdictions").select("*").order("code"),
-    supabase
-      .from("licences")
-      .select("*")
-      .is("archived_at", null)
-      .order("jurisdiction"),
-  ]);
-
   const today = sydneyDateKey(new Date());
+  const [{ data: jurisdictions }, { data: licences }, { data: holidays }] =
+    await Promise.all([
+      supabase.from("jurisdictions").select("*").order("code"),
+      supabase
+        .from("licences")
+        .select("*")
+        .is("archived_at", null)
+        .order("jurisdiction"),
+      // Holiday pay needs each state's public holidays on file.
+      supabase
+        .from("public_holidays")
+        .select("state")
+        .gte("date", today)
+        .lt("date", addDays(today, 365)),
+    ]);
+  const holidaysIn = (code: string) =>
+    (holidays ?? []).filter((h) => h.state === code).length;
   const held = new Set(
     (licences ?? [])
       .filter(
@@ -124,6 +133,7 @@ export default async function LicencesPage() {
                   notes: j.notes,
                 }}
                 licensed={held.has(j.code)}
+                holidays={holidaysIn(j.code)}
               />
             </li>
           ))}

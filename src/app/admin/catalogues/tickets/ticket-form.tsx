@@ -19,12 +19,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { saveTicket } from "../actions";
 import { kindLabels, verificationLabels } from "./labels";
 
+const ANYWHERE = "anywhere";
+const STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"];
+
 export type TicketFormValues = {
   id: string | null;
   name: string;
   description: string;
   kind: keyof typeof kindLabels;
   issuer: string | null;
+  /** The state that issues it, for tickets that don't carry across borders. */
+  state: string | null;
+  /** Shared by every state's version of the same ticket. */
+  family: string | null;
   has_number: boolean;
   has_expiry: boolean;
   needs_document: boolean;
@@ -100,6 +107,45 @@ export function TicketForm({ values }: { values: TicketFormValues }) {
               {...props}
               name="issuer"
               defaultValue={values.issuer ?? ""}
+            />
+          )}
+        </FormField>
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        <FormField
+          id="state"
+          label="Accepted in"
+          hint="For a ticket each state issues itself, like the RSA."
+          error={errors?.state}
+        >
+          {(props) => (
+            <Select name="state" defaultValue={values.state ?? ANYWHERE}>
+              <SelectTrigger {...props}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ANYWHERE}>Anywhere in Australia</SelectItem>
+                {STATES.map((code) => (
+                  <SelectItem key={code} value={code}>
+                    {code} only
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </FormField>
+        <FormField
+          id="family"
+          label="Same ticket in other states"
+          hint="What every state's version is called, e.g. Responsible Service of Alcohol (RSA). Jobs and workers get their own state's version."
+          error={errors?.family}
+        >
+          {(props) => (
+            <Input
+              {...props}
+              name="family"
+              defaultValue={values.family ?? ""}
             />
           )}
         </FormField>
