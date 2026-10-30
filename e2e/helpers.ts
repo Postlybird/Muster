@@ -98,7 +98,18 @@ export async function chooseWorkType(
   await section.getByLabel(new RegExp(`^${workType}`)).check();
 }
 
+/**
+ * Waits until a signed-in page has swapped its loading outline for the
+ * real page. Pages arrive as an outline first, and the address changes
+ * then, so check for something on the page (or call this) before checking
+ * that something isn't there.
+ */
+export async function pageLoaded(page: Page) {
+  await expect(page.locator("[data-page-skeleton]")).toHaveCount(0);
+}
+
 export async function expectAccessible(page: Page) {
+  await pageLoaded(page);
   // Let fades finish: a toast that's still appearing is partly transparent.
   await page.waitForFunction(() =>
     document.getAnimations().every((a) => a.playState !== "running"),

@@ -2,6 +2,7 @@ import { expect, type Page } from "@playwright/test";
 
 import {
   chooseWorkType,
+  pageLoaded,
   randomAbn,
   randomEmail,
   readCodeFromOutbox,
@@ -192,6 +193,7 @@ export async function signUpWorker(
   await next(page);
 
   await expect(page).toHaveURL(/\/paperwork$/);
+  await pageLoaded(page);
   for (const box of await page.getByRole("checkbox").all()) await box.check();
   await next(page);
 
@@ -383,6 +385,7 @@ export async function approveRosteredHours(page: Page, business: Business) {
   let approved = 0;
   for (;;) {
     await page.goto("/business/timesheets");
+    await pageLoaded(page);
     const add = page.getByRole("link", { name: /^Add .+'s hours for / });
     if ((await add.count()) === 0) break;
     await add.first().click();

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { expectAccessible, signInAsDemo } from "./helpers";
+import { expectAccessible, pageLoaded, signInAsDemo } from "./helpers";
 
 test.describe("admin agreements and licences", () => {
   test.beforeEach(async ({ page }) => {
@@ -69,6 +69,7 @@ test.describe("admin agreements and licences", () => {
       await queensland.getByRole("button", { name: "Save QLD" }).click();
       await expect(page.getByText("QLD saved")).toBeVisible();
       await page.reload();
+      await pageLoaded(page);
     };
 
     await page.goto("/admin/licences");
@@ -93,6 +94,7 @@ test.describe("admin agreements and licences", () => {
     await expect(page.getByText("Licence added")).toBeVisible();
 
     await page.reload();
+    await pageLoaded(page);
     await expect(blockedInQld).toHaveCount(0);
     await expect(queensland.getByText("Licensed")).toBeVisible();
 

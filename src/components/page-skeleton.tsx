@@ -12,7 +12,7 @@ export function PageSkeleton({
   variant?: "cards" | "rows";
 }) {
   return (
-    <div role="status" className="space-y-6">
+    <div role="status" data-page-skeleton="" className="space-y-6">
       <span className="sr-only">Loading…</span>
       <div aria-hidden="true" className="space-y-2">
         <Skeleton className="h-8 w-56 max-w-full bg-foreground/10" />
