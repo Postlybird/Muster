@@ -3,6 +3,7 @@ import Link from "next/link";
 import { brand } from "@/config/brand";
 
 import { BrandMark } from "./brand-mark";
+import { Container } from "./container";
 
 const columns = [
   {
@@ -32,27 +33,27 @@ const columns = [
 
 export function PublicFooter() {
   return (
-    <footer className="border-t bg-card">
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 text-sm md:grid-cols-[1.2fr_2fr]">
+    <footer className="bg-deep text-deep-foreground">
+      <Container className="grid gap-10 py-14 text-sm md:grid-cols-[1.2fr_2fr]">
         <div className="space-y-3">
-          <BrandMark />
-          <p className="max-w-xs text-muted-foreground">
+          <BrandMark tone="light" />
+          <p className="max-w-xs text-deep-foreground/80">
             Labour hire for restoration and cleaning, {brand.launchCity}.
           </p>
-          <p className="text-muted-foreground">
+          <p className="text-deep-foreground/80">
             © {new Date().getFullYear()} {brand.name}
           </p>
         </div>
         <nav aria-label="Footer" className="grid gap-8 sm:grid-cols-3">
           {columns.map((column) => (
             <div key={column.title} className="space-y-3">
-              <h2 className="font-semibold text-foreground">{column.title}</h2>
+              <h2 className="font-semibold">{column.title}</h2>
               <ul className="space-y-2">
                 {column.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                      className="text-deep-foreground/80 underline-offset-4 hover:text-deep-foreground hover:underline"
                     >
                       {link.label}
                     </Link>
@@ -62,7 +63,7 @@ export function PublicFooter() {
             </div>
           ))}
         </nav>
-      </div>
+      </Container>
     </footer>
   );
 }

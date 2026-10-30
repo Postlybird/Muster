@@ -40,7 +40,11 @@ export type NavItem = {
 
 export type NavGroup = { label?: string; items: NavItem[] };
 
-/** Worker app: four main tabs at the bottom, the rest in the menu. */
+/**
+ * Worker app. On phones the tabs sit at the bottom (thumb reach) and the
+ * rest in a row under the header; on wider screens all of them are in the
+ * sidebar. Nothing is hidden behind a menu button.
+ */
 export const workerTabs: NavItem[] = [
   {
     href: "/worker",
@@ -58,18 +62,18 @@ export const workerTabs: NavItem[] = [
     icon: CalendarCheck,
   },
   {
+    href: "/worker/timesheets",
+    label: "Timesheets",
+    icon: Timer,
+  },
+  {
     href: "/worker/profile",
     label: "Profile",
     icon: UserRound,
   },
 ];
 
-export const workerMenu: NavItem[] = [
-  {
-    href: "/worker/timesheets",
-    label: "Timesheets",
-    icon: Timer,
-  },
+export const workerMore: NavItem[] = [
   {
     href: "/worker/availability",
     label: "Availability",

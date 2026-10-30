@@ -14,22 +14,29 @@
   --banner-h: 0px;
   --radius: 0.75rem;
 
-  /* A soft warm page, white cards and navy ink: calm in the sun on a phone. */
-  --background: #f6f5f1;
+  /* A light, cool page, white cards and a friendly blue: easy in the sun. */
+  --background: #f4f7fb;
   --foreground: #172033;
   --card: #ffffff;
   --card-foreground: #172033;
   --popover: #ffffff;
   --popover-foreground: #172033;
 
-  --primary: var(--brand-primary, #1b365d);
+  --primary: var(--brand-primary, #1d68cf);
   --primary-foreground: var(--brand-primary-foreground, #ffffff);
-  --secondary: #edf1f7;
+  /* Hover goes darker, so white text keeps its contrast. */
+  --primary-hover: #185bb8;
+  /* Light blue for big brand areas, like the home page's first screen. */
+  --primary-soft: #eaf2fd;
+  /* Deep blue for headlines and the footer. */
+  --deep: #123a6e;
+  --deep-foreground: #ffffff;
+  --secondary: #eaf2fd;
   --secondary-foreground: #172033;
-  --muted: #efede8;
-  --muted-foreground: #556070;
-  --accent: #e8eef7;
-  --accent-foreground: #1b365d;
+  --muted: #eef2f7;
+  --muted-foreground: #526072;
+  --accent: #e6effc;
+  --accent-foreground: #123a6e;
   --highlight: var(--brand-accent, #f4a340);
   --highlight-foreground: var(--brand-accent-foreground, #172033);
   --highlight-soft: #fdebd6;
@@ -44,15 +51,15 @@
   --info: #175cd3;
   --info-soft: #eff8ff;
 
-  --border: #e3e0d9;
-  --input: #7d8594;
-  --ring: #1b365d;
+  --border: #dfe6ef;
+  --input: #7a8597;
+  --ring: #1d68cf;
 
   --sidebar: #ffffff;
   --sidebar-foreground: #172033;
-  --sidebar-accent: #e8eef7;
-  --sidebar-accent-foreground: #1b365d;
-  --sidebar-border: #e3e0d9;
+  --sidebar-accent: #e6effc;
+  --sidebar-accent-foreground: #123a6e;
+  --sidebar-border: #dfe6ef;
 }
 
 @theme inline {
@@ -69,6 +76,10 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-deep: var(--deep);
+  --color-deep-foreground: var(--deep-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -105,7 +116,7 @@
 @theme {
   /* Soft, navy-tinted shadow for cards: present but quiet. */
   --shadow-soft:
-    0 1px 2px rgb(23 32 51 / 0.04), 0 2px 10px -2px rgb(23 32 51 / 0.06);
+    0 1px 2px rgb(18 58 110 / 0.05), 0 2px 10px -2px rgb(18 58 110 / 0.08);
 }
 
 @layer base {

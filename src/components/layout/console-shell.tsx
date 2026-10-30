@@ -1,15 +1,16 @@
 import type { SessionUser } from "@/lib/auth";
 
 import { BrandMark } from "./brand-mark";
-import { ConsoleMobileNav, ConsoleNav } from "./console-nav";
+import { ConsoleNav, ConsoleStripNav } from "./console-nav";
 import { SignOutButton } from "./sign-out-button";
 import { UserSummary } from "./user-summary";
 
 export type ConsoleArea = "business" | "admin";
 
 /**
- * Desktop-comfortable layout for business users and admins: sidebar on
- * wide screens, a slide-out menu on phones.
+ * Layout for business users and admins, with every page always in view:
+ * a sidebar on tablets and computers, a row of pages under the header on
+ * phones. The page itself uses the full width of the screen.
  */
 export function ConsoleShell({
   area,
@@ -24,7 +25,7 @@ export function ConsoleShell({
 }) {
   return (
     <div className="flex flex-1">
-      <aside className="sticky top-(--banner-h) hidden h-[calc(100dvh-var(--banner-h))] w-64 shrink-0 flex-col border-r bg-sidebar lg:flex">
+      <aside className="sticky top-(--banner-h) hidden h-[calc(100dvh-var(--banner-h))] w-64 shrink-0 flex-col border-r bg-sidebar md:flex">
         <div className="flex h-16 items-center gap-2 px-5">
           <BrandMark href={`/${area}`} />
           <span className="text-sm text-muted-foreground">{areaLabel}</span>
@@ -39,12 +40,14 @@ export function ConsoleShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-(--banner-h) z-30 flex h-14 items-center gap-2 border-b bg-card/95 px-2 backdrop-blur lg:hidden">
-          <ConsoleMobileNav area={area} user={user} areaLabel={areaLabel} />
-          <BrandMark href={`/${area}`} />
-          <span className="text-sm text-muted-foreground">{areaLabel}</span>
+        <header className="sticky top-(--banner-h) z-30 border-b bg-card/95 backdrop-blur md:hidden">
+          <div className="flex h-14 items-center gap-2 px-4">
+            <BrandMark href={`/${area}`} />
+            <span className="text-sm text-muted-foreground">{areaLabel}</span>
+          </div>
+          <ConsoleStripNav area={area} />
         </header>
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
+        <main className="w-full flex-1 px-4 py-6 md:px-8 md:py-8 xl:px-12">
           {children}
         </main>
       </div>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 import { BrandMark } from "./brand-mark";
+import { Container } from "./container";
 
 const links = [
   { href: "/#how-it-works", label: "How it works" },
@@ -13,7 +14,7 @@ const links = [
 export function PublicHeader() {
   return (
     <header className="sticky top-(--banner-h) z-30 border-b bg-card/95 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4">
+      <Container className="flex h-16 items-center justify-between gap-4">
         <BrandMark />
         <nav aria-label="Main" className="flex items-center gap-1 sm:gap-2">
           {links.map((link) => (
@@ -32,7 +33,7 @@ export function PublicHeader() {
             <Link href="/login?as=business">Hire workers</Link>
           </Button>
         </nav>
-      </div>
+      </Container>
     </header>
   );
 }

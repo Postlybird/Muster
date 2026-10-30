@@ -111,8 +111,9 @@ test.describe("sign-in", () => {
     await page.goto("/business");
     await expect(page).toHaveURL(/\/worker$/);
 
-    await page.getByRole("button", { name: "Open menu" }).click();
-    await page.getByRole("button", { name: "Sign out" }).click();
+    // Sign out is in Settings, which is always on show.
+    await page.getByRole("link", { name: "Settings", exact: true }).click();
+    await page.getByRole("button", { name: "Sign out" }).first().click();
     await expect(page).toHaveURL(/\/$/);
     await page.goto("/worker");
     await expect(page).toHaveURL(/\/login/);

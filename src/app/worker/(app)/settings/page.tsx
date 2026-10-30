@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { pushPublicKey } from "@/adapters/push";
+import { SignOutButton } from "@/components/layout/sign-out-button";
 import { PreferencesForm } from "@/components/notifications/preferences-form";
 import { PushToggle } from "@/components/notifications/push-toggle";
 import { PageHeader } from "@/components/page-header";
@@ -107,6 +108,13 @@ export default async function WorkerSettingsPage() {
             Change your contact details
           </Link>
         </p>
+      </section>
+
+      <section aria-labelledby="account" className="space-y-3">
+        <h2 id="account" className="text-lg font-semibold">
+          Your account
+        </h2>
+        <SignOutButton />
       </section>
     </div>
   );

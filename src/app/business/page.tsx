@@ -128,7 +128,7 @@ async function PostAgain({ businessId }: { businessId: string }) {
   const shortcuts = [...templates, ...recent].slice(0, 5);
   if (shortcuts.length === 0) return null;
   return (
-    <section aria-labelledby="post-again" className="max-w-3xl space-y-3">
+    <section aria-labelledby="post-again" className="max-w-5xl space-y-3">
       <div className="space-y-1">
         <h2 id="post-again" className="text-lg font-semibold">
           Post again
@@ -168,7 +168,7 @@ async function UpcomingShifts({ businessId }: { businessId: string }) {
     );
   }
   return (
-    <section aria-labelledby="coming-up" className="max-w-3xl space-y-3">
+    <section aria-labelledby="coming-up" className="max-w-5xl space-y-3">
       <h2 id="coming-up" className="text-lg font-semibold">
         Coming up
       </h2>

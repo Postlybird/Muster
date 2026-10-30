@@ -1,28 +1,18 @@
 "use client";
 
-import { Menu } from "lucide-react";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import {
   adminNav,
   businessNav,
   businessPostWork,
   type NavGroup,
 } from "@/config/navigation";
-import type { SessionUser } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 import { NavLink } from "./nav-link";
 import { SignOutButton } from "./sign-out-button";
-import { UserSummary } from "./user-summary";
 
 const navFor: Record<"business" | "admin", NavGroup[]> = {
   business: businessNav,
@@ -43,7 +33,7 @@ export function ConsoleNav({
         <NavLink
           item={businessPostWork}
           onNavigate={onNavigate}
-          className="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          className="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary-hover"
         />
       ) : null}
       {groups.map((group, i) => (
@@ -72,38 +62,43 @@ export function ConsoleNav({
   );
 }
 
-export function ConsoleMobileNav({
-  area,
-  user,
-  areaLabel,
-}: {
-  area: "business" | "admin";
-  user: SessionUser;
-  areaLabel: string;
-}) {
-  const [open, setOpen] = useState(false);
+/**
+ * On phones: every page in a row under the header, always on show (no
+ * menu button). It scrolls sideways, starting at the current page.
+ */
+export function ConsoleStripNav({ area }: { area: "business" | "admin" }) {
+  const items = [
+    ...(area === "business" ? [businessPostWork] : []),
+    ...navFor[area].flatMap((group) => group.items),
+  ];
+  const listRef = useRef<HTMLUListElement>(null);
+  const pathname = usePathname();
+  useEffect(() => {
+    const current = listRef.current?.querySelector('[aria-current="page"]');
+    current?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [pathname]);
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Open menu">
-          <Menu className="size-6" aria-hidden />
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="left" className="overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>{areaLabel} menu</SheetTitle>
-          <SheetDescription className="sr-only">
-            Pages in the {areaLabel} area
-          </SheetDescription>
-        </SheetHeader>
-        <div className="px-3">
-          <ConsoleNav area={area} onNavigate={() => setOpen(false)} />
-        </div>
-        <div className="mt-auto space-y-2 border-t p-4">
-          <UserSummary user={user} />
+    <nav aria-label="Main">
+      <ul ref={listRef} className="flex gap-2 overflow-x-auto px-4 pb-3">
+        {items.map((item) => (
+          <li key={item.href} className="shrink-0">
+            <NavLink
+              item={item}
+              exact={item.href === `/${area}`}
+              className={cn(
+                "flex h-9 items-center gap-1.5 rounded-full border px-3 text-sm font-medium [&>svg]:size-4",
+                item === businessPostWork
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "bg-card text-foreground",
+              )}
+              activeClassName="border-deep bg-deep text-deep-foreground"
+            />
+          </li>
+        ))}
+        <li className="shrink-0">
           <SignOutButton />
-        </div>
-      </SheetContent>
-    </Sheet>
+        </li>
+      </ul>
+    </nav>
   );
 }

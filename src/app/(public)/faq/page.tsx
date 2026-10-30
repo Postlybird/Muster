@@ -2,6 +2,9 @@ import { ChevronDown } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { Container } from "@/components/layout/container";
+import { PageBand } from "@/components/layout/page-band";
+
 import { brand } from "@/config/brand";
 import { getAllSettings } from "@/server/settings";
 
@@ -282,26 +285,23 @@ export default async function FaqPage() {
   ];
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 space-y-10 px-4 py-10">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Questions and answers
-        </h1>
-        <p className="text-muted-foreground">
-          About working with {brand.name} and hiring through us. Can&apos;t find
-          what you need?{" "}
-          <Link href="/contact" className="text-primary underline">
-            Contact us
-          </Link>
-          .
-        </p>
-      </div>
-      <Questions id="workers" title="Working with us" questions={workers} />
-      <Questions
-        id="businesses"
-        title="Hiring workers"
-        questions={businesses}
-      />
+    <main className="flex-1">
+      <PageBand title="Questions and answers">
+        About working with {brand.name} and hiring through us. Can&apos;t find
+        what you need?{" "}
+        <Link href="/contact" className="text-primary underline">
+          Contact us
+        </Link>
+        .
+      </PageBand>
+      <Container className="grid gap-12 py-12 sm:py-16 lg:grid-cols-2">
+        <Questions id="workers" title="Working with us" questions={workers} />
+        <Questions
+          id="businesses"
+          title="Hiring workers"
+          questions={businesses}
+        />
+      </Container>
     </main>
   );
 }

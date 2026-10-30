@@ -29,16 +29,20 @@ export function LogoMark({ className }: { className?: string }) {
 
 export function BrandMark({
   href = "/",
+  tone = "brand",
   className,
 }: {
   href?: string;
+  /** "light" for the name on a dark background. */
+  tone?: "brand" | "light";
   className?: string;
 }) {
   return (
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2 text-lg font-extrabold tracking-tight text-primary",
+        "flex items-center gap-2 text-lg font-extrabold tracking-tight",
+        tone === "light" ? "text-deep-foreground" : "text-deep",
         className,
       )}
     >
