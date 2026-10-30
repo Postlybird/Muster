@@ -17,6 +17,7 @@ Every push to GitHub runs the checks in `.github/workflows/ci.yml`:
 
 | Flow                        | Browser tests                                                                                                                                                                        |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Moving between pages        | `navigation` (the loading bar while the next page loads)                                                                                                                 |
 | Signing in                  | `auth` (texted and emailed codes, the email link, wrong codes, who can open what), `demo`, `admin-mfa`                                                                               |
 | 4.1 Worker onboarding       | `worker-onboarding` (sign-up to submitted, the collection notice, rejected checks, profile and availability), `admin-verification` (checks, activation, rejections, VEVO)            |
 | 4.2 Business onboarding     | `business-onboarding` (ABN lookup to submitted, duplicate ABNs), `admin-businesses` (approval, account terms, cancelled ABNs), `business-account` (sites, team and roles, agreement) |

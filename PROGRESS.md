@@ -327,6 +327,9 @@ _Last updated: 30/10/2026_
   - Branded features, each something the app really does: Shifta Verified (checks), Shifta FastFill (matching, favourites first, texts for short notice), Shifta Live (clock-in, arrival, no-show flags) and Shifta Pay (weekly pay, one invoice a week). No made-up testimonials, logos or numbers.
   - For search engines and sharing: a sitemap (with every industry page), a robots file that keeps the signed-in areas out, and a share picture with the logo and slogan.
 
+- **Loading feedback** (30/10/2026, owner's feedback: links seemed to do nothing): links move between pages without a full reload, so the browser showed no loading at all. Now an orange bar runs across the top while the next page loads (quick ones don't show it), and signed-in pages show the outline of the page straight away while their details load.
+  - Tests: 423 pgTAP, 387 unit and 230 browser tests passing, plus the acceptance run.
+
 - **Australia-wide** (30/10/2026, owner's request: "We need australia wide like side kicker"):
   - Every state and territory is in the platform, and admins open each one for work (Admin → States and licences → "Open for work"). NSW is open. Elsewhere, businesses can sign up, add sites and draft work, but can't post it until their state opens; the last posting step tells them why. The database's `post_job()` checks the same thing.
   - A state that requires a labour hire licence (QLD, VIC, SA and the ACT) stays blocked even once it's open, until we record a current licence. The admin page warns about open states without one.

@@ -1,9 +1,10 @@
 import "@fontsource-variable/figtree";
 import { GeistMono } from "geist/font/mono";
 import type { Metadata, Viewport } from "next";
-import type { CSSProperties } from "react";
+import { Suspense, type CSSProperties } from "react";
 
 import { DemoBanner } from "@/components/layout/demo-banner";
+import { NavigationProgress } from "@/components/layout/navigation-progress";
 import { isDemoMode } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
@@ -47,6 +48,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           isDemoMode() && "[--banner-h:1.75rem]",
         )}
       >
+        {/* Reads the page address, so it waits for it on static pages. */}
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         <DemoBanner />
         {children}
         <Toaster />
