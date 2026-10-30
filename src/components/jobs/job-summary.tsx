@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { FILL_MODES, JOB_TYPES, PPE_SUPPLIERS } from "@/domain/jobs";
-import { formatDayShort } from "@/lib/format";
+import { formatDayShort, zoneOf } from "@/lib/format";
 import { shiftHours, shiftSummary, workersLabel } from "@/lib/job-format";
 import { formatAuPhone } from "@/lib/phone";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -77,6 +77,8 @@ export function JobSummary({
   listShifts?: boolean;
 }) {
   const { site, shifts } = details;
+  // Shift times are the site's local time.
+  const siteZone = zoneOf(site?.state);
   return (
     <div className="space-y-4">
       <Section
@@ -105,7 +107,7 @@ export function JobSummary({
         ) : (
           <>
             <p className="text-sm">
-              {shiftSummary(shifts)}
+              {shiftSummary(shifts, siteZone)}
               {shifts[0]?.break_minutes
                 ? `, with a ${shifts[0].break_minutes}-minute unpaid break`
                 : ", no break"}
@@ -114,7 +116,8 @@ export function JobSummary({
               <ul className="grid gap-1 text-sm text-muted-foreground sm:grid-cols-2">
                 {shifts.map((shift) => (
                   <li key={shift.id}>
-                    {formatDayShort(shift.starts_at)}, {shiftHours(shift)}
+                    {formatDayShort(shift.starts_at, siteZone)},{" "}
+                    {shiftHours(shift, siteZone)}
                   </li>
                 ))}
               </ul>

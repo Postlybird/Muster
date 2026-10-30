@@ -1,4 +1,9 @@
-import { formatCents, formatDayShort, formatTime } from "@/lib/format";
+import {
+  formatCents,
+  formatDayShort,
+  formatTime,
+  zoneNote,
+} from "@/lib/format";
 import { shiftHours } from "@/lib/job-format";
 import { hoursLabel, workedLabel } from "@/lib/timesheet-format";
 
@@ -34,9 +39,13 @@ export type TimesheetFacts = {
   resolution: string | null;
 };
 
-/** What was rostered and clocked, what was approved, and why. */
+/**
+ * What was rostered and clocked, what was approved, and why, in the site's
+ * time zone (named for our team when it isn't Sydney's).
+ */
 export function TimesheetDetails({
   timesheet,
+  timeZone,
   audience,
   arrivalConfirmed = false,
   awayReasons = [],
@@ -44,6 +53,8 @@ export function TimesheetDetails({
   money,
 }: {
   timesheet: TimesheetFacts;
+  /** The site's: `zoneOf(state)`. */
+  timeZone: string;
   audience: "worker" | "business" | "admin";
   arrivalConfirmed?: boolean;
   /** Clock-ins or outs away from the site, with the reasons given. */
@@ -54,14 +65,16 @@ export function TimesheetDetails({
   money?: { label: string; cents: number | null };
 }) {
   const t = timesheet;
-  const rostered = `${formatDayShort(t.shift_starts_at)}, ${shiftHours({
-    starts_at: t.shift_starts_at,
-    ends_at: t.shift_ends_at,
-  })}${t.shift_break_minutes ? `, ${t.shift_break_minutes}-minute break` : ""}`;
+  const rostered = `${formatDayShort(t.shift_starts_at, timeZone)}, ${shiftHours(
+    { starts_at: t.shift_starts_at, ends_at: t.shift_ends_at },
+    timeZone,
+  )}${t.shift_break_minutes ? `, ${t.shift_break_minutes}-minute break` : ""}${
+    audience === "admin" ? zoneNote(timeZone) : ""
+  }`;
   const recorded = t.recorded_start
-    ? `${arrivalConfirmed ? "Arrival confirmed" : "Clocked in"} ${formatTime(t.recorded_start)}, ${
+    ? `${arrivalConfirmed ? "Arrival confirmed" : "Clocked in"} ${formatTime(t.recorded_start, timeZone)}, ${
         t.recorded_finish
-          ? `out ${formatTime(t.recorded_finish)}`
+          ? `out ${formatTime(t.recorded_finish, timeZone)}`
           : "no clock-out (the rostered finish is used)"
       }`
     : "No clock-in";
@@ -83,7 +96,7 @@ export function TimesheetDetails({
         </Detail>
       ) : null}
       <Detail label={t.adjusted_at ? "Hours (changed)" : "Hours"}>
-        {hoursLabel(t)} ({workedLabel(t)})
+        {hoursLabel(t, timeZone)} ({workedLabel(t)})
       </Detail>
       {money ? (
         <Detail label={money.label}>

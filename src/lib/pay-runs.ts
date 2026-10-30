@@ -17,7 +17,7 @@ import {
   type Week,
 } from "@/domain/pay-runs";
 
-import { TIME_ZONE, sydneyDateKey } from "./format";
+import { TIME_ZONE, dateKeyIn, zoneOf } from "./format";
 import {
   cancellationDetail,
   hoursDetail,
@@ -196,11 +196,13 @@ export async function planPayRunWith(
     }
     const name = workerName(booking.workers);
     const category = job.categories?.name ?? "Work";
+    // Dates and times on the line are the site's local time.
+    const timeZone = zoneOf(site.state);
     const facts = {
       assignment_id: booking.id,
       worker_id: booking.worker_id,
       business_id: job.business_id,
-      work_date: sydneyDateKey(shift.starts_at),
+      work_date: dateKeyIn(shift.starts_at, timeZone),
       work_type: payrollWorkType(category, job.level),
       site_name: site.name,
       description: lineDescription(name, category, site.name),
@@ -238,6 +240,7 @@ export async function planPayRunWith(
             breakMinutes: sheet.break_minutes,
           },
           shiftCost,
+          timeZone,
         ),
       };
     } else {
@@ -282,7 +285,12 @@ export async function planPayRunWith(
         allowance_cents: cost.pay.urgentPayCents,
         pay_cents: cost.pay.payCents,
         bill_cents: cost.bill.billCents,
-        detail: cancellationDetail(shift.starts_at, cost.bill, arrived),
+        detail: cancellationDetail(
+          shift.starts_at,
+          cost.bill,
+          arrived,
+          timeZone,
+        ),
       };
     }
     lines.push(line);
@@ -347,9 +355,9 @@ export async function savePayRunWith(
   return data;
 }
 
-/** HH:mm in Sydney, as payroll imports expect. */
-function clockTime(value: string): string {
-  return formatInTimeZone(new Date(value), TIME_ZONE, "HH:mm");
+/** HH:mm at the site, as payroll imports expect. */
+function clockTime(value: string, timeZone: string): string {
+  return formatInTimeZone(new Date(value), timeZone, "HH:mm");
 }
 
 /**
@@ -375,10 +383,15 @@ export function payrollLines(
       payroll_employee_id: string | null;
     } | null;
     businesses: { legal_name: string; trading_name: string | null } | null;
+    /** For the site's time zone. */
+    assignments?: {
+      shifts: { jobs: { sites: { state: string } | null } | null } | null;
+    } | null;
   }[],
 ): PayrollTimesheetLine[] {
   return rows.flatMap((row) => {
     if (row.pay_cents <= 0 || !row.start_at || !row.finish_at) return [];
+    const timeZone = zoneOf(row.assignments?.shifts?.jobs?.sites?.state);
     const minutes =
       (Date.parse(row.finish_at) - Date.parse(row.start_at)) / 60_000 -
       (row.break_minutes ?? 0);
@@ -401,8 +414,8 @@ export function payrollLines(
           .filter(Boolean)
           .join(", "),
         date: row.work_date,
-        start: clockTime(row.start_at),
-        end: clockTime(row.finish_at),
+        start: clockTime(row.start_at, timeZone),
+        end: clockTime(row.finish_at, timeZone),
         breakMinutes: row.break_minutes ?? 0,
         workType: row.work_type,
         location: business ? `${business} – ${row.site_name}` : row.site_name,

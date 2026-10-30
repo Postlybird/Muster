@@ -25,6 +25,8 @@ export type BookingAtRisk = {
   work: string;
   business: string;
   start: Date;
+  /** The site's, for saying when the shift is. */
+  timeZone: string;
   problems: IneligibleReason[];
 };
 
@@ -122,6 +124,7 @@ export async function bookingsAtRiskWith(
         business:
           job.businesses?.trading_name ?? job.businesses?.legal_name ?? "",
         start,
+        timeZone,
         problems,
       },
     ];

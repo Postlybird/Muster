@@ -9,7 +9,7 @@ import { NoteForm } from "@/components/timesheets/note-form";
 import { TimesheetDetails } from "@/components/timesheets/timesheet-details";
 import { SITE_TAGS } from "@/domain/ratings";
 import { isPayable } from "@/domain/timesheets";
-import { formatDateTime, formatDayShort } from "@/lib/format";
+import { formatDateTime, formatDayShort, zoneOf } from "@/lib/format";
 import { ratingGiven } from "@/lib/rating-format";
 import { workerTimesheetStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
@@ -53,6 +53,7 @@ export default async function WorkerTimesheetPage({
         .maybeSingle()
     : { data: null };
   const status = workerTimesheetStatuses[sheet.status];
+  const siteZone = zoneOf(sheet.state);
   const canQuery =
     ["approved", "auto_approved", "adjusted"].includes(sheet.status) &&
     !sheet.resolved_at;
@@ -68,7 +69,7 @@ export default async function WorkerTimesheetPage({
       </Link>
       <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">
-          {formatDayShort(sheet.shift_starts_at)}
+          {formatDayShort(sheet.shift_starts_at, siteZone)}
         </h1>
         <p className="text-muted-foreground">
           {sheet.category_name} for {sheet.business_name} at {sheet.site_name}
@@ -80,7 +81,7 @@ export default async function WorkerTimesheetPage({
         status={status}
         detail={
           sheet.status === "submitted"
-            ? `If the business hasn't checked them by ${formatDateTime(sheet.approve_by)}, they're approved as they are.`
+            ? `If the business hasn't checked them by ${formatDateTime(sheet.approve_by, siteZone)}, they're approved as they are.`
             : null
         }
       />
@@ -94,6 +95,7 @@ export default async function WorkerTimesheetPage({
         </h2>
         <TimesheetDetails
           timesheet={sheet}
+          timeZone={siteZone}
           audience="worker"
           money={{ label: "Your pay (before tax)", cents: sheet.pay_cents }}
         />

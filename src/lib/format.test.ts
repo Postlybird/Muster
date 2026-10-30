@@ -5,9 +5,13 @@ import {
   formatDate,
   formatDateTime,
   formatDayShort,
+  dateKeyIn,
   formatTime,
+  fromLocalTime,
   fromSydneyTime,
   sydneyDateKey,
+  zoneNote,
+  zoneOf,
 } from "./format";
 
 describe("Australian formats", () => {
@@ -45,6 +49,45 @@ describe("Australian formats", () => {
     expect(formatCents(123456)).toBe("$1,234.56");
     expect(formatCents(0)).toBe("$0.00");
     expect(formatCents(-550)).toBe("-$5.50");
+  });
+});
+
+describe("times at the site", () => {
+  // 7:30 am on 28/10/2026 in Sydney (AEDT, UTC+11).
+  const morning = new Date("2026-10-27T20:30:00Z");
+
+  it("finds each state's time zone, and Sydney's for anything else", () => {
+    expect(zoneOf("WA")).toBe("Australia/Perth");
+    expect(zoneOf("QLD")).toBe("Australia/Brisbane");
+    expect(zoneOf("NSW")).toBe("Australia/Sydney");
+    expect(zoneOf(null)).toBe("Australia/Sydney");
+    expect(zoneOf("toString")).toBe("Australia/Sydney");
+  });
+
+  it("shows a shift in its own state's time", () => {
+    expect(formatTime(morning, zoneOf("WA"))).toBe("4:30 am");
+    // Queensland has no daylight saving; South Australia is half an hour behind.
+    expect(formatTime(morning, zoneOf("QLD"))).toBe("6:30 am");
+    expect(formatTime(morning, zoneOf("SA"))).toBe("7:00 am");
+    expect(formatTime(morning, zoneOf("NT"))).toBe("6:00 am");
+    expect(formatDateTime(morning, zoneOf("WA"))).toBe("28/10/2026, 4:30 am");
+  });
+
+  it("names the zone when it isn't Sydney's", () => {
+    expect(zoneNote(zoneOf("WA"))).toBe(" (Perth time)");
+    expect(zoneNote(zoneOf("NSW"))).toBe("");
+  });
+
+  it("keys dates by the site's calendar day", () => {
+    // 10 pm in Perth is already the next day in Sydney.
+    expect(dateKeyIn("2026-10-27T14:00:00Z", zoneOf("WA"))).toBe("2026-10-27");
+    expect(sydneyDateKey("2026-10-27T14:00:00Z")).toBe("2026-10-28");
+  });
+
+  it("converts the site's wall-clock time to UTC", () => {
+    expect(
+      fromLocalTime("2026-10-28", "07:30", zoneOf("WA")).toISOString(),
+    ).toBe("2026-10-27T23:30:00.000Z");
   });
 });
 

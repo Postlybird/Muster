@@ -21,7 +21,7 @@ import {
   PPE_SUPPLIERS_FOR_WORKERS,
 } from "@/domain/jobs";
 import { ratingSummary } from "@/domain/ratings";
-import { formatCents, formatDayShort, formatTime } from "@/lib/format";
+import { formatCents, formatDayShort, formatTime, zoneOf } from "@/lib/format";
 import { shiftHours } from "@/lib/job-format";
 import { attendanceOf, cancellable, liveShift } from "@/lib/my-shifts";
 import { distanceLabel } from "@/lib/offers";
@@ -89,8 +89,9 @@ type ShiftTimes = {
   estimate_cents: number | null;
 };
 
-function shiftDetail(shift: ShiftTimes): string {
-  const parts = [shiftHours(shift)];
+/** The hours (in the site's time zone), break and estimated pay. */
+function shiftDetail(shift: ShiftTimes, timeZone: string): string {
+  const parts = [shiftHours(shift, timeZone)];
   if (shift.break_minutes) parts.push(`${shift.break_minutes}-minute break`);
   if (shift.estimate_cents !== null) {
     parts.push(`about ${formatCents(shift.estimate_cents)}`);
@@ -98,7 +99,13 @@ function shiftDetail(shift: ShiftTimes): string {
   return parts.join(" · ");
 }
 
-function ShiftList({ shifts }: { shifts: ShiftTimes[] }) {
+function ShiftList({
+  shifts,
+  timeZone,
+}: {
+  shifts: ShiftTimes[];
+  timeZone: string;
+}) {
   return (
     <ul className="divide-y text-sm">
       {shifts.map((shift) => (
@@ -106,8 +113,12 @@ function ShiftList({ shifts }: { shifts: ShiftTimes[] }) {
           key={shift.shift_id}
           className="flex flex-wrap gap-x-2 py-2 first:pt-0 last:pb-0"
         >
-          <span className="font-medium">{formatDayShort(shift.starts_at)}</span>
-          <span className="text-muted-foreground">{shiftDetail(shift)}</span>
+          <span className="font-medium">
+            {formatDayShort(shift.starts_at, timeZone)}
+          </span>
+          <span className="text-muted-foreground">
+            {shiftDetail(shift, timeZone)}
+          </span>
         </li>
       ))}
     </ul>
@@ -151,6 +162,8 @@ export default async function WorkerJobPage({
     supabase.rpc("my_job", { p_job_id: id }).maybeSingle(),
   ]);
   if (!job) return <Gone />;
+  // Times are the site's local time, wherever the worker is.
+  const siteZone = zoneOf(job.state);
   const open = offers ?? [];
   const booked = (mine ?? []).filter(
     (s) => s.assignment_status === "confirmed",
@@ -207,8 +220,8 @@ export default async function WorkerJobPage({
     : 0;
   const toCancel = cancellable(booked, lateHours, new Date()).map((b) => ({
     id: b.assignmentId,
-    day: formatDayShort(b.shift.starts_at),
-    detail: shiftDetail(b.shift),
+    day: formatDayShort(b.shift.starts_at, siteZone),
+    detail: shiftDetail(b.shift, siteZone),
     late: b.late,
   }));
   const photos = job.booked
@@ -264,16 +277,16 @@ export default async function WorkerJobPage({
       {live?.assignment_id ? (
         <Section
           id="today"
-          title={`On now: ${formatDayShort(live.starts_at)}, ${shiftHours(live)}`}
+          title={`On now: ${formatDayShort(live.starts_at, siteZone)}, ${shiftHours(live, siteZone)}`}
           className="border-primary/30 bg-card"
         >
           {attendance.startedAt ? (
             <p className="text-sm">
               {attendance.confirmedByBusiness
-                ? `The business confirmed you arrived at ${formatTime(attendance.startedAt)}.`
-                : `Clocked in at ${formatTime(attendance.startedAt)}.`}
+                ? `The business confirmed you arrived at ${formatTime(attendance.startedAt, siteZone)}.`
+                : `Clocked in at ${formatTime(attendance.startedAt, siteZone)}.`}
               {attendance.clockedOutAt
-                ? ` Clocked out at ${formatTime(attendance.clockedOutAt)}. Your hours go to the business to approve.`
+                ? ` Clocked out at ${formatTime(attendance.clockedOutAt, siteZone)}. Your hours go to the business to approve.`
                 : ""}
             </p>
           ) : null}
@@ -307,7 +320,7 @@ export default async function WorkerJobPage({
           title={`You're booked on ${shiftsLabel(booked.length)}`}
           className="border-success/30 bg-success-soft"
         >
-          <ShiftList shifts={booked} />
+          <ShiftList shifts={booked} timeZone={siteZone} />
           <div className="space-y-1 border-t pt-3">
             <p className="flex items-start gap-1 font-medium [overflow-wrap:anywhere]">
               <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
@@ -383,7 +396,7 @@ export default async function WorkerJobPage({
           id="applied"
           title={`Applied for ${shiftsLabel(applied.length)}`}
         >
-          <ShiftList shifts={applied} />
+          <ShiftList shifts={applied} timeZone={siteZone} />
           <p className="text-sm text-muted-foreground">
             Waiting for {job.business_name} to choose. We&apos;ll text you if
             you&apos;re picked.
@@ -407,7 +420,7 @@ export default async function WorkerJobPage({
               : `${cancelledByBusiness.length} of your bookings`}{" "}
             (
             {cancelledByBusiness
-              .map((s) => formatDayShort(s.starts_at))
+              .map((s) => formatDayShort(s.starts_at, siteZone))
               .join(", ")}
             ).
           </AlertDescription>
@@ -421,9 +434,12 @@ export default async function WorkerJobPage({
             {removed.length === 1
               ? "this booking"
               : `${removed.length} of your bookings`}{" "}
-            ({removed.map((s) => formatDayShort(s.starts_at)).join(", ")}). It
-            doesn&apos;t count against your reliability. We&apos;ve sent you a
-            message saying why.
+            (
+            {removed
+              .map((s) => formatDayShort(s.starts_at, siteZone))
+              .join(", ")}
+            ). It doesn&apos;t count against your reliability. We&apos;ve sent
+            you a message saying why.
           </AlertDescription>
         </Alert>
       ) : null}
@@ -457,8 +473,8 @@ export default async function WorkerJobPage({
             mode={job.fill_mode}
             shifts={open.map((shift) => ({
               id: shift.shift_id,
-              day: formatDayShort(shift.starts_at),
-              detail: shiftDetail(shift),
+              day: formatDayShort(shift.starts_at, siteZone),
+              detail: shiftDetail(shift, siteZone),
             }))}
           />
         </Section>

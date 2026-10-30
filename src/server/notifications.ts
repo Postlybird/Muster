@@ -19,7 +19,7 @@ import {
   renderMessage,
   type Channel,
 } from "@/domain/notifications";
-import { TIME_ZONE } from "@/lib/format";
+import { zoneOf } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 import { requestOrigin } from "./request";
@@ -140,7 +140,9 @@ async function createNotification<K extends TemplateKey>(
     await Promise.all([
       admin
         .from("profiles")
-        .select("email, phone, notification_prefs, archived_at")
+        .select(
+          "email, phone, notification_prefs, archived_at, workers(home_state)",
+        )
         .eq("id", profileId)
         .maybeSingle(),
       admin
@@ -166,7 +168,13 @@ async function createNotification<K extends TemplateKey>(
   const urgent = ("urgent" in template && template.urgent) || !!options.urgent;
   const sendAfter = urgent
     ? now
-    : (quietUntil(now, settings.quiet_hours, TIME_ZONE) ?? now);
+    : // Quiet hours are the person's own nights: a worker's home state, or
+      // Sydney for everyone else.
+      (quietUntil(
+        now,
+        settings.quiet_hours,
+        zoneOf(person.workers?.home_state),
+      ) ?? now);
   const { data: saved, error } = await admin
     .from("notifications")
     .upsert(

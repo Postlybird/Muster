@@ -3476,6 +3476,7 @@ export type Database = {
           shift_id: string;
           site_name: string;
           starts_at: string;
+          state: string;
           suburb: string;
         }[];
       };
@@ -3580,6 +3581,7 @@ export type Database = {
           site_name: string;
           start_at: string;
           started_at: string;
+          state: string;
           status: Database["public"]["Enums"]["timesheet_status"];
           timesheet_id: string;
           worker_id: string;
@@ -3858,6 +3860,7 @@ export type Database = {
           job_type: Database["public"]["Enums"]["job_type"];
           shift_id: string;
           starts_at: string;
+          state: string;
           suburb: string;
         }[];
       };
@@ -3882,6 +3885,7 @@ export type Database = {
           shift_starts_at: string;
           site_name: string;
           start_at: string;
+          state: string;
           status: Database["public"]["Enums"]["timesheet_status"];
           timesheet_id: string;
           worker_note: string;

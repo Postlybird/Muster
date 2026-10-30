@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatCents, formatDayShort, formatTime } from "@/lib/format";
+import { formatCents, formatDayShort, formatTime, zoneOf } from "@/lib/format";
 import { matchJob, matchWorker, type UrgentOffer } from "@/lib/matching";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -21,20 +21,21 @@ async function notifyUrgentOffers(offers: UrgentOffer[]) {
   const { data: shifts } = await admin
     .from("shifts")
     .select(
-      "id, job_id, starts_at, jobs(fill_mode, categories(name), sites(suburb)), shift_pay(estimate_cents)",
+      "id, job_id, starts_at, jobs(fill_mode, categories(name), sites(suburb, state)), shift_pay(estimate_cents)",
     )
     .in("id", [...new Set(first.values())]);
   await Promise.all(
     [...first].map(([profileId, shiftId]) => {
       const shift = shifts?.find((s) => s.id === shiftId);
       if (!shift) return null;
+      const timeZone = zoneOf(shift.jobs?.sites?.state);
       return notify(
         "urgent_offer",
         profileId,
         {
           work: shift.jobs?.categories?.name ?? "a shift",
           suburb: shift.jobs?.sites?.suburb ?? "your area",
-          when: `${formatDayShort(shift.starts_at)} from ${formatTime(shift.starts_at)}`,
+          when: `${formatDayShort(shift.starts_at, timeZone)} from ${formatTime(shift.starts_at, timeZone)}`,
           pay: shift.shift_pay?.estimate_cents
             ? `About ${formatCents(shift.shift_pay.estimate_cents)} with the urgent loading.`
             : "",

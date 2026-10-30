@@ -25,7 +25,7 @@ export async function GET(
   const { data: rows, error } = await supabase
     .from("pay_run_lines")
     .select(
-      "kind, work_date, start_at, finish_at, break_minutes, hours, work_type, site_name, allowance_cents, pay_cents, workers(legal_first_name, legal_last_name, payroll_employee_id), businesses(legal_name, trading_name)",
+      "kind, work_date, start_at, finish_at, break_minutes, hours, work_type, site_name, allowance_cents, pay_cents, workers(legal_first_name, legal_last_name, payroll_employee_id), businesses(legal_name, trading_name), assignments(shifts(jobs(sites(state))))",
     )
     .eq("pay_run_id", id);
   if (error) return new Response("Couldn't load the run.", { status: 502 });

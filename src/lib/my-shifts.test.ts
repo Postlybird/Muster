@@ -19,6 +19,7 @@ function shift(overrides: Partial<MyShift>): MyShift {
     category_name: "Restoration labourer",
     business_name: "Harbour Restoration",
     suburb: "Granville",
+    state: "NSW",
     application_status: "applied",
     assignment_id: null,
     assignment_status: null,

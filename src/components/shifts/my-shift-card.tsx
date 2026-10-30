@@ -2,6 +2,7 @@ import { CalendarDays, MapPin } from "lucide-react";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import { zoneOf } from "@/lib/format";
 import { shiftSummary } from "@/lib/job-format";
 import type { MyJob } from "@/lib/my-shifts";
 
@@ -36,7 +37,7 @@ export function MyShiftCard({
       </div>
       <p className="flex items-start gap-2 text-sm">
         <CalendarDays className="mt-0.5 size-4 shrink-0" aria-hidden />
-        {shiftSummary(job.shifts)}
+        {shiftSummary(job.shifts, zoneOf(first.state))}
       </p>
       <p className="flex items-start gap-2 text-sm">
         <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />

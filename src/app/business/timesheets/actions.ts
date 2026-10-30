@@ -7,7 +7,7 @@ import { WORKER_TAGS } from "@/domain/ratings";
 import { failure, success, type ActionState } from "@/lib/forms";
 import { ratingFromForm } from "@/lib/ratings";
 import { createClient } from "@/lib/supabase/server";
-import { hoursFromForm } from "@/lib/timesheets";
+import { hoursFromForm, type ShiftDay } from "@/lib/timesheets";
 import { blockWorker, setFavourite } from "@/server/business-workers";
 import { canManage, getMyBusiness } from "@/server/businesses";
 import { saveFailed } from "@/server/errors";
@@ -94,13 +94,12 @@ async function workerOf(timesheetId: string) {
  */
 export async function adjustTimesheet(
   id: string,
-  /** The shift's day in Sydney, yyyy-mm-dd. */
-  date: string,
+  day: ShiftDay,
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   if (!(await signedIn())) return failure("Sign in to your business first.");
-  const parsed = hoursFromForm(formData, date, { noteRequired: true });
+  const parsed = hoursFromForm(formData, day, { noteRequired: true });
   if (!parsed.ok) return parsed.state;
   const supabase = await createClient();
   const { error } = await supabase.rpc("adjust_timesheet", {
@@ -125,12 +124,12 @@ export async function adjustTimesheet(
  */
 export async function addTimesheet(
   assignmentId: string,
-  date: string,
+  day: ShiftDay,
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   if (!(await signedIn())) return failure("Sign in to your business first.");
-  const parsed = hoursFromForm(formData, date, { noteRequired: false });
+  const parsed = hoursFromForm(formData, day, { noteRequired: false });
   if (!parsed.ok) return parsed.state;
   const supabase = await createClient();
   const { data: id, error } = await supabase.rpc("add_timesheet", {

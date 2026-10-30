@@ -18,7 +18,7 @@ This project uses Next.js 16, which has breaking changes from older versions:
 - Never commit secrets. Keys live in `.env.local`; keep `.env.example` current.
 - Keep `PROGRESS.md` current (done, next, decisions, open questions). Commit in small working steps.
 - The owner is not a developer. When they need to do something (create an account, add a key), give numbered, plain-English steps, and never ask them to paste keys into chat.
-- Australian English and formats: dd/mm/yyyy, AUD, +61 phone numbers. Store times in UTC, display in Australia/Sydney.
+- Australian English and formats: dd/mm/yyyy, AUD, +61 phone numbers. Store times in UTC; show a shift's times in its site's time zone, and everything else in Australia/Sydney.
 
 ## Conventions
 
@@ -30,7 +30,7 @@ This project uses Next.js 16, which has breaking changes from older versions:
 - **Scheduled jobs:** pg_cron calls `call_scheduled_job()`, which posts to `/api/cron/<job>` through pg_net with the `CRON_SECRET`. The site's address and the secret are in Vault, saved by the database workflow with `set_scheduled_job_target()`; where they aren't set (locally, CI), the jobs do nothing. Change a schedule with a new migration.
 - **Records:** archive (`archived_at`), never hard-delete personal or employment records.
 - **Money:** integer cents.
-- **Time:** `timestamptz` in UTC; convert with the helpers in `src/lib/format.ts`.
+- **Time:** `timestamptz` in UTC; convert with the helpers in `src/lib/format.ts`. Shift times (screens, messages, timesheets, invoices and the payroll file) use the site's zone, `zoneOf(state)`: the functions that list shifts and timesheets return the site's `state`, and `shiftHours()`, `shiftSummary()`, `hoursLabel()`, `timeInputValue()` and `TimesheetDetails` require a zone. Hours typed into forms are read on the site's day (`shiftDay()`). Our team's screens add `zoneNote()` (" (Perth time)"). A worker's own settings (quiet hours, availability) follow their home state. Everything else, including pay weeks, is Sydney time.
 - **Business rules** (eligibility, pay/bill, hours, expiry, reliability) live in `src/domain/` as pure functions with Vitest tests next to them. Price shifts with `loadPricing()` (`src/server/pricing.ts`), which feeds `splitShift()` and `costShift()` in `src/domain/pay.ts`.
 - **Data access:** user-initiated reads and writes use the signed-in user's Supabase client, so RLS applies. Use the service-role client only in:
   - cron jobs, seeding, the deploy check of sign-in codes (`scripts/check-sign-in-codes.ts`) and audited admin actions

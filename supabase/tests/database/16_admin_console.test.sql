@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(22);
+select plan(23);
 
 insert into public.categories (id, code, name) values
   ('e1611111-0000-0000-0000-000000000001', 'pgtap_list_cleaner', 'PGTAP list cleaner');
@@ -159,6 +159,12 @@ select results_eq(
   $$ values ('a1622222-0000-0000-0000-000000000002'::uuid, 1, 0, 1),
             ('a1611111-0000-0000-0000-000000000001'::uuid, 1, 1, 0) $$,
   'the board shows posted shifts that haven''t finished, with who''s booked, applying and on site'
+);
+select is(
+  (select array_agg(distinct state) from public.admin_shift_board(now(), now() + interval '7 days')
+   where business_id = 'b1611111-0000-0000-0000-000000000001'),
+  array['NSW'],
+  'and the state of each site, for its time zone'
 );
 select is(
   (select count(*) from public.admin_shift_board(now() + interval '4 hours', now() + interval '7 days')

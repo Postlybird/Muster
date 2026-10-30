@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status/status-badge";
 import { Button } from "@/components/ui/button";
+import { zoneOf } from "@/lib/format";
 import { jobTitle, shiftSummary, workersLabel } from "@/lib/job-format";
 import { jobStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
@@ -18,7 +19,7 @@ type JobListItem = {
   status: keyof typeof jobStatuses;
   headcount: number;
   categories: { name: string } | null;
-  sites: { name: string } | null;
+  sites: { name: string; state: string } | null;
   shifts: { starts_at: string; ends_at: string }[];
 };
 
@@ -36,7 +37,8 @@ function JobList({ jobs }: { jobs: JobListItem[] }) {
                 {jobTitle(job.categories?.name, job.sites?.name)}
               </p>
               <p className="text-sm text-muted-foreground">
-                {shiftSummary(job.shifts)} · {workersLabel(job.headcount)}
+                {shiftSummary(job.shifts, zoneOf(job.sites?.state))} ·{" "}
+                {workersLabel(job.headcount)}
               </p>
             </div>
             <StatusBadge status={jobStatuses[job.status]} />
@@ -54,7 +56,7 @@ export default async function JobsPage() {
     ? await supabase
         .from("jobs")
         .select(
-          "id, status, headcount, categories(name), sites(name), shifts(starts_at, ends_at)",
+          "id, status, headcount, categories(name), sites(name, state), shifts(starts_at, ends_at)",
         )
         .eq("business_id", business.id)
         .neq("status", "draft")

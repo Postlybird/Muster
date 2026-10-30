@@ -12,7 +12,7 @@ import {
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/format";
+import { formatDate, zoneOf } from "@/lib/format";
 import { jobTitle, shiftSummary, workersLabel } from "@/lib/job-format";
 import { createClient } from "@/lib/supabase/server";
 import { canManage, getMyBusiness } from "@/server/businesses";
@@ -28,7 +28,7 @@ import {
 export const metadata: Metadata = { title: "Post work" };
 
 const JOB_SUMMARY =
-  "id, headcount, created_at, categories(name), sites(name), shifts(starts_at, ends_at)";
+  "id, headcount, created_at, categories(name), sites(name, state), shifts(starts_at, ends_at)";
 
 export default async function PostWorkPage() {
   const { business, role } = await getMyBusiness();
@@ -99,7 +99,7 @@ export default async function PostWorkPage() {
                   <p className="text-sm text-muted-foreground">
                     Started {formatDate(draft.created_at)}
                     {draft.shifts.length > 0
-                      ? ` · ${shiftSummary(draft.shifts)}`
+                      ? ` · ${shiftSummary(draft.shifts, zoneOf(draft.sites?.state))}`
                       : ""}
                   </p>
                 </div>

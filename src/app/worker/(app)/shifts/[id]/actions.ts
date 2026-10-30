@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import { shiftsLabel, takeOutcome } from "@/domain/bookings";
 import type { FillMode } from "@/domain/jobs";
-import { formatTime } from "@/lib/format";
+import { formatTime, zoneOf } from "@/lib/format";
 import { failure, success, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import { acceptedUpload } from "@/lib/uploads";
@@ -204,7 +204,11 @@ export async function clockShift(
     revalidatePath("/worker/timesheets");
     await refreshReliability([worker.id]);
   }
-  const time = formatTime(occurredAt);
+  // The time at the site, which is where they are.
+  const { data: job } = UUID.test(jobId)
+    ? await supabase.rpc("my_job", { p_job_id: jobId }).maybeSingle()
+    : { data: null };
+  const time = formatTime(occurredAt, zoneOf(job?.state));
   const where =
     data?.inside === false
       ? " You weren't at the site, so we've noted your reason."

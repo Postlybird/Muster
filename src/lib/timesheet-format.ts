@@ -4,9 +4,9 @@ import { formatHours, formatTime } from "./format";
 
 type Hours = { start_at: string; finish_at: string; break_minutes: number };
 
-/** "7:00 am – 3:04 pm, 30-minute break" */
-export function hoursLabel(hours: Hours): string {
-  const times = `${formatTime(hours.start_at)} – ${formatTime(hours.finish_at)}`;
+/** "7:00 am – 3:04 pm, 30-minute break", in the site's time zone. */
+export function hoursLabel(hours: Hours, timeZone: string): string {
+  const times = `${formatTime(hours.start_at, timeZone)} – ${formatTime(hours.finish_at, timeZone)}`;
   return hours.break_minutes
     ? `${times}, ${hours.break_minutes}-minute break`
     : `${times}, no break`;

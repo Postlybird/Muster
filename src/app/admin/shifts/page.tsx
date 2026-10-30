@@ -22,6 +22,7 @@ import {
   type BoardGroup,
 } from "@/domain/shift-board";
 import { requireAdmin } from "@/lib/auth";
+import { zoneNote, zoneOf } from "@/lib/format";
 import { shiftSummary } from "@/lib/job-format";
 import { choiceParam } from "@/lib/search-params";
 import { createClient } from "@/lib/supabase/server";
@@ -41,6 +42,7 @@ type Row = {
   business_id: string;
   business_name: string;
   suburb: string | null;
+  state: string | null;
   category_name: string | null;
   job_type: string;
   starts_at: string;
@@ -108,7 +110,8 @@ function BoardTable({
               className={cn(attention && "bg-danger-soft hover:bg-danger-soft")}
             >
               <TableCell className="whitespace-nowrap">
-                {shiftSummary([row])}
+                {shiftSummary([row], zoneOf(row.state))}
+                {zoneNote(zoneOf(row.state))}
               </TableCell>
               <TableCell>
                 <div className="flex flex-wrap items-center gap-2">
@@ -126,7 +129,9 @@ function BoardTable({
                   {row.business_name}
                 </Link>
               </TableCell>
-              <TableCell>{row.suburb ?? "—"}</TableCell>
+              <TableCell>
+                {[row.suburb, row.state].filter(Boolean).join(" ") || "—"}
+              </TableCell>
               <TableCell>
                 <div className="flex flex-wrap items-center gap-2">
                   {workers(row, group)}

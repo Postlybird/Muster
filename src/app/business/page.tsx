@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { BUSINESS_STEPS } from "@/domain/business-onboarding";
-import { formatDayShort } from "@/lib/format";
+import { formatDayShort, zoneOf } from "@/lib/format";
 import { jobTitle, shiftHours } from "@/lib/job-format";
 import { businessStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
@@ -149,7 +149,7 @@ async function UpcomingShifts({ businessId }: { businessId: string }) {
   const { data: shifts } = await supabase
     .from("shifts")
     .select(
-      "id, starts_at, ends_at, headcount, status, jobs!inner(id, business_id, status, categories(name), sites(name)), assignments(status)",
+      "id, starts_at, ends_at, headcount, status, jobs!inner(id, business_id, status, categories(name), sites(name, state)), assignments(status)",
     )
     .eq("jobs.business_id", businessId)
     .eq("assignments.status", "confirmed")
@@ -181,7 +181,11 @@ async function UpcomingShifts({ businessId }: { businessId: string }) {
             >
               <span>
                 <span className="block font-medium">
-                  {formatDayShort(shift.starts_at)}, {shiftHours(shift)}
+                  {formatDayShort(
+                    shift.starts_at,
+                    zoneOf(shift.jobs.sites?.state),
+                  )}
+                  , {shiftHours(shift, zoneOf(shift.jobs.sites?.state))}
                 </span>
                 <span className="block text-sm text-muted-foreground">
                   {jobTitle(

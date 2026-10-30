@@ -17,14 +17,18 @@ import { confirmArrival, pickApplicant, reportNoShow } from "./actions";
 
 type Shift = { id: string; starts_at: string; ends_at: string };
 
-/** "All 5 shifts", or the days. */
-function daysLabel(shiftIds: readonly string[], shifts: readonly Shift[]) {
+/** "All 5 shifts", or the days at the site. */
+function daysLabel(
+  shiftIds: readonly string[],
+  shifts: readonly Shift[],
+  timeZone: string,
+) {
   if (shiftIds.length === shifts.length && shifts.length > 1) {
     return `All ${shifts.length} shifts`;
   }
   return shifts
     .filter((shift) => shiftIds.includes(shift.id))
-    .map((shift) => formatDayShort(shift.starts_at))
+    .map((shift) => formatDayShort(shift.starts_at, timeZone))
     .join(", ");
 }
 
@@ -35,10 +39,13 @@ function daysLabel(shiftIds: readonly string[], shifts: readonly Shift[]) {
 export async function Applicants({
   jobId,
   shifts,
+  timeZone,
   canPick,
 }: {
   jobId: string;
   shifts: Shift[];
+  /** The site's. */
+  timeZone: string;
   canPick: boolean;
 }) {
   const supabase = await createClient();
@@ -83,7 +90,8 @@ export async function Applicants({
                 tickets={applicant.tickets}
               >
                 <p className="text-sm">
-                  Applied for: {daysLabel(applicant.shift_ids, shifts)}
+                  Applied for:{" "}
+                  {daysLabel(applicant.shift_ids, shifts, timeZone)}
                 </p>
                 {canPick ? (
                   <ActionButton
@@ -112,10 +120,13 @@ export async function Applicants({
 export async function Booked({
   jobId,
   shifts,
+  timeZone,
   now,
 }: {
   jobId: string;
   shifts: Shift[];
+  /** The site's. */
+  timeZone: string;
   now: Date;
 }) {
   const supabase = await createClient();
@@ -180,6 +191,7 @@ export async function Booked({
                   {daysLabel(
                     rows.map((row) => row.shift_id),
                     shifts,
+                    timeZone,
                   )}
                 </p>
                 {rows
@@ -196,7 +208,7 @@ export async function Booked({
                       (e) =>
                         e.kind === "clock_in" && e.inside_geofence === false,
                     );
-                    const day = formatDayShort(shift.starts_at);
+                    const day = formatDayShort(shift.starts_at, timeZone);
                     const timesheet = timesheetOf(row.assignment_id);
                     const over = new Date(shift.ends_at) <= now;
                     const noShow = (
@@ -225,15 +237,15 @@ export async function Booked({
                             {state.startedAt
                               ? `${
                                   state.confirmedByBusiness
-                                    ? `arrival confirmed for ${formatTime(state.startedAt)}`
-                                    : `clocked in ${formatTime(state.startedAt)}`
+                                    ? `arrival confirmed for ${formatTime(state.startedAt, timeZone)}`
+                                    : `clocked in ${formatTime(state.startedAt, timeZone)}`
                                 }${
                                   away
                                     ? ` (${away.distance_m === null ? "no location" : `${away.distance_m} m from the site`}: "${away.reason ?? ""}")`
                                     : ""
                                 }${
                                   state.clockedOutAt
-                                    ? `, out ${formatTime(state.clockedOutAt)}`
+                                    ? `, out ${formatTime(state.clockedOutAt, timeZone)}`
                                     : ""
                                 }.`
                               : "no clock-in."}

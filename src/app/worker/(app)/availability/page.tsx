@@ -5,7 +5,7 @@ import {
   normaliseTime,
   type WeeklyWindow,
 } from "@/domain/availability";
-import { formatDayShort, formatTime, sydneyDateKey } from "@/lib/format";
+import { dateKeyIn, formatDayShort, formatTime, zoneOf } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { getMyWorker } from "@/server/workers";
 
@@ -18,7 +18,9 @@ export const metadata: Metadata = { title: "Availability" };
 export default async function AvailabilityPage() {
   const { worker } = await getMyWorker();
   const supabase = await createClient();
-  const today = sydneyDateKey(new Date());
+  // The worker's own time, from the state they live in.
+  const homeZone = zoneOf(worker.home_state);
+  const today = dateKeyIn(new Date(), homeZone);
   const [{ data: weekly }, { data: blocks }] = await Promise.all([
     supabase
       .from("availability_weekly")
@@ -55,7 +57,7 @@ export default async function AvailabilityPage() {
         on={availableNow}
         untilLabel={
           availableNow && worker.available_now_until
-            ? formatTime(worker.available_now_until)
+            ? formatTime(worker.available_now_until, homeZone)
             : null
         }
         canUse={worker.status === "active"}

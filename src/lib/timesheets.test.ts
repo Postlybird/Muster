@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { fromSydneyTime } from "./format";
+import { fromLocalTime, fromSydneyTime, TIME_ZONE } from "./format";
 import {
   groupBusinessHours,
   hoursFromForm,
+  shiftDay,
   timeInputValue,
   type BusinessHours,
 } from "./timesheets";
@@ -19,6 +20,7 @@ function booking(overrides: Partial<BusinessHours>): BusinessHours {
     worker_name: "Hannah Schmidt",
     category_name: "Commercial cleaner",
     site_name: "Blacktown office tower",
+    state: "NSW",
     shift_starts_at: "2026-11-03T20:00:00Z",
     shift_ends_at: "2026-11-04T04:00:00Z",
     shift_break_minutes: 30,
@@ -98,7 +100,7 @@ describe("the hours form", () => {
         break: "30",
         note: " Left early ",
       }),
-      "2026-11-04",
+      { date: "2026-11-04", timeZone: TIME_ZONE },
       { noteRequired: true },
     );
     expect(result).toEqual({
@@ -115,7 +117,7 @@ describe("the hours form", () => {
   it("asks for a note when changing hours", () => {
     const result = hoursFromForm(
       form({ start: "07:00", finish: "15:30", break: "0", note: "" }),
-      "2026-11-04",
+      { date: "2026-11-04", timeZone: TIME_ZONE },
       { noteRequired: true },
     );
     expect(!result.ok && result.state).toMatchObject({
@@ -127,7 +129,7 @@ describe("the hours form", () => {
   it("treats an empty break as none", () => {
     const result = hoursFromForm(
       form({ start: "22:00", finish: "06:00", break: "" }),
-      "2026-11-06",
+      { date: "2026-11-06", timeZone: TIME_ZONE },
       { noteRequired: false },
     );
     expect(result.ok && result.hours.breakMinutes).toBe(0);
@@ -139,7 +141,7 @@ describe("the hours form", () => {
   it("points at the break when it's too long", () => {
     const result = hoursFromForm(
       form({ start: "07:00", finish: "07:30", break: "30" }),
-      "2026-11-04",
+      { date: "2026-11-04", timeZone: TIME_ZONE },
       { noteRequired: false },
     );
     expect(!result.ok && result.state).toMatchObject({
@@ -150,9 +152,47 @@ describe("the hours form", () => {
   });
 });
 
+describe("hours at sites outside Sydney", () => {
+  const perth = "Australia/Perth";
+
+  it("reads times in the site's time zone", () => {
+    const result = hoursFromForm(
+      form({ start: "07:00", finish: "15:30", break: "30" }),
+      { date: "2026-11-04", timeZone: perth },
+      { noteRequired: false },
+    );
+    expect(result.ok && result.hours.start).toEqual(
+      fromLocalTime("2026-11-04", "07:00", perth),
+    );
+    expect(result.ok && result.hours.start.toISOString()).toBe(
+      "2026-11-03T23:00:00.000Z",
+    );
+  });
+
+  it("refuses a time zone that isn't a state's", () => {
+    const result = hoursFromForm(
+      form({ start: "07:00", finish: "15:30", break: "30" }),
+      { date: "2026-11-04", timeZone: "Europe/London" },
+      { noteRequired: false },
+    );
+    expect(result.ok).toBe(false);
+  });
+
+  it("finds the shift's day at the site", () => {
+    // 10 pm in Perth is already the next day in Sydney.
+    expect(shiftDay("2026-11-04T14:00:00Z", perth)).toEqual({
+      date: "2026-11-04",
+      timeZone: perth,
+    });
+  });
+});
+
 describe("time inputs", () => {
-  it("shows the Sydney time on a 24-hour clock", () => {
-    expect(timeInputValue("2026-11-03T20:05:00Z")).toBe("07:05");
-    expect(timeInputValue("2026-11-04T04:30:00Z")).toBe("15:30");
+  it("shows the site's time on a 24-hour clock", () => {
+    expect(timeInputValue("2026-11-03T20:05:00Z", TIME_ZONE)).toBe("07:05");
+    expect(timeInputValue("2026-11-04T04:30:00Z", TIME_ZONE)).toBe("15:30");
+    expect(timeInputValue("2026-11-04T04:30:00Z", "Australia/Perth")).toBe(
+      "12:30",
+    );
   });
 });

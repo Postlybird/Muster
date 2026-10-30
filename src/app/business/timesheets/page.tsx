@@ -13,6 +13,7 @@ import {
   formatDateTime,
   formatDayShort,
   formatTime,
+  zoneOf,
 } from "@/lib/format";
 import { shiftHours } from "@/lib/job-format";
 import { businessTimesheetStatuses } from "@/lib/statuses";
@@ -58,7 +59,7 @@ function where(row: BusinessHours) {
 }
 
 function rostered(row: BusinessHours) {
-  return `Rostered ${shiftHours({ starts_at: row.shift_starts_at, ends_at: row.shift_ends_at })}`;
+  return `Rostered ${shiftHours({ starts_at: row.shift_starts_at, ends_at: row.shift_ends_at }, zoneOf(row.state))}`;
 }
 
 type Timesheet = BusinessHours & {
@@ -69,7 +70,7 @@ type Timesheet = BusinessHours & {
 };
 
 function hours(row: Timesheet) {
-  return `${hoursLabel(row)} (${workedLabel(row)})`;
+  return `${hoursLabel(row, zoneOf(row.state))} (${workedLabel(row)})`;
 }
 
 /** Things worth a second look before approving. */
@@ -132,13 +133,13 @@ export default async function BusinessTimesheetsPage() {
   const items: HoursToApprove[] = (toApprove as Timesheet[]).map((row) => ({
     id: row.timesheet_id,
     name: row.worker_name,
-    day: formatDayShort(row.shift_starts_at),
+    day: formatDayShort(row.shift_starts_at, zoneOf(row.state)),
     where: where(row),
     hours: hours(row),
     rostered: rostered(row),
     flags: flags(row, settings.late_arrival_grace_minutes),
     workerNote: row.worker_note,
-    approveBy: formatDateTime(row.approve_by!),
+    approveBy: formatDateTime(row.approve_by!, zoneOf(row.state)),
   }));
 
   return (
@@ -177,7 +178,10 @@ export default async function BusinessTimesheetsPage() {
         >
           <ul className="divide-y rounded-lg border bg-card">
             {missing.map((row) => {
-              const day = formatDayShort(row.shift_starts_at);
+              const day = formatDayShort(
+                row.shift_starts_at,
+                zoneOf(row.state),
+              );
               return (
                 <li key={row.assignment_id} className="space-y-2 p-4">
                   <p className="font-medium">
@@ -188,7 +192,7 @@ export default async function BusinessTimesheetsPage() {
                   </p>
                   <p className="text-sm">
                     {row.started_at
-                      ? `${row.arrival_confirmed ? "Arrival confirmed" : "Clocked in"} at ${formatTime(row.started_at)}, but no clock-out yet. An hour after the shift we'll use the rostered finish.`
+                      ? `${row.arrival_confirmed ? "Arrival confirmed" : "Clocked in"} at ${formatTime(row.started_at, zoneOf(row.state))}, but no clock-out yet. An hour after the shift we'll use the rostered finish.`
                       : "No clock-in. If they worked, add their hours."}
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -269,7 +273,8 @@ function HoursList({
           >
             <span className="space-y-1">
               <span className="block font-medium">
-                {row.worker_name}, {formatDayShort(row.shift_starts_at)}
+                {row.worker_name},{" "}
+                {formatDayShort(row.shift_starts_at, zoneOf(row.state))}
               </span>
               <span className="block text-sm">{hours(row)}</span>
               <span className="block text-sm text-muted-foreground">

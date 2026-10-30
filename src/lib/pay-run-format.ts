@@ -54,12 +54,16 @@ function chargeDetail(cost: ShiftCost): string {
   return parts.join(", ");
 }
 
-/** "7:00 am to 3:30 pm, 30 min break. 7.6 h ordinary at $54.00/h, …" */
+/**
+ * "7:00 am to 3:30 pm, 30 min break. 7.6 h ordinary at $54.00/h, …", in
+ * the site's time zone.
+ */
 export function hoursDetail(
   hours: { start: Date | string; finish: Date | string; breakMinutes: number },
   cost: ShiftCost,
+  timeZone: string,
 ): string {
-  const times = `${formatTime(hours.start)} to ${formatTime(hours.finish)}`;
+  const times = `${formatTime(hours.start, timeZone)} to ${formatTime(hours.finish, timeZone)}`;
   const breakText =
     hours.breakMinutes > 0 ? `, ${hours.breakMinutes} min break` : "";
   return `${times}${breakText}. ${chargeDetail(cost)}.`;
@@ -70,9 +74,10 @@ export function cancellationDetail(
   shiftStart: Date | string,
   bill: ShiftCost,
   arrived: boolean,
+  timeZone: string,
 ): string {
   const why = arrived
     ? "Cancelled after they arrived"
     : "Cancelled at short notice";
-  return `${why} (shift from ${formatTime(shiftStart)}). ${chargeDetail(bill)}.`;
+  return `${why} (shift from ${formatTime(shiftStart, timeZone)}). ${chargeDetail(bill)}.`;
 }

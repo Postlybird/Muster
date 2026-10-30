@@ -1,6 +1,7 @@
+import { STATE_TIME_ZONES } from "@/domain/pay";
 import { enteredHours, type TimesheetHours } from "@/domain/timesheets";
 
-import { TIME_ZONE } from "./format";
+import { dateKeyIn } from "./format";
 import { failure, type ActionState } from "./forms";
 import type { Database } from "./supabase/database.types";
 
@@ -68,10 +69,20 @@ export function groupBusinessHours(rows: readonly BusinessHours[], now: Date) {
   };
 }
 
-/** "07:30" in Sydney, for a time input. */
-export function timeInputValue(value: string | Date): string {
+/**
+ * Where the hours form reads times: the day the shift starts at its site
+ * (yyyy-mm-dd), and the site's time zone.
+ */
+export type ShiftDay = { date: string; timeZone: string };
+
+export function shiftDay(startsAt: string | Date, timeZone: string): ShiftDay {
+  return { date: dateKeyIn(startsAt, timeZone), timeZone };
+}
+
+/** "07:30" at the site, for a time input. */
+export function timeInputValue(value: string | Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-GB", {
-    timeZone: TIME_ZONE,
+    timeZone,
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
@@ -79,12 +90,13 @@ export function timeInputValue(value: string | Date): string {
 }
 
 /**
- * Reads the hours form: start and finish times on the shift's day (a
- * finish before the start is the next morning), the break and a note.
+ * Reads the hours form: start and finish times on the shift's day at its
+ * site (a finish before the start is the next morning), the break and a
+ * note.
  */
 export function hoursFromForm(
   formData: FormData,
-  date: string,
+  day: ShiftDay,
   { noteRequired }: { noteRequired: boolean },
 ):
   | { ok: true; hours: TimesheetHours; note: string }
@@ -112,7 +124,16 @@ export function hoursFromForm(
       state: failure("Check the highlighted fields.", errors),
     };
   }
-  const hours = enteredHours({ date, start, finish, breakMinutes }, TIME_ZONE);
+  if (!(Object.values(STATE_TIME_ZONES) as string[]).includes(day.timeZone)) {
+    return {
+      ok: false,
+      state: failure("Something went wrong. Reload the page and try again."),
+    };
+  }
+  const hours = enteredHours(
+    { date: day.date, start, finish, breakMinutes },
+    day.timeZone,
+  );
   if ("problem" in hours) {
     const field = hours.problem.includes("break") ? "break" : "start";
     return {

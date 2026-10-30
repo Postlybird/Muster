@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { TIME_ZONE } from "../src/lib/format";
 import { shiftSummary } from "../src/lib/job-format";
 import {
   bookTestWorker,
@@ -37,7 +38,8 @@ async function westsideShift(headcount: number, worker: string, hours: number) {
     .select("starts_at, ends_at")
     .eq("id", job.shiftId)
     .single();
-  return { ...job, when: shiftSummary([shift!]) };
+  // The demo sites are in Sydney.
+  return { ...job, when: shiftSummary([shift!], TIME_ZONE) };
 }
 
 test("an admin finds workers by work type, mobile and papers expiring soon", async ({

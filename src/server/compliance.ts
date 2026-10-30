@@ -9,6 +9,7 @@ import {
   formatDayShort,
   formatTime,
   sydneyDateKey,
+  zoneNote,
 } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { allRows } from "@/lib/supabase/all-rows";
@@ -268,7 +269,9 @@ async function flagBookingsAtRisk(
 }
 
 async function alert(admin: Admin, booking: BookingAtRisk) {
-  const when = `on ${formatDayShort(booking.start)} from ${formatTime(booking.start)}`;
+  const when = `on ${formatDayShort(booking.start, booking.timeZone)} from ${formatTime(booking.start, booking.timeZone)}`;
+  // Our team works across states, so they're told which time it is.
+  const adminWhen = `${when}${zoneNote(booking.timeZone)}`;
   // Once per booking: an admin who has settled it isn't asked again.
   const { data: flagged } = await admin
     .from("admin_flags")
@@ -287,7 +290,7 @@ async function alert(admin: Admin, booking: BookingAtRisk) {
       worker_id: booking.workerId,
       business_id: job?.business_id ?? null,
       assignment_id: booking.assignmentId,
-      summary: `Booked for ${booking.work} with ${booking.business} ${when}, but ${describe(booking.problems, ADMIN_PROBLEMS)}.`,
+      summary: `Booked for ${booking.work} with ${booking.business} ${adminWhen}, but ${describe(booking.problems, ADMIN_PROBLEMS)}.`,
     });
   }
   await notify(
@@ -310,7 +313,7 @@ async function alert(admin: Admin, booking: BookingAtRisk) {
       worker: booking.workerName,
       work: booking.work,
       business: booking.business,
-      when,
+      when: adminWhen,
       problem: describe(booking.problems, ADMIN_PROBLEMS),
     },
     {

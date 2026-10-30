@@ -2,6 +2,7 @@ import { Copy, FileText } from "lucide-react";
 
 import { repeatJob, startFromTemplate } from "@/app/business/post/actions";
 import { ActionButton } from "@/components/forms/action-button";
+import { zoneOf } from "@/lib/format";
 import type { ActionState } from "@/lib/forms";
 import { jobTitle, shiftHours, workersLabel } from "@/lib/job-format";
 import { createClient } from "@/lib/supabase/server";
@@ -53,7 +54,7 @@ export async function recentJobShortcuts(
   const { data: jobs } = await supabase
     .from("jobs")
     .select(
-      "id, headcount, category_id, site_id, categories(name, active, archived_at), sites(name, archived_at), shifts(starts_at, ends_at)",
+      "id, headcount, category_id, site_id, categories(name, active, archived_at), sites(name, state, archived_at), shifts(starts_at, ends_at)",
     )
     .eq("business_id", businessId)
     .neq("status", "draft")
@@ -76,7 +77,10 @@ export async function recentJobShortcuts(
       key: `repeat-${job.id}`,
       kind: "repeat",
       title: jobTitle(job.categories?.name, job.sites?.name),
-      detail: [workersLabel(job.headcount), first ? shiftHours(first) : null]
+      detail: [
+        workersLabel(job.headcount),
+        first ? shiftHours(first, zoneOf(job.sites?.state)) : null,
+      ]
         .filter(Boolean)
         .join(" · "),
       action: repeatJob.bind(null, job.id),

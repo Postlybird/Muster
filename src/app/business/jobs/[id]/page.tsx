@@ -12,6 +12,7 @@ import {
   formatDateTime,
   formatDayShort,
   formatTime,
+  zoneOf,
 } from "@/lib/format";
 import { jobTitle, shiftHours, workersLabel } from "@/lib/job-format";
 import { jobStatuses, shiftStatuses } from "@/lib/statuses";
@@ -96,6 +97,7 @@ export default async function JobPage({
       : told;
   };
   const title = jobTitle(details.categoryName, details.site?.name);
+  const siteZone = zoneOf(details.site?.state);
   // Only while the business's favourites have their head start.
   const favouritesUntil =
     openToAllAt && new Date(openToAllAt) > new Date()
@@ -118,7 +120,9 @@ export default async function JobPage({
           <StatusBadge status={jobStatuses[job.status]} />
         </div>
         <p className="text-sm text-muted-foreground">
-          {job.posted_at ? `Posted ${formatDateTime(job.posted_at)}` : null}
+          {job.posted_at
+            ? `Posted ${formatDateTime(job.posted_at, siteZone)}`
+            : null}
           {job.poster?.full_name ? ` by ${job.poster.full_name}` : null}
         </p>
       </div>
@@ -146,7 +150,7 @@ export default async function JobPage({
               ? "No workers match yet. We'll offer it to new workers as soon as they're verified."
               : `Offered to ${workersLabel(offeredTo)} who ${offeredTo === 1 ? "matches" : "match"}.`}
             {favouritesUntil
-              ? ` Your favourites see it first, until ${formatTime(favouritesUntil)}; then everyone who matches.`
+              ? ` Your favourites see it first, until ${formatTime(favouritesUntil, siteZone)}; then everyone who matches.`
               : ""}
           </p>
         ) : null}
@@ -157,7 +161,8 @@ export default async function JobPage({
               className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
             >
               <span>
-                {formatDayShort(shift.starts_at)}, {shiftHours(shift)}
+                {formatDayShort(shift.starts_at, siteZone)},{" "}
+                {shiftHours(shift, siteZone)}
               </span>
               <span className="flex flex-wrap items-center gap-2">
                 <span className="text-muted-foreground">
@@ -169,7 +174,7 @@ export default async function JobPage({
                     jobId={job.id}
                     shiftIds={[shift.id]}
                     trigger="Cancel"
-                    title={`Cancel ${formatDayShort(shift.starts_at)}?`}
+                    title={`Cancel ${formatDayShort(shift.starts_at, siteZone)}?`}
                     description={describeCancel([shift])}
                     confirmLabel="Cancel this shift"
                   />
@@ -191,10 +196,20 @@ export default async function JobPage({
       </section>
 
       {job.status === "posted" && job.fill_mode === "pick" ? (
-        <Applicants jobId={job.id} shifts={details.shifts} canPick={manager} />
+        <Applicants
+          jobId={job.id}
+          shifts={details.shifts}
+          timeZone={siteZone}
+          canPick={manager}
+        />
       ) : null}
 
-      <Booked jobId={job.id} shifts={details.shifts} now={now} />
+      <Booked
+        jobId={job.id}
+        shifts={details.shifts}
+        timeZone={siteZone}
+        now={now}
+      />
 
       {job.estimate_cents !== null ? (
         <section

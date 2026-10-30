@@ -5,7 +5,7 @@ import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status/status-badge";
-import { formatCents, formatDayShort } from "@/lib/format";
+import { formatCents, formatDayShort, zoneOf } from "@/lib/format";
 import { workerTimesheetStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
 import { hoursLabel, workedLabel } from "@/lib/timesheet-format";
@@ -41,7 +41,7 @@ export default async function WorkerTimesheetsPage() {
               >
                 <span className="flex flex-wrap items-center justify-between gap-2">
                   <span className="font-semibold">
-                    {formatDayShort(sheet.shift_starts_at)}
+                    {formatDayShort(sheet.shift_starts_at, zoneOf(sheet.state))}
                   </span>
                   <StatusBadge status={workerTimesheetStatuses[sheet.status]} />
                 </span>
@@ -49,7 +49,8 @@ export default async function WorkerTimesheetsPage() {
                   {sheet.category_name} for {sheet.business_name}
                 </span>
                 <span className="block text-sm text-muted-foreground">
-                  {hoursLabel(sheet)} ({workedLabel(sheet)})
+                  {hoursLabel(sheet, zoneOf(sheet.state))} ({workedLabel(sheet)}
+                  )
                 </span>
                 {sheet.pay_cents !== null ? (
                   <span className="block text-sm font-medium">

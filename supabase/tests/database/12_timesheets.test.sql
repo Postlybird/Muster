@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(42);
+select plan(44);
 
 insert into public.jurisdictions (code, name) values ('NSW', 'New South Wales')
 on conflict (code) do nothing;
@@ -136,6 +136,10 @@ select results_eq(
   format($$ values (%L::uuid, 'submitted') $$, :'t1'),
   'a worker sees their own timesheets'
 );
+select is(
+  (select state from public.my_timesheets() where timesheet_id = :'t1'), 'NSW',
+  'with the state the work was in, for its time zone'
+);
 select is((select count(*)::integer from public.timesheets), 1, 'and no one else''s');
 select is_empty($$ select * from public.timesheet_costs $$, 'costs are for admins');
 select lives_ok(
@@ -163,6 +167,10 @@ select results_eq(
             ('94444444-0000-0000-0000-000000000004'::uuid, true),
             ('95555555-0000-0000-0000-000000000005'::uuid, false) $$,
   'the business sees every booking that has started, with its hours if they''re in'
+);
+select is(
+  (select array_agg(distinct state) from public.business_timesheets()), array['NSW'],
+  'and the state of each site'
 );
 select is(
   (select bill_cents from public.business_timesheets() where timesheet_id = :'t4'), null,

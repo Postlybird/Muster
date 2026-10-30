@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatDayShort, formatTime } from "@/lib/format";
+import { formatDayShort, formatTime, zoneOf } from "@/lib/format";
 import { formatAuPhone } from "@/lib/phone";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -51,7 +51,7 @@ async function remind(kind: Kind, now: Date): Promise<number> {
     )
     .is(column, null)
     .select(
-      "id, workers(profile_id), shifts(starts_at, job_id, jobs(report_to_name, report_to_phone, categories(name), businesses(trading_name, legal_name), sites(address_line1, suburb, report_to_name, report_to_phone)))",
+      "id, workers(profile_id), shifts(starts_at, job_id, jobs(report_to_name, report_to_phone, categories(name), businesses(trading_name, legal_name), sites(address_line1, suburb, state, report_to_name, report_to_phone)))",
     );
   await Promise.all(
     (claimed ?? []).map((booking) => {
@@ -59,6 +59,8 @@ async function remind(kind: Kind, now: Date): Promise<number> {
       const job = shift?.jobs;
       if (!shift || !job || !booking.workers) return null;
       const site = job.sites;
+      // The site's local time.
+      const timeZone = zoneOf(site?.state);
       const reportTo = job.report_to_name ?? site?.report_to_name;
       const reportPhone = job.report_to_phone ?? site?.report_to_phone;
       const values = {
@@ -69,8 +71,8 @@ async function remind(kind: Kind, now: Date): Promise<number> {
           "the business",
         when:
           kind === "day_before"
-            ? `on ${formatDayShort(shift.starts_at)} from ${formatTime(shift.starts_at)}`
-            : `today from ${formatTime(shift.starts_at)}`,
+            ? `on ${formatDayShort(shift.starts_at, timeZone)} from ${formatTime(shift.starts_at, timeZone)}`
+            : `today from ${formatTime(shift.starts_at, timeZone)}`,
         address: site ? `${site.address_line1}, ${site.suburb}` : "",
         report_to: reportTo
           ? `Report to ${reportTo}${reportPhone ? ` on ${formatAuPhone(reportPhone)}` : ""}.`

@@ -12,7 +12,7 @@ import {
 import { STATE_TIME_ZONES, type StateCode } from "@/domain/pay";
 import { isIsoDate } from "@/domain/onboarding";
 import { failure, type ActionState } from "@/lib/forms";
-import { sydneyDateKey } from "@/lib/format";
+import { dateKeyIn } from "@/lib/format";
 import { saveFailed } from "@/server/errors";
 import { draftForAction, finishPostStep } from "@/server/jobs";
 
@@ -76,7 +76,8 @@ export async function saveWhen(
     if (!isIsoDate(date)) return fieldError("date", "Choose the date");
     dates = [date];
   }
-  const datesError = datesProblem(dates, sydneyDateKey(new Date()));
+  // "Today" at the site, which may be a day behind Sydney.
+  const datesError = datesProblem(dates, dateKeyIn(new Date(), timeZone));
   if (datesError) {
     return fieldError(job.type === "multi_day" ? "from" : "date", datesError);
   }

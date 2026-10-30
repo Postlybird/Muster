@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { JOB_TYPES } from "@/domain/jobs";
 import { ratingSummary } from "@/domain/ratings";
+import { zoneOf } from "@/lib/format";
 import { shiftSummary } from "@/lib/job-format";
 import {
   distanceLabel,
@@ -37,7 +38,7 @@ export function OfferCard({ offer }: { offer: JobOffer }) {
       </div>
       <p className="flex items-start gap-2 text-sm">
         <CalendarDays className="mt-0.5 size-4 shrink-0" aria-hidden />
-        {shiftSummary(offer.shifts)}
+        {shiftSummary(offer.shifts, zoneOf(first.state))}
       </p>
       <p className="flex items-start gap-2 text-sm">
         <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />

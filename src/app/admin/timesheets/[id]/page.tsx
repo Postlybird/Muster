@@ -11,12 +11,13 @@ import {
   formatDateTime,
   formatDayShort,
   formatTime,
-  sydneyDateKey,
+  zoneNote,
+  zoneOf,
 } from "@/lib/format";
 import { businessTimesheetStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
 import { workerName } from "@/lib/timesheet-format";
-import { timeInputValue } from "@/lib/timesheets";
+import { shiftDay, timeInputValue } from "@/lib/timesheets";
 
 import { resolveTimesheet } from "./actions";
 import { ResolveForm } from "./resolve-form";
@@ -45,7 +46,7 @@ export default async function AdminTimesheetPage({
   const { data: sheet } = await supabase
     .from("timesheets")
     .select(
-      "*, workers(id, preferred_name, legal_first_name, legal_last_name), jobs(id, categories(name), sites(name), businesses(id, trading_name, legal_name)), assignments(shifts(starts_at, ends_at, break_minutes)), timesheet_costs(*)",
+      "*, workers(id, preferred_name, legal_first_name, legal_last_name), jobs(id, categories(name), sites(name, state), businesses(id, trading_name, legal_name)), assignments(shifts(starts_at, ends_at, break_minutes)), timesheet_costs(*)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -58,7 +59,8 @@ export default async function AdminTimesheetPage({
     .eq("assignment_id", sheet.assignment_id)
     .order("occurred_at");
   const shift = sheet.assignments.shifts;
-  const day = formatDayShort(shift.starts_at);
+  const siteZone = zoneOf(sheet.jobs?.sites?.state);
+  const day = formatDayShort(shift.starts_at, siteZone);
   const name = sheet.workers ? workerName(sheet.workers) : "Worker";
   const business =
     sheet.jobs?.businesses?.trading_name ?? sheet.jobs?.businesses?.legal_name;
@@ -118,6 +120,7 @@ export default async function AdminTimesheetPage({
             shift_ends_at: shift.ends_at,
             shift_break_minutes: shift.break_minutes,
           }}
+          timeZone={siteZone}
           audience="admin"
           arrivalConfirmed={
             !(events ?? []).some((e) => e.kind === "clock_in") &&
@@ -145,7 +148,7 @@ export default async function AdminTimesheetPage({
         className="space-y-3 rounded-xl border bg-card p-5"
       >
         <h2 id="attendance" className="text-lg font-semibold">
-          Clock-ins and outs
+          Clock-ins and outs{zoneNote(siteZone)}
         </h2>
         {events?.length ? (
           <ul className="space-y-2 text-sm">
@@ -153,7 +156,7 @@ export default async function AdminTimesheetPage({
               <li key={`${event.kind}-${event.occurred_at}`}>
                 <span className="font-medium">
                   {KINDS[event.kind] ?? event.kind}{" "}
-                  {formatTime(event.occurred_at)}
+                  {formatTime(event.occurred_at, siteZone)}
                 </span>
                 {event.inside_geofence === false
                   ? `, ${event.distance_m === null ? "no location" : `${event.distance_m} m from the site`}: "${event.reason ?? ""}"`
@@ -161,7 +164,7 @@ export default async function AdminTimesheetPage({
                     ? ", at the site"
                     : ""}
                 {event.offline
-                  ? ` (sent without signal at ${formatTime(event.received_at)})`
+                  ? ` (sent without signal at ${formatTime(event.received_at, siteZone)})`
                   : ""}
               </li>
             ))}
@@ -183,12 +186,12 @@ export default async function AdminTimesheetPage({
             action={resolveTimesheet.bind(
               null,
               id,
-              sydneyDateKey(shift.starts_at),
+              shiftDay(shift.starts_at, siteZone),
             )}
-            day={day}
+            day={`${day}${zoneNote(siteZone)}`}
             defaults={{
-              start: timeInputValue(sheet.start_at),
-              finish: timeInputValue(sheet.finish_at),
+              start: timeInputValue(sheet.start_at, siteZone),
+              finish: timeInputValue(sheet.finish_at, siteZone),
               breakMinutes: sheet.break_minutes,
             }}
           />

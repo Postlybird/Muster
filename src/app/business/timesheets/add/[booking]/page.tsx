@@ -4,10 +4,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { HoursForm } from "@/components/timesheets/hours-form";
-import { formatDayShort, formatTime, sydneyDateKey } from "@/lib/format";
+import { formatDayShort, formatTime, zoneOf } from "@/lib/format";
 import { shiftHours } from "@/lib/job-format";
 import { createClient } from "@/lib/supabase/server";
-import { timeInputValue, type BusinessHours } from "@/lib/timesheets";
+import { shiftDay, timeInputValue, type BusinessHours } from "@/lib/timesheets";
 
 import { addTimesheet } from "../../actions";
 
@@ -40,7 +40,8 @@ export default async function AddHoursPage({
   );
   if (!row) notFound();
   if (row.timesheet_id) redirect(`/business/timesheets/${row.timesheet_id}`);
-  const day = formatDayShort(row.shift_starts_at);
+  const siteZone = zoneOf(row.state);
+  const day = formatDayShort(row.shift_starts_at, siteZone);
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -57,10 +58,10 @@ export default async function AddHoursPage({
         </h1>
         <p className="text-muted-foreground">
           {day}, {row.category_name} at {row.site_name}. Rostered{" "}
-          {shiftHours({
-            starts_at: row.shift_starts_at,
-            ends_at: row.shift_ends_at,
-          })}
+          {shiftHours(
+            { starts_at: row.shift_starts_at, ends_at: row.shift_ends_at },
+            siteZone,
+          )}
           {row.shift_break_minutes
             ? ` with a ${row.shift_break_minutes}-minute break`
             : ""}
@@ -69,7 +70,7 @@ export default async function AddHoursPage({
         {row.started_at ? (
           <p className="text-sm">
             {row.arrival_confirmed ? "Arrival confirmed" : "Clocked in"} at{" "}
-            {formatTime(row.started_at)}, no clock-out yet.
+            {formatTime(row.started_at, siteZone)}, no clock-out yet.
           </p>
         ) : (
           <p className="text-sm">They didn&apos;t clock in.</p>
@@ -80,7 +81,7 @@ export default async function AddHoursPage({
           action={addTimesheet.bind(
             null,
             booking,
-            sydneyDateKey(row.shift_starts_at),
+            shiftDay(row.shift_starts_at, siteZone),
           )}
           idPrefix="add"
           day={day}
@@ -91,8 +92,9 @@ export default async function AddHoursPage({
                 Date.parse(row.started_at) > Date.parse(row.shift_starts_at)
                 ? row.started_at
                 : row.shift_starts_at,
+              siteZone,
             ),
-            finish: timeInputValue(row.shift_ends_at),
+            finish: timeInputValue(row.shift_ends_at, siteZone),
             breakMinutes: row.shift_break_minutes,
           }}
           note={{

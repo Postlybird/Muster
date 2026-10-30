@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatDateTime, formatDayShort } from "@/lib/format";
+import { formatDateTime, formatDayShort, zoneOf } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { hoursLabel, workerName } from "@/lib/timesheet-format";
 
@@ -19,22 +19,30 @@ async function loadTimesheets(ids: readonly string[]) {
   const { data, error } = await admin
     .from("timesheets")
     .select(
-      "id, start_at, finish_at, break_minutes, recorded_finish, approve_by, status, business_note, worker_note, resolution, workers(profile_id, preferred_name, legal_first_name, legal_last_name), jobs(posted_by, categories(name), sites(name), businesses(trading_name, legal_name)), assignments(shifts(starts_at))",
+      "id, start_at, finish_at, break_minutes, recorded_finish, approve_by, status, business_note, worker_note, resolution, workers(profile_id, preferred_name, legal_first_name, legal_last_name), jobs(posted_by, categories(name), sites(name, state), businesses(trading_name, legal_name)), assignments(shifts(starts_at))",
     )
     .in("id", [...ids]);
   if (error) throw new Error(`Couldn't load timesheets: ${error.message}`);
-  return (data ?? []).map((row) => ({
-    ...row,
-    name: row.workers ? workerName(row.workers) : "A worker",
-    profileId: row.workers?.profile_id ?? null,
-    postedBy: row.jobs?.posted_by ?? null,
-    site: row.jobs?.sites?.name ?? "the site",
-    business:
-      row.jobs?.businesses?.trading_name ??
-      row.jobs?.businesses?.legal_name ??
-      "The business",
-    day: formatDayShort(row.assignments?.shifts?.starts_at ?? row.start_at),
-  }));
+  return (data ?? []).map((row) => {
+    // Times in messages are the site's local time.
+    const timeZone = zoneOf(row.jobs?.sites?.state);
+    return {
+      ...row,
+      timeZone,
+      name: row.workers ? workerName(row.workers) : "A worker",
+      profileId: row.workers?.profile_id ?? null,
+      postedBy: row.jobs?.posted_by ?? null,
+      site: row.jobs?.sites?.name ?? "the site",
+      business:
+        row.jobs?.businesses?.trading_name ??
+        row.jobs?.businesses?.legal_name ??
+        "The business",
+      day: formatDayShort(
+        row.assignments?.shifts?.starts_at ?? row.start_at,
+        timeZone,
+      ),
+    };
+  });
 }
 
 type Loaded = Awaited<ReturnType<typeof loadTimesheets>>[number];
@@ -54,7 +62,7 @@ function line(row: Loaded): string {
     row.recorded_finish === null && row.status === "submitted"
       ? " (no clock-out, so the rostered finish)"
       : "";
-  return `- ${row.name}, ${row.day} at ${row.site}: ${hoursLabel(row)}${noClockOut}`;
+  return `- ${row.name}, ${row.day} at ${row.site}: ${hoursLabel(row, row.timeZone)}${noClockOut}`;
 }
 
 /**
@@ -75,10 +83,10 @@ export async function notifyTimesheetsReady(): Promise<number> {
   if (rows.length === 0) return 0;
   for (const [postedBy, sheets] of byPoster(rows)) {
     const first = sheets[0]!;
-    const by = sheets
-      .map((sheet) => sheet.approve_by)
-      .sort()
-      .at(0)!;
+    // The earliest deadline, at its own site.
+    const soonest = [...sheets].sort((a, b) =>
+      a.approve_by.localeCompare(b.approve_by),
+    )[0]!;
     await notify(
       "timesheets_ready",
       postedBy,
@@ -88,7 +96,7 @@ export async function notifyTimesheetsReady(): Promise<number> {
             ? `${first.name} at ${first.site}`
             : `${sheets.length} timesheets`,
         hours: sheets.map(line).join("\n"),
-        deadline: formatDateTime(by),
+        deadline: formatDateTime(soonest.approve_by, soonest.timeZone),
       },
       { url: "/business/timesheets" },
     );
@@ -129,7 +137,7 @@ export async function notifyHoursChanged(timesheetId: string) {
       business: row.business,
       day: row.day,
       site: row.site,
-      hours: hoursLabel(row),
+      hours: hoursLabel(row, row.timeZone),
       note: row.business_note ? `"${row.business_note}"` : "",
     },
     { url: `/worker/timesheets/${row.id}` },
@@ -159,7 +167,7 @@ export async function notifyWorkerQueried(timesheetId: string) {
       worker: row.name,
       day: row.day,
       site: row.site,
-      hours: hoursLabel(row),
+      hours: hoursLabel(row, row.timeZone),
       note: row.worker_note ?? "",
     },
     { url: `/business/timesheets/${row.id}` },
@@ -173,7 +181,7 @@ export async function notifyResolved(timesheetId: string) {
   const outcome =
     row.status === "rejected"
       ? "the hours won't be paid or charged"
-      : `the hours are ${hoursLabel(row)}`;
+      : `the hours are ${hoursLabel(row, row.timeZone)}`;
   if (row.profileId) {
     await notify(
       "query_settled_worker",

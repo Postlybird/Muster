@@ -1,6 +1,6 @@
 import "server-only";
 
-import { formatDayShort, formatTime } from "@/lib/format";
+import { formatDayShort, formatTime, zoneOf } from "@/lib/format";
 import { shiftSummary } from "@/lib/job-format";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -18,7 +18,7 @@ async function jobFacts(jobId: string) {
   const { data } = await admin
     .from("jobs")
     .select(
-      "id, posted_by, categories(name), sites(name, suburb), businesses(trading_name, legal_name), shifts(id, starts_at, ends_at, status)",
+      "id, posted_by, categories(name), sites(name, suburb, state), businesses(trading_name, legal_name), shifts(id, starts_at, ends_at, status)",
     )
     .eq("id", jobId)
     .maybeSingle();
@@ -28,6 +28,8 @@ async function jobFacts(jobId: string) {
     category: data.categories?.name ?? "Work",
     site: data.sites?.name ?? "your site",
     suburb: data.sites?.suburb ?? "",
+    /** Times in messages are the site's local time. */
+    timeZone: zoneOf(data.sites?.state),
     business:
       data.businesses?.trading_name ?? data.businesses?.legal_name ?? "",
     shifts: data.shifts,
@@ -69,7 +71,7 @@ export async function notifyBooked(
       work: job.category,
       business: job.business,
       suburb: job.suburb,
-      shifts: shiftSummary(booked),
+      shifts: shiftSummary(booked, job.timeZone),
     },
     { url: `/worker/shifts/${jobId}`, urgent: soon(booked) },
   );
@@ -107,7 +109,11 @@ export async function notifyFirstApplicant(jobId: string) {
   await notify(
     "first_applicant",
     job.postedBy,
-    { work: job.category, site: job.site, shifts: shiftSummary(job.shifts) },
+    {
+      work: job.category,
+      site: job.site,
+      shifts: shiftSummary(job.shifts, job.timeZone),
+    },
     { url: `/business/jobs/${jobId}` },
   );
 }
@@ -127,7 +133,7 @@ export async function notifyIfFilled(jobId: string) {
     {
       work: job.category,
       site: job.site,
-      start: `${formatDayShort(first.starts_at)} at ${formatTime(first.starts_at)}`,
+      start: `${formatDayShort(first.starts_at, job.timeZone)} at ${formatTime(first.starts_at, job.timeZone)}`,
     },
     { url: `/business/jobs/${jobId}` },
   );
@@ -158,7 +164,7 @@ export async function notifyWorkerCancelled(
       worker: shortName(worker),
       work: job.category,
       site: job.site,
-      shifts: shiftSummary(shifts),
+      shifts: shiftSummary(shifts, job.timeZone),
     },
     { url: `/business/jobs/${jobId}`, urgent: soon(shifts) },
   );
@@ -196,7 +202,7 @@ export async function notifyShiftsCancelled(
           business: job.business,
           work: job.category,
           suburb: job.suburb,
-          shifts: shiftSummary(shifts),
+          shifts: shiftSummary(shifts, job.timeZone),
         },
         { url: "/worker/shifts" },
       );
@@ -254,7 +260,7 @@ export async function notifyRemovedFromShift(
       business: job.business,
       work: job.category,
       suburb: job.suburb,
-      shifts: shiftSummary(shifts),
+      shifts: shiftSummary(shifts, job.timeZone),
       reason: `${said.charAt(0).toUpperCase()}${said.slice(1)}${/[.!?]$/.test(said) ? "" : "."}`,
     },
     { url: "/worker/my-shifts", urgent: soon(shifts) },
@@ -267,7 +273,7 @@ export async function notifyRemovedFromShift(
       worker: shortName(worker),
       work: job.category,
       site: job.site,
-      shifts: shiftSummary(shifts),
+      shifts: shiftSummary(shifts, job.timeZone),
     },
     { url: `/business/jobs/${jobId}`, urgent: soon(shifts) },
   );

@@ -332,12 +332,13 @@ _Last updated: 30/10/2026_
   - A state that requires a labour hire licence (QLD, VIC, SA and the ACT) stays blocked even once it's open, until we record a current licence. The admin page warns about open states without one.
   - The demo address lookup knows about 150 suburbs: Sydney, every other capital, and big regional centres. It tells apart suburbs with the same name in different states (Richmond NSW and Richmond VIC) from the state or postcode typed.
   - Pricing (night, weekend and holiday hours), matching, timesheet costing and pay runs already followed the site's own state and time zone.
+  - Times now follow the site too: a Perth shift reads 7:00 am wherever it appears (shift cards and pages, clocking in and out, bookings, reminders and urgent texts, timesheets, invoice lines and the payroll file), and hours a business or our team types in are read in the site's time. Our team's screens say "(Perth time)" where it isn't Sydney's. A worker's quiet hours and availability follow the state they live in.
   - The website says Australia-wide throughout. A Locations page and a page for each of 11 cities (the capitals, the Gold Coast, Newcastle and Wollongong) show "Open now" or "Coming soon", straight from the admin switch. Coming-soon cities invite businesses to get their account ready and workers to sign up early. The sitemap lists them.
   - Tests: 414 pgTAP, 372 unit and 224 browser tests passing, plus the acceptance run.
 
 ## Next
 
-- **Australia-wide, still to come:** times shown in each site's own time zone (on screens, in messages, calendar files and timesheets), and public holidays and state versions of tickets (RSA, working with children checks, traffic control) for every state. I'm working on these next.
+- **Australia-wide, still to come:** public holidays and state versions of tickets (RSA, working with children checks, traffic control) for every state. I'm working on these next.
 - **Owner: before opening another state**, see "Opening a state" in the open questions.
 - **Owner: connect shifta.com.au** (steps below in the owner setup checklist). Then I'll switch sign-in links and the scheduled jobs to it.
 - **Owner: email for support@shifta.com.au.** The site shows it, so mail to it needs to reach you: most domain sellers offer free email forwarding to your own inbox.
@@ -397,6 +398,7 @@ _Last updated: 30/10/2026_
 | 28/10/2026 | Who supplies PPE is one answer per job: us, the workers, or some of each (with a note). | Simple to answer; the note covers mixed cases. |
 | 28/10/2026 | The cost estimate is saved when a job is posted, for reference. Invoices use the hours actually worked and the rates fixed when each worker is booked (step 1.8). | Brief §4.3: the estimate is shown before posting; billing follows timesheets. |
 | 28/10/2026 | Times are entered and shown in Sydney time. | v1 places workers in Greater Sydney. The pay engine already handles other states' time zones for later. |
+| 30/10/2026 | Replaces the one above: a shift's times are entered and shown in its site's time zone, and our team's screens name the zone when it isn't Sydney's. Everything else, including the Monday-to-Sunday pay week, stays on Sydney time. | Australia-wide: a Perth worker must see 7:00 am for a 7:00 am start in Perth, and payroll needs local times. Pay weeks need one boundary for everyone, so a late Sunday shift in Perth can fall into the next Sydney week's run. |
 | 28/10/2026 | Matches are worked out by the server and saved per shift and worker, with the reasons someone can't take a shift. Workers see only their own offers, through database functions that hide the address; businesses see only a count. | Brief §4.4: eligibility is checked when a job is posted, and again when a worker accepts (step 1.8) and 24 hours before (step 1.14). Saved reasons let admins see why someone wasn't offered work. |
 | 28/10/2026 | The shift feed lists work soonest first, one card per job. Ranking orders applicants for the business, not the worker's feed. | Workers look for work by day. A multi-day job is one decision ("Accept all days", plan defaults). |
 | 28/10/2026 | Workers see the ordinary hourly rate (casual loading included) and an estimate for each shift with penalty rates and any urgent loading, worked out when the job is posted. The rate is fixed when they're booked (step 1.8). | Brief §4.4: workers see hourly pay before they accept. |

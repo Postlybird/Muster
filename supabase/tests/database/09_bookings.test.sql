@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(30);
+select plan(31);
 
 insert into public.jurisdictions (code, name) values ('NSW', 'New South Wales')
 on conflict (code) do nothing;
@@ -116,6 +116,11 @@ select is(
   (select array_agg(application_status::text) from public.my_shifts()),
   array['applied', 'applied'],
   'and show under their shifts'
+);
+select is(
+  (select array_agg(distinct state) from public.my_shifts()),
+  array['NSW'],
+  'with the state the work is in, for its time zone'
 );
 
 select is(

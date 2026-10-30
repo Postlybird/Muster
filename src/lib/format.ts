@@ -1,8 +1,12 @@
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 
+import { STATE_TIME_ZONES } from "@/domain/pay";
+
 /**
- * Australian display formats (brief §1). Times are stored in UTC and shown in
- * Sydney time; dates are dd/mm/yyyy; money is AUD held as integer cents.
+ * Australian display formats (brief §1). Times are stored in UTC. A shift's
+ * times show in its site's time zone (`zoneOf(state)`), so a Perth shift
+ * reads in Perth time; everything else shows in Sydney time. Dates are
+ * dd/mm/yyyy; money is AUD held as integer cents.
  */
 
 export const TIME_ZONE = "Australia/Sydney";
@@ -13,34 +17,65 @@ function toDate(value: DateInput): Date {
   return value instanceof Date ? value : new Date(value);
 }
 
+/** The time zone of a site in this state, or Sydney's if it isn't one. */
+export function zoneOf(state: string | null | undefined): string {
+  return state && Object.hasOwn(STATE_TIME_ZONES, state)
+    ? STATE_TIME_ZONES[state as keyof typeof STATE_TIME_ZONES]
+    : TIME_ZONE;
+}
+
+/**
+ * " (Perth time)" for a zone other than Sydney's, for people who see work
+ * in several states (our team); nothing for Sydney's.
+ */
+export function zoneNote(timeZone: string): string {
+  if (timeZone === TIME_ZONE) return "";
+  const city = timeZone.split("/").at(-1)?.replaceAll("_", " ");
+  return city ? ` (${city} time)` : "";
+}
+
 /** 28/10/2026 */
-export function formatDate(value: DateInput): string {
-  return formatInTimeZone(toDate(value), TIME_ZONE, "dd/MM/yyyy");
+export function formatDate(value: DateInput, timeZone = TIME_ZONE): string {
+  return formatInTimeZone(toDate(value), timeZone, "dd/MM/yyyy");
 }
 
 /** 7:30 am */
-export function formatTime(value: DateInput): string {
-  return formatInTimeZone(toDate(value), TIME_ZONE, "h:mm aaa");
+export function formatTime(value: DateInput, timeZone = TIME_ZONE): string {
+  return formatInTimeZone(toDate(value), timeZone, "h:mm aaa");
 }
 
 /** 28/10/2026, 7:30 am */
-export function formatDateTime(value: DateInput): string {
-  return formatInTimeZone(toDate(value), TIME_ZONE, "dd/MM/yyyy, h:mm aaa");
+export function formatDateTime(value: DateInput, timeZone = TIME_ZONE): string {
+  return formatInTimeZone(toDate(value), timeZone, "dd/MM/yyyy, h:mm aaa");
 }
 
 /** Wed 28 Oct */
-export function formatDayShort(value: DateInput): string {
-  return formatInTimeZone(toDate(value), TIME_ZONE, "EEE d MMM");
+export function formatDayShort(value: DateInput, timeZone = TIME_ZONE): string {
+  return formatInTimeZone(toDate(value), timeZone, "EEE d MMM");
 }
 
-/** The calendar date in Sydney as yyyy-MM-dd (for date inputs and grouping). */
+/** The calendar date in a time zone as yyyy-MM-dd (for date inputs and grouping). */
+export function dateKeyIn(value: DateInput, timeZone: string): string {
+  return formatInTimeZone(toDate(value), timeZone, "yyyy-MM-dd");
+}
+
+/** The calendar date in Sydney as yyyy-MM-dd. */
 export function sydneyDateKey(value: DateInput): string {
-  return formatInTimeZone(toDate(value), TIME_ZONE, "yyyy-MM-dd");
+  return dateKeyIn(value, TIME_ZONE);
 }
 
-/** A Sydney wall-clock date and time ("2026-10-28", "07:30") as a UTC instant. */
+/** A wall-clock date and time ("2026-10-28", "07:30") in a time zone, as a UTC instant. */
+export function fromLocalTime(
+  date: string,
+  time: string,
+  timeZone: string,
+): Date {
+  return fromZonedTime(`${date}T${time}:00`, timeZone);
+}
+
+/** A Sydney wall-clock date and time as a UTC instant. */
 export function fromSydneyTime(date: string, time: string): Date {
-  return fromZonedTime(`${date}T${time}:00`, TIME_ZONE);
+  return fromLocalTime(date, time, TIME_ZONE);
 }
 
 const audFormatter = new Intl.NumberFormat("en-AU", {

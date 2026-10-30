@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { failure, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
-import { hoursFromForm } from "@/lib/timesheets";
+import { hoursFromForm, type ShiftDay } from "@/lib/timesheets";
 import { saveFailed } from "@/server/errors";
 import { refreshReliability } from "@/server/reliability";
 import { notifyResolved } from "@/server/timesheet-notices";
@@ -18,8 +18,7 @@ import { costTimesheets } from "@/server/timesheets";
  */
 export async function resolveTimesheet(
   id: string,
-  /** The shift's day in Sydney, yyyy-mm-dd. */
-  date: string,
+  day: ShiftDay,
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
@@ -33,7 +32,7 @@ export async function resolveTimesheet(
   }
   let hours = null;
   if (worked) {
-    const parsed = hoursFromForm(formData, date, { noteRequired: false });
+    const parsed = hoursFromForm(formData, day, { noteRequired: false });
     if (!parsed.ok) return parsed.state;
     hours = parsed.hours;
   }

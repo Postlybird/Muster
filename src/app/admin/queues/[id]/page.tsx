@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FLAG_KINDS, outcomesFor } from "@/lib/admin-flags";
 import { requireAdmin } from "@/lib/auth";
-import { formatDateTime, formatTime } from "@/lib/format";
+import { formatDateTime, formatTime, zoneNote, zoneOf } from "@/lib/format";
 import { shiftSummary } from "@/lib/job-format";
 import { workerStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
@@ -43,7 +43,7 @@ export default async function FlagPage({
   const { data: flag } = await supabase
     .from("admin_flags")
     .select(
-      "id, kind, summary, status, resolution, resolved_at, created_at, worker_id, assignment_id, resolver:profiles!admin_flags_resolved_by_fkey(full_name, email), workers(id, profile_id, preferred_name, legal_first_name, legal_last_name, status, status_reason), businesses(id, trading_name, legal_name), assignments(id, status, shifts(starts_at, ends_at, jobs(categories(name), sites(name, suburb))))",
+      "id, kind, summary, status, resolution, resolved_at, created_at, worker_id, assignment_id, resolver:profiles!admin_flags_resolved_by_fkey(full_name, email), workers(id, profile_id, preferred_name, legal_first_name, legal_last_name, status, status_reason), businesses(id, trading_name, legal_name), assignments(id, status, shifts(starts_at, ends_at, jobs(categories(name), sites(name, suburb, state))))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -58,6 +58,7 @@ export default async function FlagPage({
   }
 
   const shift = flag.assignments?.shifts ?? null;
+  const siteZone = zoneOf(shift?.jobs?.sites?.state);
   const worker = flag.workers;
   const [{ data: attendance }, { data: reports }, { data: bookings }] =
     await Promise.all([
@@ -79,7 +80,7 @@ export default async function FlagPage({
         ? supabase
             .from("assignments")
             .select(
-              "id, shifts!inner(starts_at, ends_at, jobs(categories(name), sites(suburb), businesses(trading_name, legal_name)))",
+              "id, shifts!inner(starts_at, ends_at, jobs(categories(name), sites(suburb, state), businesses(trading_name, legal_name)))",
             )
             .eq("worker_id", flag.worker_id)
             .eq("status", "confirmed")
@@ -171,7 +172,7 @@ export default async function FlagPage({
           {shift ? (
             <Detail
               label="Shift"
-              value={`${shift.jobs?.categories?.name ?? "Work"} at ${shift.jobs?.sites?.name ?? "the site"}, ${shift.jobs?.sites?.suburb ?? ""}: ${shiftSummary([shift])}`}
+              value={`${shift.jobs?.categories?.name ?? "Work"} at ${shift.jobs?.sites?.name ?? "the site"}, ${shift.jobs?.sites?.suburb ?? ""}: ${shiftSummary([shift], siteZone)}${zoneNote(siteZone)}`}
             />
           ) : null}
           {attendance ? (
@@ -182,7 +183,7 @@ export default async function FlagPage({
                   ? attendance
                       .map(
                         (event) =>
-                          `${ATTENDANCE[event.kind] ?? event.kind} at ${formatTime(event.occurred_at)}`,
+                          `${ATTENDANCE[event.kind] ?? event.kind} at ${formatTime(event.occurred_at, siteZone)}`,
                       )
                       .join(", ")
                   : "No clock-in or confirmed arrival"
@@ -242,7 +243,10 @@ export default async function FlagPage({
                         booking.shifts.jobs?.businesses?.legal_name}
                       , {booking.shifts.jobs?.sites?.suburb}
                     </span>
-                    {shiftSummary([booking.shifts])}
+                    {shiftSummary(
+                      [booking.shifts],
+                      zoneOf(booking.shifts.jobs?.sites?.state),
+                    )}
                   </span>
                   <ConfirmAction
                     trigger={

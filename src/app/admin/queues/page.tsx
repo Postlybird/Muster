@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { FLAG_KINDS } from "@/lib/admin-flags";
 import { requireAdmin } from "@/lib/auth";
-import { formatDateTime, formatDayShort } from "@/lib/format";
+import { formatDateTime, formatDayShort, zoneOf } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { workerName } from "@/lib/timesheet-format";
 
@@ -36,7 +36,7 @@ export default async function QueuesPage({
       supabase
         .from("timesheets")
         .select(
-          "id, disputed_at, business_note, worker_note, workers(preferred_name, legal_first_name, legal_last_name), jobs(sites(name), businesses(trading_name, legal_name)), assignments(shifts(starts_at))",
+          "id, disputed_at, business_note, worker_note, workers(preferred_name, legal_first_name, legal_last_name), jobs(sites(name, state), businesses(trading_name, legal_name)), assignments(shifts(starts_at))",
         )
         .eq("status", "disputed")
         .order("disputed_at"),
@@ -111,7 +111,7 @@ export default async function QueuesPage({
                       query.jobs?.businesses?.legal_name}
                     , {query.jobs?.sites?.name}
                     {query.assignments?.shifts
-                      ? `, ${formatDayShort(query.assignments.shifts.starts_at)}`
+                      ? `, ${formatDayShort(query.assignments.shifts.starts_at, zoneOf(query.jobs?.sites?.state))}`
                       : ""}
                   </TableCell>
                   <TableCell className="whitespace-nowrap">

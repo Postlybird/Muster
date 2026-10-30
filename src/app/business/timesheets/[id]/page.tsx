@@ -11,11 +11,11 @@ import { NoteForm } from "@/components/timesheets/note-form";
 import { TimesheetDetails } from "@/components/timesheets/timesheet-details";
 import { WORKER_TAGS } from "@/domain/ratings";
 import { isPayable } from "@/domain/timesheets";
-import { formatDateTime, formatDayShort, sydneyDateKey } from "@/lib/format";
+import { formatDateTime, formatDayShort, zoneOf } from "@/lib/format";
 import { ratingGiven } from "@/lib/rating-format";
 import { businessTimesheetStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
-import { timeInputValue, type BusinessHours } from "@/lib/timesheets";
+import { shiftDay, timeInputValue, type BusinessHours } from "@/lib/timesheets";
 import { canManage, getMyBusiness } from "@/server/businesses";
 
 import {
@@ -81,7 +81,8 @@ export default async function BusinessTimesheetPage({
     (r) => r.timesheet_id === id,
   ) as Timesheet | undefined;
   if (!row) notFound();
-  const day = formatDayShort(row.shift_starts_at);
+  const siteZone = zoneOf(row.state);
+  const day = formatDayShort(row.shift_starts_at, siteZone);
   const status = businessTimesheetStatuses[row.status];
   // Once the hours are approved, the business rates the worker (brief §4.7).
   const { business, role } = await getMyBusiness();
@@ -129,7 +130,7 @@ export default async function BusinessTimesheetPage({
         status={status}
         detail={
           row.status === "submitted" && row.approve_by
-            ? `Approve by ${formatDateTime(row.approve_by)}.`
+            ? `Approve by ${formatDateTime(row.approve_by, siteZone)}.`
             : null
         }
       />
@@ -143,6 +144,7 @@ export default async function BusinessTimesheetPage({
         </h2>
         <TimesheetDetails
           timesheet={row}
+          timeZone={siteZone}
           audience="business"
           arrivalConfirmed={row.arrival_confirmed}
           awayReasons={row.away_reasons}
@@ -166,13 +168,13 @@ export default async function BusinessTimesheetPage({
               action={adjustTimesheet.bind(
                 null,
                 id,
-                sydneyDateKey(row.shift_starts_at),
+                shiftDay(row.shift_starts_at, siteZone),
               )}
               idPrefix="change"
               day={day}
               defaults={{
-                start: timeInputValue(row.start_at),
-                finish: timeInputValue(row.finish_at),
+                start: timeInputValue(row.start_at, siteZone),
+                finish: timeInputValue(row.finish_at, siteZone),
                 breakMinutes: row.break_minutes,
               }}
               note={{
