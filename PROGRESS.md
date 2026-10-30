@@ -429,6 +429,7 @@ _Last updated: 30/10/2026_
 
 ## Open questions for the owner
 
+- **The business name.** "Muster" is a working name (it lives only in `src/config/brand.ts`). The owner is weighing others, such as Shifta. The name must suit any industry: the business will grow beyond restoration and cleaning. Work types, tickets and rates are already set up in Admin, so a new industry is mostly data plus the website's wording.
 - **The 10 questions in `docs/plan.md`.** Phase 1 uses our recommendations. Tell us if any should change.
 - **How quickly will new workers be checked?** The app tells workers "usually within two business days". Change it if that's not realistic.
 - **Employment Hero timesheet import template.** The payroll file uses draft columns until we have it.
