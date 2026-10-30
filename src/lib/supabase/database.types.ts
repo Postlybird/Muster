@@ -3547,6 +3547,7 @@ export type Database = {
           worker_id: string;
         }[];
       };
+      call_scheduled_job: { Args: { p_job: string }; Returns: number };
       can_edit_job: { Args: { p_job_id: string }; Returns: boolean };
       can_read_invoice_folder: { Args: { p_folder: string }; Returns: boolean };
       can_see_job: { Args: { p_job_id: string }; Returns: boolean };
@@ -3924,6 +3925,10 @@ export type Database = {
       };
       set_current_agreement: {
         Args: { p_agreement_id: string };
+        Returns: undefined;
+      };
+      set_scheduled_job_target: {
+        Args: { p_cron_secret: string; p_site_url: string };
         Returns: undefined;
       };
       setting_boolean: {

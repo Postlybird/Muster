@@ -1,0 +1,50 @@
+# Sign-in settings for the hosted dev project, muster-dev. The database
+# workflow (.github/workflows/db-deploy.yml) pushes them with
+# `supabase config push`, which changes only what this file declares, so the
+# project's database, storage and API settings stay as they are.
+#
+# Local development uses supabase/config.toml; keep the two in step.
+project_id = "muster-dev"
+
+[auth]
+# The live site on Vercel. Links in sign-in emails start here.
+site_url = "https://muster-two-mauve.vercel.app"
+additional_redirect_urls = ["https://muster-two-mauve.vercel.app/**"]
+
+[auth.email]
+enable_signup = true
+# Sign-in by code confirms the address anyway; this also makes a changed
+# address need a code.
+enable_confirmations = true
+double_confirm_changes = true
+otp_length = 6
+# The sign-in page says codes last 15 minutes.
+otp_expiry = 900
+
+[auth.sms]
+enable_signup = true
+# Must be on: otherwise anyone could put someone else's number on their
+# account without a code.
+enable_confirmations = true
+template = "Your code is {{ .Code }}"
+otp_length = 6
+otp_expiry = 900
+
+# Phone sign-in needs a provider switched on, but every text goes through
+# the send_sms hook below, so these placeholder values are never used.
+[auth.sms.twilio]
+enabled = true
+account_sid = "AC00000000000000000000000000000000"
+message_service_sid = "MG00000000000000000000000000000000"
+auth_token = "placeholder-sms-goes-through-hook"
+
+# Demo mode: login codes are written to the demo outbox (/dev/outbox)
+# instead of being sent. Before launch they go through the SMS and email
+# adapters (paid services: ask the owner first).
+[auth.hook.send_sms]
+enabled = true
+uri = "pg-functions://postgres/public/hook_send_sms"
+
+[auth.hook.send_email]
+enabled = true
+uri = "pg-functions://postgres/public/hook_send_email"

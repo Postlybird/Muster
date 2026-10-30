@@ -1,15 +1,17 @@
 name: Deploy database (muster-dev)
 
-# Applies new migrations and the demo data to the hosted dev project.
-# Production will get its own workflow without demo data.
+# Applies new migrations, the sign-in settings and the demo data to the hosted
+# dev project, checks sign-in codes work, and points the scheduled jobs at
+# the live site. Production will get its own workflow without demo data.
 
 on:
   push:
     branches: [main, "claude/**"]
     paths:
       - "supabase/migrations/**"
-      - "supabase/config.toml"
+      - "deploy/muster-dev/**"
       - "scripts/seed/**"
+      - "scripts/check-sign-in-codes.ts"
       - ".github/workflows/db-deploy.yml"
   workflow_dispatch:
 
@@ -22,7 +24,7 @@ permissions:
 
 jobs:
   deploy:
-    name: Migrations and demo data
+    name: Migrations, sign-in settings, demo data and scheduled jobs
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -51,9 +53,49 @@ jobs:
       - name: Apply new migrations
         run: npx supabase db push --linked --yes
 
+      # Only what deploy/muster-dev/supabase/config.toml declares changes.
+      - name: Push the sign-in settings
+        run: npx supabase config push --workdir deploy/muster-dev --project-ref "$SUPABASE_PROJECT_ID" --yes
+
       - name: Load demo data
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           SEED_ALLOW_REMOTE: "true"
         run: npm run seed
+
+      - name: Check sign-in codes reach the demo outbox
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: npx tsx scripts/check-sign-in-codes.ts
+
+      # Saves the site's address and the CRON_SECRET in the project's Vault,
+      # where the scheduled jobs read them, then runs one job to check the
+      # site accepts the secret.
+      - name: Point the scheduled jobs at the live site
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::warning::The repository secret CRON_SECRET isn't set, so the scheduled jobs stay off. Add it (the same value as in Vercel), then run this workflow again."
+            exit 0
+          fi
+          site=$(grep -m1 '^site_url' deploy/muster-dev/supabase/config.toml | cut -d'"' -f2)
+          encoded=$(printf '%s' "$CRON_SECRET" | base64 -w0)
+          echo "::add-mask::$encoded"
+          query() { npx supabase db query --linked --agent no -o json "$1"; }
+
+          query "select public.set_scheduled_job_target('$site', convert_from(decode('$encoded', 'base64'), 'utf8'))" > /dev/null
+          id=$(query "select public.call_scheduled_job('notifications') as id" | jq -r '.[0].id')
+          reply=""
+          for attempt in $(seq 1 20); do
+            reply=$(query "select status_code, error_msg from net._http_response where id = $id" | jq -c '.[0] // empty')
+            [ -n "$reply" ] && break
+            sleep 3
+          done
+          case "$(jq -r '.status_code // empty' <<< "$reply")" in
+            200) echo "The scheduled jobs are on: $site ran the notifications job." ;;
+            401) echo "::error::$site refused the CRON_SECRET. It must be the same in Vercel and GitHub, and Vercel needs a redeploy after it changes."; exit 1 ;;
+            *) echo "::error::$site didn't run the job: ${reply:-no reply}"; exit 1 ;;
+          esac

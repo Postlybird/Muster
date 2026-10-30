@@ -11,8 +11,8 @@ import { sendReminders } from "@/server/reminders";
 import { runTimesheets } from "@/server/timesheets";
 
 /**
- * Scheduled jobs, run by a scheduler that sends the CRON_SECRET (plan:
- * Supabase pg_cron for frequent jobs, once the site has an address).
+ * Scheduled jobs, called with the CRON_SECRET by Supabase's scheduler
+ * (pg_cron; the schedule is in the scheduled_jobs migration).
  */
 const JOBS: Record<string, () => Promise<unknown>> = {
   reminders: () => sendReminders(),

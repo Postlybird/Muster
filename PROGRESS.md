@@ -1,10 +1,10 @@
 # Progress
 
-_Last updated: 28/10/2026_
+_Last updated: 30/10/2026_
 
 ## Status
 
-**Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. Waiting on the owner to connect Vercel for preview links.
+**Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. The site is live on Vercel at https://muster-two-mauve.vercel.app (30/10/2026).
 
 **Phase 1: Run real shifts, built** (28/10/2026). All 17 steps are done, and the Phase 1 acceptance run passes: 3 businesses and 10 workers sign up and are approved, 20 shifts are filled and worked, and the payroll file and invoices are made, all through the app (the run only fast-forwards the week). Before real shifts, the owner items under Next are needed (hosting, scheduled jobs, the payroll template, our company details, and a lawyer's check of the documents). The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
@@ -307,14 +307,14 @@ _Last updated: 28/10/2026_
   - Then (30/10/2026), on the owner's feedback: a lighter, friendlier blue; menus always on show when signed in (a sidebar on tablets and computers; on phones, tabs and a row of the other pages, with no menu button); and a full-screen public site with edge-to-edge colour bands, a first screen that fills the window, a deep blue footer and a split sign-in page with a brand panel.
   - Quicker posting: the business dashboard and Post work now offer "Post again" for the business's templates and its three most recent different jobs (work type, site and crew size). One tap copies the job, the dates are filled in, and it's "Save and continue", then "Post work".
 
+- **Live site connected** (30/10/2026), once the owner sent the site's address:
+  - Sign-in by code on the live site: the hosted project now has its own sign-in settings (`deploy/muster-dev/supabase/config.toml`): the site's address, phone sign-in, and login codes going to the demo outbox. The database workflow pushes them, then checks that a code by text and by email reaches the outbox.
+  - Scheduled jobs: Supabase's scheduler calls the site every 10 minutes for reminders, finished shifts, possible no-shows, timesheets and held notifications; hourly for compliance; and early each morning for the pay run (it only runs on the run day). The site's address and `CRON_SECRET` are kept in the project's Vault, put there by the database workflow, which runs one job to check the site accepts the secret. Locally and in CI the jobs do nothing.
+  - Tests: 399 pgTAP, 364 unit and 210 browser tests passing, plus the acceptance run.
+
 ## Next
 
-- **Owner:** set up Vercel (steps in the README), with a `CRON_SECRET` that also goes in GitHub as an Actions secret, then send the site address.
-- **Then:** push the Supabase sign-in settings (allowed redirect URLs, demo login-code hooks) to `muster-dev` with `supabase config push`, so code sign-in works on the preview. Until then, use "Sign in as".
-- **Once the site has an address:** schedule the jobs with Supabase's free scheduler (pg_cron), calling `/api/cron/<job>` with the `CRON_SECRET` (Vercel's free plan only runs scheduled jobs once a day). A workflow will copy the secret from GitHub into Supabase's vault, so nobody handles it:
-  - every 10 minutes: `reminders`, `finish-shifts`, `attendance`, `timesheets` and `notifications`
-  - hourly: `compliance`
-  - once a day, early morning: `pay-run` (it only runs on the run day)
+- **Owner:** add `CRON_SECRET` as a GitHub Actions secret (the same value as in Vercel), then tell me, and I'll run the database workflow to switch the scheduled jobs on. Until then, reminders, timesheet auto-approval, expiry checks and the other scheduled jobs don't run on the live site (an admin can still run the weekly pay run from Pay runs).
 - **Optional, any time:** turn on push notifications (Admin → Settings → Push notifications has the steps).
 - **Phase 2:** once you've looked over Phase 1, we'll propose the Phase 2 plan (brief §11: Stripe payments, the Employment Hero Payroll API, automated identity, police check and VEVO checks, in-app messages per shift, recurring jobs, smarter ranking and fuller reports) and wait for your OK before starting.
 
@@ -423,6 +423,8 @@ _Last updated: 28/10/2026_
 | 28/10/2026 | An excused no-show is set aside like a booking our team cancelled, so it no longer counts towards reliability or a hold. Who reported it, and when, stays on record. | Brief §4.5: no-shows are reviewed by admin. |
 | 29/10/2026 | Navy (#1b365d) with a soft hi-vis orange accent, Figtree, and an "m." logo, replacing the green. Every colour pair still meets WCAG 2.1 AA. | The owner asked for a gentler, friendlier look in a darker blue, nothing that looks generated. Navy and orange echo workwear and hi-vis; the home page shows a real shift rather than stock art. |
 | 30/10/2026 | A lighter blue (#1d68cf) with deep blue (#123a6e) for headlines and dark bands. Menus are always on show: sidebars from tablet width, and on phones bottom tabs plus a visible row of the other pages. The public site is full screen. | The owner asked for a friendlier, lighter blue, menus that are always open when signed in, and a full-screen site with a big brand presence, like Sidekicker. A sidebar can't stay open on a phone, so phones show every page as tabs or a row instead of a menu button. |
+| 30/10/2026 | The hosted project's sign-in settings live in their own file, `deploy/muster-dev/supabase/config.toml`, not the local `supabase/config.toml`. | `supabase config push` changes every setting the file declares. The local file also sets database pool sizes, storage and test-friendly rate limits that the hosted project shouldn't take. |
+| 30/10/2026 | Scheduled jobs run on Supabase's scheduler (pg_cron), which calls the site with pg_net. The site's address and `CRON_SECRET` are in Vault, copied there from GitHub by the database workflow. | Free, and runs every 10 minutes (Vercel's free plan runs jobs once a day; GitHub's scheduler is often late). Nobody has to handle the secret. Supabase's pg_net lets the API roles call its functions, which our database role can't take back; they're still out of reach of the website and API, as on every Supabase project with webhooks. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
@@ -453,7 +455,7 @@ _Last updated: 28/10/2026_
 - [x] Supabase organisation "Muster" and project `muster-dev` (Sydney region).
 - [x] GitHub Actions secrets: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_ID`, `SUPABASE_SECRET_KEY`.
 - [ ] ABN Lookup GUID requested at abr.business.gov.au. When it arrives, add `ABN_LOOKUP_GUID` to Vercel and to the cloud environment's variables.
-- [ ] Vercel project imported from GitHub, environment variables added (steps in README).
+- [x] Vercel project imported from GitHub, environment variables added (steps in README). Live at https://muster-two-mauve.vercel.app.
 - [ ] `CRON_SECRET` made, added to Vercel and as a GitHub Actions secret (the same value).
 - [ ] Decide whether the GitHub repository should be private. It's public now, so anyone can read the code and BRIEF.md.
 - [ ] Optional: allow `ui.shadcn.com` and `abr.business.gov.au` in the cloud environment's network settings, so the shadcn CLI and the live ABN lookup work from the build container.

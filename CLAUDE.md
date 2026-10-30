@@ -26,12 +26,14 @@ This project uses Next.js 16, which has breaking changes from older versions:
   - RLS is enabled on every table.
   - The hosted project does **not** auto-grant new tables to the API roles, so every migration grants explicitly (`anon`, `authenticated`, `service_role`).
   - RLS tests live in `supabase/tests/`.
+  - The hosted dev project's sign-in settings are in `deploy/muster-dev/supabase/config.toml`, pushed by the database workflow with `supabase config push` (which changes only what that file declares). Keep it in step with `supabase/config.toml`.
+- **Scheduled jobs:** pg_cron calls `call_scheduled_job()`, which posts to `/api/cron/<job>` through pg_net with the `CRON_SECRET`. The site's address and the secret are in Vault, saved by the database workflow with `set_scheduled_job_target()`; where they aren't set (locally, CI), the jobs do nothing. Change a schedule with a new migration.
 - **Records:** archive (`archived_at`), never hard-delete personal or employment records.
 - **Money:** integer cents.
 - **Time:** `timestamptz` in UTC; convert with the helpers in `src/lib/format.ts`.
 - **Business rules** (eligibility, pay/bill, hours, expiry, reliability) live in `src/domain/` as pure functions with Vitest tests next to them. Price shifts with `loadPricing()` (`src/server/pricing.ts`), which feeds `splitShift()` and `costShift()` in `src/domain/pay.ts`.
 - **Data access:** user-initiated reads and writes use the signed-in user's Supabase client, so RLS applies. Use the service-role client only in:
-  - cron jobs, seeding and audited admin actions
+  - cron jobs, seeding, the deploy check of sign-in codes (`scripts/check-sign-in-codes.ts`) and audited admin actions
   - recording agreement acceptances (`src/server/agreements.ts`, so the IP address comes from the server)
   - creating a business from the ABN register's details, and checking an ABN isn't already registered (`src/app/business/onboarding/actions.ts`)
   - sending notifications (`src/server/notifications.ts`): who to tell, their devices, preferences and admins' template wording
