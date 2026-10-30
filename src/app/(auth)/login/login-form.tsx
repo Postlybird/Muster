@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatAuPhone } from "@/lib/phone";
+import { useHydrated } from "@/lib/use-hydrated";
 
 import { sendCode, verifyCode, type LoginMethod } from "./actions";
 
@@ -28,6 +29,9 @@ export function LoginForm({ as, next, defaultMethod }: Props) {
   const [pending, startTransition] = useTransition();
   const errorId = useId();
   const codeRef = useRef<HTMLInputElement>(null);
+  // Until the page's script has loaded, a tap would reload the page with
+  // the mobile or email in the address, so the form waits.
+  const hydrated = useHydrated();
 
   function requestCode() {
     setError(null);
@@ -199,6 +203,7 @@ export function LoginForm({ as, next, defaultMethod }: Props) {
                 onChange={(event) =>
                   setValues((v) => ({ ...v, [tab]: event.target.value }))
                 }
+                readOnly={!hydrated}
                 aria-invalid={!!error}
                 aria-describedby={error ? errorId : `${tab}-hint`}
                 required
@@ -216,7 +221,7 @@ export function LoginForm({ as, next, defaultMethod }: Props) {
               type="submit"
               size="lg"
               className="w-full"
-              disabled={pending}
+              disabled={pending || !hydrated}
             >
               {pending ? (
                 <Loader2 className="animate-spin" aria-hidden />
