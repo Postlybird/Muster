@@ -965,6 +965,7 @@ export type Database = {
           default_level: number;
           description: string;
           id: string;
+          industry_id: string | null;
           min_engagement_hours: number;
           name: string;
           police_check_required: boolean;
@@ -981,6 +982,7 @@ export type Database = {
           default_level?: number;
           description?: string;
           id?: string;
+          industry_id?: string | null;
           min_engagement_hours?: number;
           name: string;
           police_check_required?: boolean;
@@ -996,6 +998,7 @@ export type Database = {
           default_level?: number;
           description?: string;
           id?: string;
+          industry_id?: string | null;
           min_engagement_hours?: number;
           name?: string;
           police_check_required?: boolean;
@@ -1003,7 +1006,15 @@ export type Database = {
           updated_at?: string;
           workers_comp_pct?: number | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "categories_industry_id_fkey";
+            columns: ["industry_id"];
+            isOneToOne: false;
+            referencedRelation: "industries";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       category_credentials: {
         Row: {
@@ -1303,6 +1314,49 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      industries: {
+        Row: {
+          active: boolean;
+          archived_at: string | null;
+          code: string;
+          created_at: string;
+          description: string;
+          icon: string;
+          id: string;
+          name: string;
+          sort_order: number;
+          summary: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          active?: boolean;
+          archived_at?: string | null;
+          code: string;
+          created_at?: string;
+          description?: string;
+          icon?: string;
+          id?: string;
+          name: string;
+          sort_order?: number;
+          summary?: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          archived_at?: string | null;
+          code?: string;
+          created_at?: string;
+          description?: string;
+          icon?: string;
+          id?: string;
+          name?: string;
+          sort_order?: number;
+          summary?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       invoices: {
         Row: {

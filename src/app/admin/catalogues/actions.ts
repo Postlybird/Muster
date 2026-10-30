@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { INDUSTRY_ICONS } from "@/config/industry-icons";
 import { requireAdmin } from "@/lib/auth";
 import {
   failure,
@@ -22,7 +23,8 @@ type Supabase = Awaited<ReturnType<typeof createClient>>;
 /** A code that isn't taken yet: "trades_assistant", "trades_assistant_2", ... */
 async function uniqueCode(
   supabase: Supabase,
-  table: "categories" | "credential_types" | "hazards" | "ppe_items",
+  table:
+    "categories" | "credential_types" | "hazards" | "industries" | "ppe_items",
   name: string,
 ): Promise<string> {
   const base = toCode(name);
@@ -41,6 +43,7 @@ async function uniqueCode(
 
 const categorySchema = z.object({
   name: z.string().trim().min(1, "Enter a name").max(80),
+  industry_id: z.uuid().nullable(),
   description: z.string().trim().max(500),
   police_check_required: z.boolean(),
   min_engagement_hours: requiredNumber("Enter a number of hours").pipe(
@@ -65,6 +68,7 @@ export async function saveCategory(
   const workersComp = optionalText(formData.get("workers_comp_pct"));
   const parsed = categorySchema.safeParse({
     name: formData.get("name") ?? "",
+    industry_id: optionalText(formData.get("industry_id")),
     description: formData.get("description") ?? "",
     police_check_required: formBoolean(formData.get("police_check_required")),
     min_engagement_hours: formData.get("min_engagement_hours"),
@@ -240,6 +244,7 @@ const archivable = z.enum([
   "categories",
   "credential_types",
   "hazards",
+  "industries",
   "ppe_items",
 ]);
 
@@ -261,6 +266,70 @@ export async function setArchived(
   if (error) return failure(`Couldn't update: ${error.message}`);
   revalidatePath("/admin/catalogues", "layout");
   return success(archived ? "Archived" : "Restored");
+}
+
+// ---------------------------------------------------------------------------
+// Industries
+// ---------------------------------------------------------------------------
+
+const industrySchema = z.object({
+  name: z.string().trim().min(1, "Enter a name").max(60),
+  summary: z.string().trim().min(1, "Enter a line about it").max(140),
+  description: z.string().trim().max(600),
+  icon: z.enum(Object.keys(INDUSTRY_ICONS) as [string, ...string[]], {
+    error: "Choose an icon",
+  }),
+  active: z.boolean(),
+});
+
+export async function saveIndustry(
+  id: string | null,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+  const parsed = industrySchema.safeParse({
+    name: formData.get("name") ?? "",
+    summary: formData.get("summary") ?? "",
+    description: formData.get("description") ?? "",
+    icon: formData.get("icon") ?? "",
+    active: formBoolean(formData.get("active")),
+  });
+  if (!parsed.success) return invalid(parsed.error);
+
+  const supabase = await createClient();
+  let industryId = id;
+  if (industryId) {
+    const { error } = await supabase
+      .from("industries")
+      .update(parsed.data)
+      .eq("id", industryId);
+    if (error) return failure(`Couldn't save: ${error.message}`);
+  } else {
+    const code = await uniqueCode(supabase, "industries", parsed.data.name);
+    const { data: last } = await supabase
+      .from("industries")
+      .select("sort_order")
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const { data, error } = await supabase
+      .from("industries")
+      .insert({
+        ...parsed.data,
+        code,
+        sort_order: (last?.sort_order ?? 0) + 10,
+      })
+      .select("id")
+      .single();
+    if (error) return failure(`Couldn't save: ${error.message}`);
+    industryId = data.id;
+  }
+
+  revalidatePath("/admin/catalogues/industries");
+  revalidatePath("/", "layout");
+  if (!id) redirect(`/admin/catalogues/industries/${industryId}?saved=1`);
+  return success("Industry saved");
 }
 
 // ---------------------------------------------------------------------------

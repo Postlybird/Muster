@@ -24,7 +24,7 @@ export default async function CategoriesPage() {
   const { data: categories } = await supabase
     .from("categories")
     .select(
-      "id, name, police_check_required, min_engagement_hours, active, archived_at, category_credentials(credential_types(name))",
+      "id, name, police_check_required, min_engagement_hours, active, archived_at, industries(name), category_credentials(credential_types(name))",
     )
     .order("archived_at", { nullsFirst: true })
     .order("sort_order");
@@ -43,6 +43,7 @@ export default async function CategoriesPage() {
         <TableHeader>
           <TableRow>
             <TableHead>Category</TableHead>
+            <TableHead>Industry</TableHead>
             <TableHead>Required tickets</TableHead>
             <TableHead>Police check</TableHead>
             <TableHead className="text-right">Min. hours</TableHead>
@@ -59,6 +60,9 @@ export default async function CategoriesPage() {
                 >
                   {category.name}
                 </Link>
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {category.industries?.name ?? "Other work"}
               </TableCell>
               <TableCell className="text-muted-foreground">
                 {category.category_credentials

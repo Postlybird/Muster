@@ -20,26 +20,35 @@ export default async function EditCategoryPage({
   await requireAdmin();
   const { id } = await params;
   const supabase = await createClient();
-  const [{ data: category }, { data: tickets }, { data: ppe }] =
-    await Promise.all([
-      supabase
-        .from("categories")
-        .select(
-          "*, category_credentials(credential_type_id), category_ppe(ppe_item_id)",
-        )
-        .eq("id", id)
-        .maybeSingle(),
-      supabase
-        .from("credential_types")
-        .select("id, name")
-        .is("archived_at", null)
-        .order("sort_order"),
-      supabase
-        .from("ppe_items")
-        .select("id, name")
-        .is("archived_at", null)
-        .order("sort_order"),
-    ]);
+  const [
+    { data: category },
+    { data: industries },
+    { data: tickets },
+    { data: ppe },
+  ] = await Promise.all([
+    supabase
+      .from("categories")
+      .select(
+        "*, category_credentials(credential_type_id), category_ppe(ppe_item_id)",
+      )
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("industries")
+      .select("id, name")
+      .is("archived_at", null)
+      .order("sort_order"),
+    supabase
+      .from("credential_types")
+      .select("id, name")
+      .is("archived_at", null)
+      .order("sort_order"),
+    supabase
+      .from("ppe_items")
+      .select("id, name")
+      .is("archived_at", null)
+      .order("sort_order"),
+  ]);
   if (!category) notFound();
 
   const archived = !!category.archived_at;
@@ -84,6 +93,7 @@ export default async function EditCategoryPage({
         values={{
           id: category.id,
           name: category.name,
+          industry_id: category.industry_id,
           description: category.description,
           police_check_required: category.police_check_required,
           min_engagement_hours: Number(category.min_engagement_hours),
@@ -98,6 +108,7 @@ export default async function EditCategoryPage({
           ),
           ppe_item_ids: category.category_ppe.map((p) => p.ppe_item_id),
         }}
+        industries={industries ?? []}
         tickets={tickets ?? []}
         ppe={ppe ?? []}
       />

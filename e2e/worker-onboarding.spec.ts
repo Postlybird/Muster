@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import {
+  chooseWorkType,
   expectAccessible,
   randomEmail,
   readCodeFromOutbox,
@@ -104,7 +105,7 @@ test("a new worker goes from sign-up to submitted", async ({ page }) => {
   await expect(
     page.getByText("Choose at least one type of work"),
   ).toBeVisible();
-  await page.getByLabel(/^Restoration labourer/).check();
+  await chooseWorkType(page, "Restoration", "Restoration labourer");
   await page.getByLabel("Experience in this work").selectOption("2");
   await page
     .getByLabel(/A little about you/)

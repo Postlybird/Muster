@@ -53,6 +53,42 @@ test.describe("admin catalogues", () => {
     await expect(page.getByText("Archived").first()).toBeVisible();
   });
 
+  test("adds an industry and puts a work category in it", async ({ page }) => {
+    const name = `Test industry ${Date.now()}`;
+    await page.goto("/admin/catalogues/industries/new");
+    await page.getByLabel("Name").fill(name);
+    await page.getByRole("button", { name: "Add industry" }).click();
+    await expect(page.getByText("Enter a line about it")).toBeVisible();
+
+    await page.getByLabel("One line about it").fill("Test staff for tests.");
+    await page.getByLabel("Icon").selectOption({ label: "Truck" });
+    await page.getByRole("button", { name: "Add industry" }).click();
+    await expect(page.getByRole("heading", { name })).toBeVisible();
+    await expectAccessible(page);
+
+    // A new work category goes in it.
+    const category = `Test driver ${Date.now()}`;
+    await page.goto("/admin/catalogues/categories/new");
+    await page.getByLabel("Name").fill(category);
+    await page.getByLabel("Industry").selectOption({ label: name });
+    await page.getByRole("button", { name: "Add category" }).click();
+    await expect(page.getByRole("heading", { name: category })).toBeVisible();
+    await page.goto("/admin/catalogues/categories");
+    await expect(
+      page.getByRole("row", { name: new RegExp(category) }),
+    ).toContainText(name);
+
+    // Archiving takes the industry off the list for everyone else.
+    await page.goto("/admin/catalogues/industries");
+    await page.getByRole("link", { name }).click();
+    await page.getByRole("button", { name: "Archive" }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Archive" })
+      .click();
+    await expect(page.getByText("Archived").first()).toBeVisible();
+  });
+
   test("adds a hazard", async ({ page }) => {
     const name = `Test hazard ${Date.now()}`;
     await page.goto("/admin/catalogues/hazards");

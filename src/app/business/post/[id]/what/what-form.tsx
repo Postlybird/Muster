@@ -13,6 +13,7 @@ import { WizardActions } from "@/components/wizard/wizard-actions";
 import { JOB_TYPES, MAX_WORKERS } from "@/domain/jobs";
 
 import { saveWhat } from "./actions";
+import type { IndustryGroup } from "@/lib/industries";
 
 export type WhatValues = {
   type: string;
@@ -25,12 +26,17 @@ export function WhatForm({
   jobId,
   values,
   sites,
-  categories,
+  industries,
 }: {
   jobId: string;
   values: WhatValues;
   sites: { id: string; name: string; suburb: string }[];
-  categories: { id: string; name: string; description: string }[];
+  /** Work types, by industry. */
+  industries: IndustryGroup<{
+    id: string;
+    name: string;
+    description: string;
+  }>[];
 }) {
   const {
     state,
@@ -39,7 +45,9 @@ export function WhatForm({
     fieldErrors: errors,
   } = useServerForm(saveWhat.bind(null, jobId));
   const [categoryId, setCategoryId] = useState(values.categoryId);
-  const description = categories.find((c) => c.id === categoryId)?.description;
+  const description = industries
+    .flatMap((industry) => industry.items)
+    .find((c) => c.id === categoryId)?.description;
 
   return (
     <form onSubmit={onSubmit} noValidate className="max-w-2xl space-y-6">
@@ -94,10 +102,14 @@ export function WhatForm({
             onChange={(event) => setCategoryId(event.target.value)}
           >
             <option value="">Choose the type of work</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
+            {industries.map((industry) => (
+              <optgroup key={industry.name} label={industry.name}>
+                {industry.items.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </NativeSelect>
         )}

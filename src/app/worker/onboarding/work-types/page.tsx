@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { groupByIndustry } from "@/lib/industries";
 import { createClient } from "@/lib/supabase/server";
 
 import { loadStep, StepFrame } from "../step-frame";
@@ -14,7 +15,7 @@ export default async function WorkTypesPage() {
     supabase
       .from("categories")
       .select(
-        "id, name, description, police_check_required, sort_order, category_credentials(credential_types(name, sort_order, active))",
+        "id, name, description, police_check_required, sort_order, industries(name, sort_order), category_credentials(credential_types(name, sort_order, active))",
       )
       .eq("active", true)
       .is("archived_at", null)
@@ -26,25 +27,10 @@ export default async function WorkTypesPage() {
       .eq("worker_id", worker.id),
   ]);
 
-  const options: CategoryOption[] = (categories ?? []).map((category) => {
-    const tickets = category.category_credentials
-      .map((link) => link.credential_types)
-      .filter((type): type is NonNullable<typeof type> => !!type?.active)
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map((type) => type.name);
-    if (
-      category.police_check_required &&
-      !tickets.some((name) => /police/i.test(name))
-    ) {
-      tickets.push("National Police Check");
-    }
-    return {
-      id: category.id,
-      name: category.name,
-      description: category.description,
-      needs: tickets,
-    };
-  });
+  const groups = groupByIndustry(categories ?? []).map((group) => ({
+    name: group.name,
+    categories: group.items.map(toOption),
+  }));
 
   return (
     <StepFrame
@@ -56,7 +42,7 @@ export default async function WorkTypesPage() {
     >
       <WorkTypesForm
         mode={mode}
-        categories={options}
+        groups={groups}
         chosen={Object.fromEntries(
           (mine ?? []).map((row) => [row.category_id, row.years_experience]),
         )}
@@ -64,4 +50,38 @@ export default async function WorkTypesPage() {
       />
     </StepFrame>
   );
+}
+
+type CategoryRow = {
+  id: string;
+  name: string;
+  description: string;
+  police_check_required: boolean;
+  category_credentials: {
+    credential_types: {
+      name: string;
+      sort_order: number;
+      active: boolean;
+    } | null;
+  }[];
+};
+
+function toOption(category: CategoryRow): CategoryOption {
+  const tickets = category.category_credentials
+    .map((link) => link.credential_types)
+    .filter((type): type is NonNullable<typeof type> => !!type?.active)
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((type) => type.name);
+  if (
+    category.police_check_required &&
+    !tickets.some((name) => /police/i.test(name))
+  ) {
+    tickets.push("National Police Check");
+  }
+  return {
+    id: category.id,
+    name: category.name,
+    description: category.description,
+    needs: tickets,
+  };
 }

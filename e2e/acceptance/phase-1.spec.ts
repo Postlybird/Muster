@@ -119,6 +119,7 @@ test("Phase 1 acceptance: 10 workers and 3 businesses onboarded, 20 shifts fille
     first,
     last: `Muster-${tag}`,
     // The last four work on restoration jobs, which need a White Card.
+    industry: index < 6 ? "Cleaning" : "Restoration",
     category: index < 6 ? "Commercial cleaner" : "Restoration labourer",
     ticket: index < 6 ? null : "White Card",
   }));

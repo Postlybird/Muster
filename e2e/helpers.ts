@@ -80,6 +80,24 @@ export async function signInAsNewBusiness(page: Page) {
 }
 
 /** Fails the test with a readable list if the page breaks WCAG 2.1 AA rules. */
+/**
+ * On the work types step: opens the industry (they start closed) and ticks
+ * one of its work types.
+ */
+export async function chooseWorkType(
+  page: Page,
+  industry: string,
+  workType: string,
+) {
+  const section = page
+    .locator("details")
+    .filter({ has: page.getByText(industry, { exact: true }) });
+  if (!(await section.evaluate((el) => (el as HTMLDetailsElement).open))) {
+    await section.locator("summary").click();
+  }
+  await section.getByLabel(new RegExp(`^${workType}`)).check();
+}
+
 export async function expectAccessible(page: Page) {
   // Let fades finish: a toast that's still appearing is partly transparent.
   await page.waitForFunction(() =>

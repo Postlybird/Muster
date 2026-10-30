@@ -2,6 +2,7 @@ import { SectionTabs } from "@/components/admin/section-tabs";
 import { PageHeader } from "@/components/page-header";
 
 const tabs = [
+  { href: "/admin/catalogues/industries", label: "Industries" },
   { href: "/admin/catalogues/categories", label: "Work categories" },
   { href: "/admin/catalogues/tickets", label: "Tickets" },
   { href: "/admin/catalogues/hazards", label: "Hazards" },
@@ -15,7 +16,7 @@ export default function CataloguesLayout({
     <div className="space-y-6">
       <PageHeader
         title="Catalogues"
-        description="Everything trade-specific lives here, so new trades need no code changes."
+        description="Everything industry-specific lives here, so new industries and work types need no code changes."
       />
       <SectionTabs tabs={tabs} />
       {children}

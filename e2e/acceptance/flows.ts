@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
 import {
+  chooseWorkType,
   randomAbn,
   randomEmail,
   readCodeFromOutbox,
@@ -102,6 +103,7 @@ export type Worker = {
   last: string;
   name: string;
   mobile: { local: string; e164: string };
+  industry: string;
   category: string;
   ticket: string | null;
 };
@@ -112,6 +114,7 @@ export async function signUpWorker(
   person: {
     first: string;
     last: string;
+    industry: string;
     category: string;
     ticket: string | null;
   },
@@ -168,7 +171,7 @@ export async function signUpWorker(
   await next(page);
 
   await expect(page).toHaveURL(/\/work-types$/);
-  await page.getByLabel(new RegExp(`^${person.category}`)).check();
+  await chooseWorkType(page, person.industry, person.category);
   await page.getByLabel("Experience in this work").selectOption("2");
   await next(page);
 

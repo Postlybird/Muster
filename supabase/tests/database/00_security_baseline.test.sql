@@ -26,7 +26,7 @@ select set_eq(
   $$ select distinct table_name::text
        from information_schema.role_table_grants
       where table_schema = 'public' and grantee = 'anon' $$,
-  array['categories', 'category_credentials', 'category_ppe', 'credential_types', 'hazards', 'ppe_items'],
+  array['categories', 'category_credentials', 'category_ppe', 'credential_types', 'hazards', 'industries', 'ppe_items'],
   'anonymous visitors can read only the public catalogues'
 );
 

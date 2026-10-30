@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { groupByIndustry } from "@/lib/industries";
 import { loadDraft } from "@/server/jobs";
 
 import { PostStepFrame } from "../frame";
@@ -23,10 +24,11 @@ export default async function WhatStepPage({
       .order("name"),
     supabase
       .from("categories")
-      .select("id, name, description")
+      .select("id, name, description, industries(name, sort_order)")
       .eq("active", true)
       .is("archived_at", null)
-      .order("sort_order"),
+      .order("sort_order")
+      .order("name"),
   ]);
 
   return (
@@ -47,7 +49,7 @@ export default async function WhatStepPage({
         <WhatForm
           jobId={job.id}
           sites={sites ?? []}
-          categories={categories ?? []}
+          industries={groupByIndustry(categories ?? [])}
           values={{
             type: job.type,
             siteId:

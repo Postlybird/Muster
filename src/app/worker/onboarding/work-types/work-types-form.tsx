@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 import { ActionFeedback } from "@/components/forms/action-feedback";
@@ -21,6 +22,8 @@ export type CategoryOption = {
   needs: string[];
 };
 
+export type IndustryOptions = { name: string; categories: CategoryOption[] };
+
 const YEARS = Array.from({ length: 11 }, (_, years) => ({
   value: years,
   label:
@@ -33,12 +36,13 @@ const YEARS = Array.from({ length: 11 }, (_, years) => ({
 
 export function WorkTypesForm({
   mode,
-  categories,
+  groups,
   chosen,
   bio,
 }: {
   mode: "wizard" | "edit";
-  categories: CategoryOption[];
+  /** Work types, by industry. */
+  groups: IndustryOptions[];
   /** Category id → years of experience. */
   chosen: Record<string, number>;
   bio: string;
@@ -50,6 +54,15 @@ export function WorkTypesForm({
     fieldErrors: errors,
   } = useServerForm(saveWorkTypes);
   const [selected, setSelected] = useState(() => new Set(Object.keys(chosen)));
+  // Industries start open where the worker has already chosen work.
+  const [open, setOpen] = useState(
+    () =>
+      new Set(
+        groups
+          .filter((group) => group.categories.some((c) => c.id in chosen))
+          .map((group) => group.name),
+      ),
+  );
   const [bioLength, setBioLength] = useState(bio.length);
   const categoryError = errors?.category_ids?.[0];
 
@@ -63,81 +76,119 @@ export function WorkTypesForm({
           What work do you want?
         </legend>
         <p className="text-sm text-muted-foreground">
-          Choose all that suit you. You&apos;ll see shifts in these, once you
-          have the tickets they need.
+          Open an industry and choose all that suit you. You&apos;ll see shifts
+          in these, once you have the tickets they need.
         </p>
-        <ul className="space-y-3">
-          {categories.map((category) => {
-            const isChosen = selected.has(category.id);
+        <div className="space-y-3">
+          {groups.map((group) => {
+            const count = group.categories.filter((c) =>
+              selected.has(c.id),
+            ).length;
             return (
-              <li
-                key={category.id}
+              <details
+                key={group.name}
+                open={open.has(group.name)}
+                onToggle={(event) => {
+                  const isOpen = event.currentTarget.open;
+                  setOpen((current) => {
+                    const next = new Set(current);
+                    if (isOpen) next.add(group.name);
+                    else next.delete(group.name);
+                    return next;
+                  });
+                }}
                 className={cn(
-                  "space-y-3 rounded-lg border p-3",
-                  isChosen && "border-primary bg-accent",
+                  "group rounded-xl border bg-card",
                   categoryError && "border-destructive",
                 )}
               >
-                <div className="flex items-start gap-3">
-                  <Checkbox
-                    id={`category-${category.id}`}
-                    name="category_ids"
-                    value={category.id}
-                    checked={isChosen}
-                    onCheckedChange={(checked) =>
-                      setSelected((current) => {
-                        const next = new Set(current);
-                        if (checked) next.add(category.id);
-                        else next.delete(category.id);
-                        return next;
-                      })
-                    }
-                    className="mt-0.5"
-                    aria-describedby={`category-${category.id}-needs`}
-                  />
-                  <Label
-                    htmlFor={`category-${category.id}`}
-                    className="flex-col items-start gap-1 leading-snug"
-                  >
-                    <span className="text-base">{category.name}</span>
-                    {category.description ? (
-                      <span className="font-normal text-muted-foreground">
-                        {category.description}
-                      </span>
-                    ) : null}
-                  </Label>
-                </div>
-                <p
-                  id={`category-${category.id}-needs`}
-                  className="pl-9 text-sm text-muted-foreground"
-                >
-                  {category.needs.length > 0
-                    ? `Needs: ${category.needs.join(", ")}`
-                    : "No tickets needed"}
-                </p>
-                {isChosen ? (
-                  <div className="space-y-2 pl-9">
-                    <Label htmlFor={`years-${category.id}`}>
-                      Experience in this work
-                    </Label>
-                    <NativeSelect
-                      id={`years-${category.id}`}
-                      name={`years_${category.id}`}
-                      defaultValue={chosen[category.id] ?? 0}
-                      className="sm:w-60"
-                    >
-                      {YEARS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </div>
-                ) : null}
-              </li>
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 font-semibold [&::-webkit-details-marker]:hidden">
+                  <span>{group.name}</span>
+                  <span className="flex items-center gap-2 text-sm font-normal text-muted-foreground">
+                    {count > 0
+                      ? `${count} chosen`
+                      : `${group.categories.length} work ${group.categories.length === 1 ? "type" : "types"}`}
+                    <ChevronDown
+                      className="size-4 transition-transform group-open:rotate-180"
+                      aria-hidden
+                    />
+                  </span>
+                </summary>
+                <ul className="space-y-3 px-3 pb-3">
+                  {group.categories.map((category) => {
+                    const isChosen = selected.has(category.id);
+                    return (
+                      <li
+                        key={category.id}
+                        className={cn(
+                          "space-y-3 rounded-lg border p-3",
+                          isChosen && "border-primary bg-accent",
+                        )}
+                      >
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            id={`category-${category.id}`}
+                            name="category_ids"
+                            value={category.id}
+                            checked={isChosen}
+                            onCheckedChange={(checked) =>
+                              setSelected((current) => {
+                                const next = new Set(current);
+                                if (checked) next.add(category.id);
+                                else next.delete(category.id);
+                                return next;
+                              })
+                            }
+                            className="mt-0.5"
+                            aria-describedby={`category-${category.id}-needs`}
+                          />
+                          <Label
+                            htmlFor={`category-${category.id}`}
+                            className="flex-col items-start gap-1 leading-snug"
+                          >
+                            <span className="text-base">{category.name}</span>
+                            {category.description ? (
+                              <span className="font-normal text-muted-foreground">
+                                {category.description}
+                              </span>
+                            ) : null}
+                          </Label>
+                        </div>
+                        <p
+                          id={`category-${category.id}-needs`}
+                          className="pl-9 text-sm text-muted-foreground"
+                        >
+                          {category.needs.length > 0
+                            ? `Needs: ${category.needs.join(", ")}`
+                            : "No tickets needed"}
+                        </p>
+                        {isChosen ? (
+                          <div className="space-y-2 pl-9">
+                            <Label htmlFor={`years-${category.id}`}>
+                              Experience in this work
+                            </Label>
+                            <NativeSelect
+                              id={`years-${category.id}`}
+                              name={`years_${category.id}`}
+                              defaultValue={chosen[category.id] ?? 0}
+                              className="sm:w-60"
+                            >
+                              {YEARS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </NativeSelect>
+                          </div>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </details>
             );
           })}
-        </ul>
+        </div>
         {categoryError ? (
           <p id="category_ids-error" className="text-sm text-destructive">
             {categoryError}
@@ -158,7 +209,7 @@ export function WorkTypesForm({
             defaultValue={bio}
             rows={4}
             maxLength={500}
-            placeholder="For example: three years on water damage jobs, happy to start early."
+            placeholder="For example: three years behind a busy bar, happy to start early."
             onChange={(event) => setBioLength(event.target.value.length)}
           />
         )}

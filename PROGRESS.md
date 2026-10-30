@@ -318,6 +318,12 @@ _Last updated: 30/10/2026_
   - The support email is support@shifta.com.au. The phone number is hidden until the owner gives us one.
   - The demo company and bank names on demo invoices are renamed to Shifta, unless an admin has already changed them.
 
+- **Every industry** (30/10/2026, owner's request: "all industries are accepted"):
+  - Industries are a new catalogue that admins manage (Admin → Catalogues → Industries): name, a line about it, a paragraph for its web page and an icon. Each work category belongs to one; one without an industry is listed as "Other work".
+  - Starting industries: hospitality, events, warehousing and logistics, manufacturing, retail, cleaning, construction and labouring, office and admin, and restoration. 22 new work types (like bartender, barista, kitchen hand, event staff, pick-packer, forklift driver, process worker, retail assistant, builders cleaner, general labourer, traffic controller, receptionist), with new tickets (NSW RSA, traffic controller card, food handler training), hazards and PPE.
+  - Workers choose work types by industry (each industry opens to show its work), and businesses choose the type of work from a list grouped by industry.
+  - New work types have placeholder pay rates and minimum engagements, like the existing ones.
+
 ## Next
 
 - **Try it:** sign up on the live site as a worker or a business, with test details only (in demo mode anyone with the outbox link can see the codes). Codes appear at `/dev/outbox`.
@@ -432,10 +438,12 @@ _Last updated: 30/10/2026_
 | 30/10/2026 | The hosted project's sign-in settings live in their own file, `deploy/muster-dev/supabase/config.toml`, not the local `supabase/config.toml`. | `supabase config push` changes every setting the file declares. The local file also sets database pool sizes, storage and test-friendly rate limits that the hosted project shouldn't take. |
 | 30/10/2026 | Scheduled jobs run on Supabase's scheduler (pg_cron), which calls the site with pg_net. The site's address and `CRON_SECRET` are in Vault, copied there from GitHub by the database workflow. | Free, and runs every 10 minutes (Vercel's free plan runs jobs once a day; GitHub's scheduler is often late). Nobody has to handle the secret. Supabase's pg_net lets the API roles call its functions, which our database role can't take back; they're still out of reach of the website and API, as on every Supabase project with webhooks. |
 | 30/10/2026 | The business is **Shifta** (shifta.com.au). Slogan: "Staff today, not someday." The repository and the Supabase project keep the working name Muster. | The owner's choice: short, memorable, a made-up word they can own on Google and as a trade mark. Renaming the infrastructure would only add risk. |
+| 30/10/2026 | Every industry is accepted, not just restoration and cleaning (owner's decision, a change to the brief; noted at the top of BRIEF.md). Industries are an admin-managed catalogue that groups the work types. | The owner wants to scale now. Industries in the database let admins add new ones without code changes, and give each one a page on the website. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
 
+- **Industries that need a licence.** Security, aged care and disability support (NDIS), childcare and licensed trades (like electricians) are left out: the business would need its own licence or registration first. Tell us if you want any of them.
 - **Contact phone number.** The contact page and messages show only the email until we have a number.
 - **The 10 questions in `docs/plan.md`.** Phase 1 uses our recommendations. Tell us if any should change.
 - **How quickly will new workers be checked?** The app tells workers "usually within two business days". Change it if that's not realistic.
@@ -456,6 +464,7 @@ _Last updated: 30/10/2026_
 - Upgrade to Vercel Pro and Supabase Pro (commercial use, backups, no pausing). Ask the owner first.
 - Enter our real company and bank details in Settings → Pay and billing (the dev project's demo data has made-up ones).
 - Have a lawyer check the privacy policy, terms of use, casual employment contract, information statements and the labour hire services agreement. The public pages are marked as drafts until then.
+- Set real pay rates and minimum engagements for every work type. They now span several awards (for example Hospitality, General Retail, Clerks, Storage Services, Manufacturing, Building and Construction, and Cleaning Services); all are placeholders today.
 - Before we pass about 1,000 active workers, or 1,000 shifts in a week: the matching engine and the weekly pay run read at most 1,000 rows at a time, so they need to read in pages, as the expiry checks already do.
 
 ## Owner setup checklist

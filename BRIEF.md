@@ -1,5 +1,7 @@
 # Muster — Build Brief
 
+> **Owner update, 30/10/2026.** The business is now **Shifta** (shifta.com.au), with the slogan "Staff today, not someday." It takes work in **every industry** from now on, not just restoration and cleaning: industries group the work types and are managed in Admin like the other catalogues. Where this brief says the market is restoration and cleaning, read "every industry, starting in Sydney". Work that needs a licence the business doesn't hold yet (security, aged care and disability support, childcare, licensed trades) is left out until the owner decides.
+
 *"Muster" is a working name only. Keep the brand in a single config value (`src/config/brand.ts`) so swapping in the real name is a one-line change.*
 
 On-demand labour hire for property services and trades. Businesses request workers for shifts; vetted workers pick up shifts from their phones. **We are the labour hire provider**: workers are our casual employees, we pay them through a payroll provider, and businesses (hosts) pay us a bill rate that includes our margin.

@@ -7,18 +7,48 @@ import { isDemoEmail } from "@/config/demo";
 import { findSuburb } from "@/data/sydney-suburbs";
 import { normaliseAuMobile, normaliseAuPhone } from "@/lib/phone";
 
-import { CATEGORIES, CREDENTIAL_TYPES, HAZARDS, PPE_ITEMS } from "./catalogues";
+import { INDUSTRY_ICONS } from "@/config/industry-icons";
+
+import {
+  CATEGORIES,
+  CREDENTIAL_TYPES,
+  HAZARDS,
+  INDUSTRIES,
+  PPE_ITEMS,
+} from "./catalogues";
 import { ADMINS, BUSINESSES, WORKERS } from "./people";
+import { DEFAULT_BASE_RATES_CENTS } from "./rates";
 
 const credentialCodes = new Set(CREDENTIAL_TYPES.map((c) => c.code));
 const categoryCodes = new Set(CATEGORIES.map((c) => c.code));
 const ppeCodes = new Set(PPE_ITEMS.map((p) => p.code));
 
 describe("seed catalogues", () => {
-  it("match the brief's appendix", () => {
-    expect(CATEGORIES).toHaveLength(8);
-    expect(HAZARDS).toHaveLength(10);
-    expect(PPE_ITEMS).toHaveLength(12);
+  it("keep the brief's appendix, and add the other industries", () => {
+    for (const code of [
+      "restoration_labourer",
+      "restoration_technician",
+      "contents_packout",
+      "strip_out_demolition",
+      "mould_remediation_assistant",
+      "commercial_cleaner",
+      "trades_assistant",
+      "removalist_offsider",
+    ])
+      expect(categoryCodes).toContain(code);
+    expect(INDUSTRIES.length).toBeGreaterThanOrEqual(9);
+  });
+
+  it("put every work type in a known industry, with a starting pay rate", () => {
+    const industryCodes = new Set(INDUSTRIES.map((i) => i.code));
+    for (const category of CATEGORIES) {
+      expect(industryCodes).toContain(category.industry);
+      expect(DEFAULT_BASE_RATES_CENTS[category.code]).toBeGreaterThan(0);
+    }
+    for (const industry of INDUSTRIES) {
+      expect(Object.keys(INDUSTRY_ICONS)).toContain(industry.icon);
+      expect(CATEGORIES.some((c) => c.industry === industry.code)).toBe(true);
+    }
   });
 
   it("only reference tickets and PPE that exist", () => {
@@ -30,7 +60,13 @@ describe("seed catalogues", () => {
   });
 
   it("have unique codes", () => {
-    for (const list of [CREDENTIAL_TYPES, CATEGORIES, HAZARDS, PPE_ITEMS]) {
+    for (const list of [
+      CREDENTIAL_TYPES,
+      INDUSTRIES,
+      CATEGORIES,
+      HAZARDS,
+      PPE_ITEMS,
+    ]) {
       const codes = list.map((x) => x.code);
       expect(new Set(codes).size).toBe(codes.length);
     }

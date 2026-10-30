@@ -3,6 +3,7 @@ import {
   CATEGORIES,
   CREDENTIAL_TYPES,
   HAZARDS,
+  INDUSTRIES,
   PPE_ITEMS,
 } from "../data/catalogues";
 
@@ -58,6 +59,35 @@ export async function seedCatalogues(client: SeedClient) {
     "PPE",
   );
 
+  const industries = check(
+    await client
+      .from("industries")
+      .upsert(
+        INDUSTRIES.map((industry, i) => ({
+          code: industry.code,
+          name: industry.name,
+          summary: industry.summary,
+          description: industry.description,
+          icon: industry.icon,
+          sort_order: (i + 1) * 10,
+        })),
+        { onConflict: "code", ignoreDuplicates: true },
+      )
+      .select("id"),
+    "industries",
+  );
+  const industryIds = new Map(
+    (
+      check(await client.from("industries").select("id, code"), "industries") ??
+      []
+    ).map((r) => [r.code, r.id]),
+  );
+  const industryFor = (code: string) => {
+    const id = industryIds.get(code);
+    if (!id) throw new Error(`Unknown industry "${code}"`);
+    return id;
+  };
+
   const categories = check(
     await client
       .from("categories")
@@ -65,6 +95,7 @@ export async function seedCatalogues(client: SeedClient) {
         CATEGORIES.map((c, i) => ({
           code: c.code,
           name: c.name,
+          industry_id: industryFor(c.industry),
           description: c.description,
           police_check_required: c.policeCheckRequired,
           min_engagement_hours: c.minEngagementHours,
@@ -75,6 +106,18 @@ export async function seedCatalogues(client: SeedClient) {
       .select("id"),
     "categories",
   );
+  // Work types from before industries existed get theirs, unless an admin
+  // has already chosen one.
+  for (const c of CATEGORIES) {
+    check(
+      await client
+        .from("categories")
+        .update({ industry_id: industryFor(c.industry) })
+        .eq("code", c.code)
+        .is("industry_id", null),
+      `industry for ${c.code}`,
+    );
+  }
 
   // Look up ids by code to link categories to their tickets and PPE.
   const ids = async (table: "credential_types" | "ppe_items" | "categories") =>
@@ -126,6 +169,7 @@ export async function seedCatalogues(client: SeedClient) {
     credentialTypes: credentials?.length ?? 0,
     hazards: hazards?.length ?? 0,
     ppe: ppe?.length ?? 0,
+    industries: industries?.length ?? 0,
     categories: categories?.length ?? 0,
   };
 }

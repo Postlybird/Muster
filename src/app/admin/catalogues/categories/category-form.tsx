@@ -7,6 +7,7 @@ import { useServerForm } from "@/components/forms/use-server-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -17,6 +18,7 @@ type Option = { id: string; name: string };
 export type CategoryFormValues = {
   id: string | null;
   name: string;
+  industry_id: string | null;
   description: string;
   police_check_required: boolean;
   min_engagement_hours: number;
@@ -29,10 +31,12 @@ export type CategoryFormValues = {
 
 export function CategoryForm({
   values,
+  industries,
   tickets,
   ppe,
 }: {
   values: CategoryFormValues;
+  industries: Option[];
   tickets: Option[];
   ppe: Option[];
 }) {
@@ -48,6 +52,28 @@ export function CategoryForm({
       <FormField id="name" label="Name" error={errors?.name}>
         {(props) => (
           <Input {...props} name="name" defaultValue={values.name} required />
+        )}
+      </FormField>
+
+      <FormField
+        id="industry_id"
+        label="Industry"
+        hint="Workers choose work, and businesses post it, by industry."
+        error={errors?.industry_id}
+      >
+        {(props) => (
+          <NativeSelect
+            {...props}
+            name="industry_id"
+            defaultValue={values.industry_id ?? ""}
+          >
+            <option value="">None (listed as other work)</option>
+            {industries.map((industry) => (
+              <option key={industry.id} value={industry.id}>
+                {industry.name}
+              </option>
+            ))}
+          </NativeSelect>
         )}
       </FormField>
 

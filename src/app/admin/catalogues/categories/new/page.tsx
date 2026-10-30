@@ -10,18 +10,24 @@ export const metadata: Metadata = { title: "Add a category" };
 export default async function NewCategoryPage() {
   await requireAdmin();
   const supabase = await createClient();
-  const [{ data: tickets }, { data: ppe }] = await Promise.all([
-    supabase
-      .from("credential_types")
-      .select("id, name")
-      .is("archived_at", null)
-      .order("sort_order"),
-    supabase
-      .from("ppe_items")
-      .select("id, name")
-      .is("archived_at", null)
-      .order("sort_order"),
-  ]);
+  const [{ data: industries }, { data: tickets }, { data: ppe }] =
+    await Promise.all([
+      supabase
+        .from("industries")
+        .select("id, name")
+        .is("archived_at", null)
+        .order("sort_order"),
+      supabase
+        .from("credential_types")
+        .select("id, name")
+        .is("archived_at", null)
+        .order("sort_order"),
+      supabase
+        .from("ppe_items")
+        .select("id, name")
+        .is("archived_at", null)
+        .order("sort_order"),
+    ]);
 
   return (
     <div className="space-y-4">
@@ -30,6 +36,7 @@ export default async function NewCategoryPage() {
         values={{
           id: null,
           name: "",
+          industry_id: null,
           description: "",
           police_check_required: false,
           min_engagement_hours: 3,
@@ -39,6 +46,7 @@ export default async function NewCategoryPage() {
           credential_type_ids: [],
           ppe_item_ids: [],
         }}
+        industries={industries ?? []}
         tickets={tickets ?? []}
         ppe={ppe ?? []}
       />
