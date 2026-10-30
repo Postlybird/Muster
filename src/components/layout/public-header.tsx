@@ -6,6 +6,7 @@ import { BrandMark } from "./brand-mark";
 import { Container } from "./container";
 
 const links = [
+  { href: "/industries", label: "Industries" },
   { href: "/#how-it-works", label: "How it works" },
   { href: "/faq", label: "Questions" },
   { href: "/contact", label: "Contact" },

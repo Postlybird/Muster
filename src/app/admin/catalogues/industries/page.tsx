@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { industryIcon } from "@/config/industry-icons";
+import { IndustryIcon } from "@/components/industries/industry-icon";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -53,7 +53,6 @@ export default async function IndustriesPage() {
         </TableHeader>
         <TableBody>
           {(industries ?? []).map((industry) => {
-            const Icon = industryIcon(industry.icon);
             return (
               <TableRow key={industry.id}>
                 <TableCell>
@@ -61,7 +60,10 @@ export default async function IndustriesPage() {
                     href={`/admin/catalogues/industries/${industry.id}`}
                     className="inline-flex items-center gap-2 font-medium underline-offset-4 hover:underline"
                   >
-                    <Icon className="size-4 text-primary" aria-hidden />
+                    <IndustryIcon
+                      name={industry.icon}
+                      className="size-4 text-primary"
+                    />
                     {industry.name}
                   </Link>
                 </TableCell>

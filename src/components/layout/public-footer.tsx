@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { brand } from "@/config/brand";
+import { listIndustries } from "@/server/industries";
 
 import { BrandMark } from "./brand-mark";
 import { Container } from "./container";
@@ -31,10 +32,21 @@ const columns = [
   },
 ];
 
-export function PublicFooter() {
+export async function PublicFooter() {
+  const industries = await listIndustries();
+  const all = [
+    ...columns,
+    {
+      title: "Industries",
+      links: industries.map((industry) => ({
+        href: `/industries/${industry.slug}`,
+        label: industry.name,
+      })),
+    },
+  ];
   return (
     <footer className="bg-deep text-deep-foreground">
-      <Container className="grid gap-10 py-14 text-sm md:grid-cols-[1.2fr_2fr]">
+      <Container className="grid gap-10 py-14 text-sm lg:grid-cols-[1fr_3fr]">
         <div className="space-y-3">
           <BrandMark tone="light" />
           <p className="text-xl font-extrabold tracking-tight">
@@ -47,8 +59,11 @@ export function PublicFooter() {
             © {new Date().getFullYear()} {brand.name}
           </p>
         </div>
-        <nav aria-label="Footer" className="grid gap-8 sm:grid-cols-3">
-          {columns.map((column) => (
+        <nav
+          aria-label="Footer"
+          className="grid gap-8 sm:grid-cols-2 md:grid-cols-4"
+        >
+          {all.map((column) => (
             <div key={column.title} className="space-y-3">
               <h2 className="font-semibold">{column.title}</h2>
               <ul className="space-y-2">

@@ -323,6 +323,9 @@ _Last updated: 30/10/2026_
   - Starting industries: hospitality, events, warehousing and logistics, manufacturing, retail, cleaning, construction and labouring, office and admin, and restoration. 22 new work types (like bartender, barista, kitchen hand, event staff, pick-packer, forklift driver, process worker, retail assistant, builders cleaner, general labourer, traffic controller, receptionist), with new tickets (NSW RSA, traffic controller card, food handler training), hazards and PPE.
   - Workers choose work types by industry (each industry opens to show its work), and businesses choose the type of work from a list grouped by industry.
   - New work types have placeholder pay rates and minimum engagements, like the existing ones.
+  - The website has an Industries page and a page for each industry ("Hospitality staff today, not someday."), listing its work types and the tickets each needs, read live from the catalogue, so a new industry or work type appears there by itself. The home page shows the industries as cards, the header links to them and the footer lists them.
+  - Branded features, each something the app really does: Shifta Verified (checks), Shifta FastFill (matching, favourites first, texts for short notice), Shifta Live (clock-in, arrival, no-show flags) and Shifta Pay (weekly pay, one invoice a week). No made-up testimonials, logos or numbers.
+  - For search engines and sharing: a sitemap (with every industry page), a robots file that keeps the signed-in areas out, and a share picture with the logo and slogan.
 
 ## Next
 

@@ -1,20 +1,19 @@
 import {
   ArrowRight,
-  BadgeCheck,
   BriefcaseBusiness,
   Clock3,
-  IdCard,
-  ShieldCheck,
   Smartphone,
-  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 
+import { BrandFeatures } from "@/components/home/brand-features";
 import { ShiftPreview } from "@/components/home/shift-preview";
+import { IndustryCards } from "@/components/industries/industry-cards";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { brand } from "@/config/brand";
 import { cn } from "@/lib/utils";
+import { listIndustries } from "@/server/industries";
 
 type Step = { title: string; text: string; time: string };
 
@@ -62,41 +61,6 @@ const WORKER_STEPS: Step[] = [
     text: "Clock in and out with your phone. You're our casual employee, so we pay your wages and super every week.",
     time: "Every week",
   },
-];
-
-const PROMISES = [
-  {
-    icon: BadgeCheck,
-    title: "Every worker checked",
-    text: "Photo ID, right to work and tickets are checked before anyone's offered work, and we keep an eye on expiry dates.",
-  },
-  {
-    icon: IdCard,
-    title: "The right tickets for the job",
-    text: "Each job lists what it needs, like an RSA, a White Card or a forklift licence. Only workers who hold them can take it.",
-  },
-  {
-    icon: Wallet,
-    title: "We're the employer",
-    text: "Wages, super, workers' compensation and tax are on us. You pay one hourly rate and get one invoice a week.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Safety from the start",
-    text: "Hazards and protective gear are listed before anyone accepts, and safety reports reach our team straight away.",
-  },
-];
-
-const INDUSTRIES = [
-  "Hospitality",
-  "Events",
-  "Warehousing and logistics",
-  "Manufacturing",
-  "Retail",
-  "Cleaning",
-  "Construction and labouring",
-  "Office and admin",
-  "Restoration",
 ];
 
 const QUICK_ANSWERS = [
@@ -214,7 +178,8 @@ function StepList({
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const industries = await listIndustries();
   return (
     <main className="flex-1">
       {/* The first screen: who it's for, and two doors in. */}
@@ -282,11 +247,38 @@ export default function HomePage() {
         </Container>
       </section>
 
+      {/* Every industry, each with its own page. */}
+      <section aria-labelledby="work-title" className="bg-card py-20 sm:py-28">
+        <Container className="space-y-10">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="max-w-3xl space-y-4">
+              <h2
+                id="work-title"
+                className="text-4xl font-extrabold tracking-tight text-balance text-deep sm:text-5xl"
+              >
+                Staff for every industry
+              </h2>
+              <p className="text-xl text-muted-foreground">
+                One app for the shifts every business has to fill, from a single
+                shift to a busy season.
+              </p>
+            </div>
+            <Link
+              href="/industries"
+              className="text-lg font-semibold text-primary underline underline-offset-4 hover:no-underline"
+            >
+              Every industry
+            </Link>
+          </div>
+          <IndustryCards industries={industries} />
+        </Container>
+      </section>
+
       {/* Step by step, for each side. */}
       <section
         id="how-it-works"
         aria-labelledby="how-it-works-title"
-        className="scroll-mt-16 bg-card py-20 sm:py-28"
+        className="scroll-mt-16 bg-primary-soft py-20 sm:py-28"
       >
         <Container className="space-y-12">
           <div className="max-w-3xl space-y-4">
@@ -338,71 +330,8 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* Why businesses and workers can rely on it. */}
-      <section
-        aria-labelledby="promises-title"
-        className="bg-deep py-20 text-deep-foreground sm:py-28"
-      >
-        <Container className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
-          <div className="space-y-4">
-            <h2
-              id="promises-title"
-              className="text-4xl font-extrabold tracking-tight text-balance sm:text-5xl"
-            >
-              Less chasing. More work done.
-            </h2>
-            <p className="text-xl text-deep-foreground/85">
-              No ringing around agencies, no paperwork for each new face. We do
-              the checking and the employing, so you can get on with business.
-            </p>
-          </div>
-          <ul className="grid gap-x-10 gap-y-10 sm:grid-cols-2">
-            {PROMISES.map(({ icon: Icon, title, text }) => (
-              <li
-                key={title}
-                className="space-y-2 border-t-2 border-highlight pt-5"
-              >
-                <h3 className="flex items-center gap-2 text-xl font-bold">
-                  <Icon className="size-6 text-highlight" aria-hidden />
-                  {title}
-                </h3>
-                <p className="text-deep-foreground/85">{text}</p>
-              </li>
-            ))}
-          </ul>
-        </Container>
-      </section>
-
-      {/* The work. */}
-      <section
-        aria-labelledby="work-title"
-        className="bg-primary-soft py-20 sm:py-28"
-      >
-        <Container className="space-y-8">
-          <div className="max-w-3xl space-y-4">
-            <h2
-              id="work-title"
-              className="text-4xl font-extrabold tracking-tight text-balance text-deep sm:text-5xl"
-            >
-              Staff for every industry
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              One app for the shifts every business has to fill, from a single
-              shift to a busy season.
-            </p>
-          </div>
-          <ul className="flex flex-wrap gap-3">
-            {INDUSTRIES.map((industry) => (
-              <li
-                key={industry}
-                className="rounded-full border bg-card px-5 py-2.5 text-lg font-medium text-foreground shadow-soft"
-              >
-                {industry}
-              </li>
-            ))}
-          </ul>
-        </Container>
-      </section>
+      {/* What the app does for every shift, by name. */}
+      <BrandFeatures />
 
       {/* Quick answers. */}
       <section aria-labelledby="answers-title" className="py-20 sm:py-28">

@@ -5,6 +5,7 @@ import {
   industryCode,
   industrySlug,
   OTHER_WORK,
+  workTypeNeeds,
 } from "./industries";
 
 const hospitality = { name: "Hospitality", sort_order: 10 };
@@ -37,5 +38,37 @@ describe("industry page addresses", () => {
   it("use hyphens for the code's underscores, and back", () => {
     expect(industrySlug("warehousing_logistics")).toBe("warehousing-logistics");
     expect(industryCode("warehousing-logistics")).toBe("warehousing_logistics");
+  });
+});
+
+describe("workTypeNeeds", () => {
+  const ticket = (name: string, sort_order: number, active = true) => ({
+    credential_types: { name, sort_order, active },
+  });
+
+  it("lists active tickets in order, and a police check where required", () => {
+    expect(
+      workTypeNeeds({
+        police_check_required: true,
+        category_credentials: [
+          ticket("Traffic controller card", 20),
+          ticket("Old ticket", 5, false),
+          ticket("White Card", 10),
+        ],
+      }),
+    ).toEqual([
+      "White Card",
+      "Traffic controller card",
+      "National Police Check",
+    ]);
+  });
+
+  it("doesn't add a second police check", () => {
+    expect(
+      workTypeNeeds({
+        police_check_required: true,
+        category_credentials: [ticket("National Police Check", 10)],
+      }),
+    ).toEqual(["National Police Check"]);
   });
 });

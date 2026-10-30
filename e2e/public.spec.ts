@@ -15,6 +15,40 @@ test("the landing page shows both paths and how each works", async ({
   await expect(page).toHaveURL(/\/login\?as=worker$/);
 });
 
+test("each industry has a page with the work and the tickets it needs", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("region", { name: "Staff for every industry" })
+    .getByRole("link", { name: "Hospitality" })
+    .click();
+  await expect(page).toHaveURL(/\/industries\/hospitality$/);
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Hospitality staff today, not someday.",
+    }),
+  ).toBeVisible();
+  const bartender = page
+    .getByRole("listitem")
+    .filter({ has: page.getByRole("heading", { name: "Bartender" }) });
+  await expect(bartender).toContainText("Needs: RSA (NSW Competency Card)");
+
+  // Every industry is listed, with a link to its page.
+  await page.goto("/industries");
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: "Warehousing and logistics" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Forklift driver" }),
+  ).toBeVisible();
+
+  const missing = await page.goto("/industries/not-an-industry");
+  expect(missing?.status()).toBe(404);
+});
+
 test("questions are answered with the rules as they stand", async ({
   page,
 }) => {

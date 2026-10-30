@@ -29,7 +29,7 @@ Every push to GitHub runs the checks in `.github/workflows/ci.yml`:
 | 4.9 Compliance              | `compliance` (ticket warnings and expiry, bookings at risk, VEVO re-checks), `admin-agreements-licences`, `admin-reports` (audit log)                                                |
 | 5 Notifications             | `notifications` (push instead of texts, preferences, quiet hours, editing templates), `outbox`                                                                                       |
 | 6 Admin console             | `admin-lists` (workers, businesses, shift board), `admin-queues`, `admin-reports` (reports, dashboard), `admin-catalogues`, `admin-settings`                                         |
-| 7 Public pages              | `public`, `a11y`                                                                                                                                                                     |
+| 7 Public pages (and industry pages) | `public`, `a11y`                                                                                                                                                                     |
 
 ## The Phase 1 acceptance run
 
