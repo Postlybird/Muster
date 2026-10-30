@@ -58,9 +58,13 @@ export async function signInWithEmailCode(page: Page, email: string) {
   await page.goto("/login?as=business");
   await page.getByLabel("Email address").fill(email);
   await page.getByRole("button", { name: "Send code" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Enter your code" }),
-  ).toBeVisible();
+  // The code step, or the reason there isn't one.
+  const codeStep = page.getByRole("heading", { name: "Enter your code" });
+  const problem = page.getByRole("main").getByRole("alert");
+  await expect(codeStep.or(problem)).toBeVisible();
+  if (await problem.isVisible()) {
+    throw new Error(`No code sent to ${email}: ${await problem.innerText()}`);
+  }
   await page
     .getByLabel("6-digit code")
     .fill(await readCodeFromOutbox(page, email));

@@ -346,25 +346,29 @@ export async function takeJob(page: Page, worker: Worker, jobId: string) {
   ).toBeVisible();
 }
 
-/** The owner books an applicant for all the shifts they applied for. */
-export async function bookApplicant(
+/**
+ * The owner signs in once and books applicants, each for all the shifts
+ * they applied for.
+ */
+export async function bookApplicants(
   page: Page,
   business: Business,
-  jobId: string,
-  worker: Worker,
+  bookings: { jobId: string; worker: Worker }[],
 ) {
   await signInWithEmailCode(page, business.ownerEmail);
-  await page.goto(`/business/jobs/${jobId}`);
-  const shown = `${worker.first} ${worker.last[0]}.`;
-  await page
-    .getByRole("region", { name: "Applicants" })
-    .getByRole("button", {
-      name: new RegExp(`^Book \\d+ shifts? for ${shown}$`),
-    })
-    .click();
-  await expect(
-    page.getByText(new RegExp(`^Booked ${shown} for`)),
-  ).toBeVisible();
+  for (const { jobId, worker } of bookings) {
+    await page.goto(`/business/jobs/${jobId}`);
+    const shown = `${worker.first} ${worker.last[0]}.`;
+    await page
+      .getByRole("region", { name: "Applicants" })
+      .getByRole("button", {
+        name: new RegExp(`^Book \\d+ shifts? for ${shown}$`),
+      })
+      .click();
+    await expect(
+      page.getByText(new RegExp(`^Booked ${shown} for`)),
+    ).toBeVisible();
+  }
 }
 
 /**

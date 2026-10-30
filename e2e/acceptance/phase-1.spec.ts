@@ -15,7 +15,7 @@ import {
 import {
   approveBusiness,
   approveRosteredHours,
-  bookApplicant,
+  bookApplicants,
   payrollId,
   postWork,
   setUpBusiness,
@@ -206,8 +206,10 @@ test("Phase 1 acceptance: 10 workers and 3 businesses onboarded, 20 shifts fille
     await takeJob(page, worker("Grace"), jobs.floodWeek);
     await takeJob(page, worker("Hugo"), jobs.floodTwoDays);
     await takeJob(page, worker("Isla"), jobs.floodTwoDays);
-    await bookApplicant(page, restoration, jobs.floodWeek, worker("Grace"));
-    await bookApplicant(page, restoration, jobs.floodTwoDays, worker("Hugo"));
+    await bookApplicants(page, restoration, [
+      { jobId: jobs.floodWeek, worker: worker("Grace") },
+      { jobId: jobs.floodTwoDays, worker: worker("Hugo") },
+    ]);
   });
   const { data: filled } = await service
     .from("shifts")
