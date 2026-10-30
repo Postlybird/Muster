@@ -329,6 +329,8 @@ _Last updated: 30/10/2026_
 
 ## Next
 
+- **Owner: connect shifta.com.au** (steps below in the owner setup checklist). Then I'll switch sign-in links and the scheduled jobs to it.
+- **Owner: email for support@shifta.com.au.** The site shows it, so mail to it needs to reach you: most domain sellers offer free email forwarding to your own inbox.
 - **Try it:** sign up on the live site as a worker or a business, with test details only (in demo mode anyone with the outbox link can see the codes). Codes appear at `/dev/outbox`.
 - **Optional, any time:** turn on push notifications (Admin → Settings → Push notifications has the steps).
 - **Phase 2:** once you've looked over Phase 1, we'll propose the Phase 2 plan (brief §11: Stripe payments, the Employment Hero Payroll API, automated identity, police check and VEVO checks, in-app messages per shift, recurring jobs, smarter ranking and fuller reports) and wait for your OK before starting.
@@ -477,5 +479,8 @@ _Last updated: 30/10/2026_
 - [ ] ABN Lookup GUID requested at abr.business.gov.au. When it arrives, add `ABN_LOOKUP_GUID` to Vercel and to the cloud environment's variables.
 - [x] Vercel project imported from GitHub, environment variables added (steps in README). Live at https://muster-two-mauve.vercel.app.
 - [x] `CRON_SECRET` made, added to Vercel and as a GitHub Actions secret (the same value). Scheduled jobs on since 30/10/2026.
+- [x] Domain shifta.com.au bought (30/10/2026).
+- [ ] Domain connected in Vercel: Settings → Domains → Add `shifta.com.au` (and `www.shifta.com.au`), copy the DNS records Vercel shows into the domain seller's DNS settings, and wait for "Valid Configuration". Then tell us.
+- [ ] Email forwarding for support@shifta.com.au to your own inbox.
 - [ ] Decide whether the GitHub repository should be private. It's public now, so anyone can read the code and BRIEF.md.
 - [ ] Optional: allow `ui.shadcn.com` and `abr.business.gov.au` in the cloud environment's network settings, so the shadcn CLI and the live ABN lookup work from the build container.
