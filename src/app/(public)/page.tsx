@@ -9,11 +9,13 @@ import Link from "next/link";
 import { BrandFeatures } from "@/components/home/brand-features";
 import { ShiftPreview } from "@/components/home/shift-preview";
 import { IndustryCards } from "@/components/industries/industry-cards";
+import { LocationList } from "@/components/locations/location-list";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { brand } from "@/config/brand";
 import { cn } from "@/lib/utils";
 import { listIndustries } from "@/server/industries";
+import { listLocations } from "@/server/locations";
 
 type Step = { title: string; text: string; time: string };
 
@@ -179,7 +181,10 @@ function StepList({
 }
 
 export default async function HomePage() {
-  const industries = await listIndustries();
+  const [industries, locations] = await Promise.all([
+    listIndustries(),
+    listLocations(),
+  ]);
   return (
     <main className="flex-1">
       {/* The first screen: who it's for, and two doors in. */}
@@ -191,7 +196,7 @@ export default async function HomePage() {
                 className="size-2.5 rounded-full bg-highlight"
                 aria-hidden
               />
-              Now in {brand.launchCity} · Every industry
+              Australia-wide · Every industry
             </p>
             <h1
               id="hero-title"
@@ -274,6 +279,33 @@ export default async function HomePage() {
         </Container>
       </section>
 
+      {/* Where we work: every city, open or coming soon. */}
+      <section aria-labelledby="where-title" className="py-20 sm:py-28">
+        <Container className="space-y-10">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="max-w-3xl space-y-4">
+              <h2
+                id="where-title"
+                className="text-4xl font-extrabold tracking-tight text-balance text-deep sm:text-5xl"
+              >
+                Australia-wide, state by state
+              </h2>
+              <p className="text-xl text-muted-foreground">
+                Where we&apos;re not open yet, sign up now and be ready on day
+                one.
+              </p>
+            </div>
+            <Link
+              href="/locations"
+              className="text-lg font-semibold text-primary underline underline-offset-4 hover:no-underline"
+            >
+              Every location
+            </Link>
+          </div>
+          <LocationList locations={locations} />
+        </Container>
+      </section>
+
       {/* Step by step, for each side. */}
       <section
         id="how-it-works"
@@ -316,7 +348,7 @@ export default async function HomePage() {
               id="find-work"
               audience="For workers"
               title="Find work"
-              intro={`Shifts in hospitality, events, warehousing, retail, cleaning and more, around ${brand.launchCity}, on your phone.`}
+              intro="Shifts in hospitality, events, warehousing, retail, cleaning and more, near you, on your phone."
               steps={WORKER_STEPS}
               icon={Smartphone}
               tone="light"

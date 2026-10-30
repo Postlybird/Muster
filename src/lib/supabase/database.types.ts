@@ -1814,6 +1814,7 @@ export type Database = {
           licensing_body: string | null;
           name: string;
           notes: string;
+          open_for_work: boolean;
           show_licence_on_invoice: boolean;
           updated_at: string;
           worker_notice_required: boolean;
@@ -1826,6 +1827,7 @@ export type Database = {
           licensing_body?: string | null;
           name: string;
           notes?: string;
+          open_for_work?: boolean;
           show_licence_on_invoice?: boolean;
           updated_at?: string;
           worker_notice_required?: boolean;
@@ -1837,6 +1839,7 @@ export type Database = {
           licensing_body?: string | null;
           name?: string;
           notes?: string;
+          open_for_work?: boolean;
           show_licence_on_invoice?: boolean;
           updated_at?: string;
           worker_notice_required?: boolean;

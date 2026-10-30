@@ -88,7 +88,7 @@ test("an admin declines a business, then approves it without account terms", asy
   await page.getByRole("button", { name: "Save decision" }).click();
   await expect(page.getByText("Declined", { exact: true })).toBeVisible();
   await expect(
-    page.getByText(/Reason given: We only place workers in Greater Sydney/),
+    page.getByText(/Reason given: We aren.t taking work in your state yet/),
   ).toBeVisible();
   await expectAccessible(page);
 

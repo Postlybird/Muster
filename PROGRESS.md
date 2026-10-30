@@ -56,7 +56,7 @@ _Last updated: 30/10/2026_
 - **0.5 Adapters:** each one has an interface plus a mock or manual implementation, with a factory chosen by env var:
   - **ABN:** checksum validation; live ABN Lookup client that unwraps JSONP (used when `ABN_LOOKUP_GUID` is set); mock with fictional demo businesses, including a cancelled ABN and a sole trader.
   - **Email, SMS and push:** mocks deliver to the demo outbox. The outbox page has a "Send test messages" button.
-  - **Address lookup:** mock using a built-in list of about 60 Sydney suburbs. It understands "12 George St, Parramatta" and places addresses near the suburb centre, the same spot every time.
+  - **Address lookup:** mock using a built-in list of about 150 suburbs around Australia (about 60 in Sydney). It understands "12 George St, Parramatta" and places addresses near the suburb centre, the same spot every time.
   - **Identity, police check and right to work:** manual review (admin) for v1.
   - **Payroll:** CSV export. The columns are a draft until we have the owner's Employment Hero template.
   - **Payments:** account terms (pay by bank transfer).
@@ -327,8 +327,18 @@ _Last updated: 30/10/2026_
   - Branded features, each something the app really does: Shifta Verified (checks), Shifta FastFill (matching, favourites first, texts for short notice), Shifta Live (clock-in, arrival, no-show flags) and Shifta Pay (weekly pay, one invoice a week). No made-up testimonials, logos or numbers.
   - For search engines and sharing: a sitemap (with every industry page), a robots file that keeps the signed-in areas out, and a share picture with the logo and slogan.
 
+- **Australia-wide** (30/10/2026, owner's request: "We need australia wide like side kicker"):
+  - Every state and territory is in the platform, and admins open each one for work (Admin → States and licences → "Open for work"). NSW is open. Elsewhere, businesses can sign up, add sites and draft work, but can't post it until their state opens; the last posting step tells them why. The database's `post_job()` checks the same thing.
+  - A state that requires a labour hire licence (QLD, VIC, SA and the ACT) stays blocked even once it's open, until we record a current licence. The admin page warns about open states without one.
+  - The demo address lookup knows about 150 suburbs: Sydney, every other capital, and big regional centres. It tells apart suburbs with the same name in different states (Richmond NSW and Richmond VIC) from the state or postcode typed.
+  - Pricing (night, weekend and holiday hours), matching, timesheet costing and pay runs already followed the site's own state and time zone.
+  - The website says Australia-wide throughout. A Locations page and a page for each of 11 cities (the capitals, the Gold Coast, Newcastle and Wollongong) show "Open now" or "Coming soon", straight from the admin switch. Coming-soon cities invite businesses to get their account ready and workers to sign up early. The sitemap lists them.
+  - Tests: 414 pgTAP, 372 unit and 224 browser tests passing, plus the acceptance run.
+
 ## Next
 
+- **Australia-wide, still to come:** times shown in each site's own time zone (on screens, in messages, calendar files and timesheets), and public holidays and state versions of tickets (RSA, working with children checks, traffic control) for every state. I'm working on these next.
+- **Owner: before opening another state**, see "Opening a state" in the open questions.
 - **Owner: connect shifta.com.au** (steps below in the owner setup checklist). Then I'll switch sign-in links and the scheduled jobs to it.
 - **Owner: email for support@shifta.com.au.** The site shows it, so mail to it needs to reach you: most domain sellers offer free email forwarding to your own inbox.
 - **Try it:** sign up on the live site as a worker or a business, with test details only (in demo mode anyone with the outbox link can see the codes). Codes appear at `/dev/outbox`.
@@ -443,11 +453,14 @@ _Last updated: 30/10/2026_
 | 30/10/2026 | The hosted project's sign-in settings live in their own file, `deploy/muster-dev/supabase/config.toml`, not the local `supabase/config.toml`. | `supabase config push` changes every setting the file declares. The local file also sets database pool sizes, storage and test-friendly rate limits that the hosted project shouldn't take. |
 | 30/10/2026 | Scheduled jobs run on Supabase's scheduler (pg_cron), which calls the site with pg_net. The site's address and `CRON_SECRET` are in Vault, copied there from GitHub by the database workflow. | Free, and runs every 10 minutes (Vercel's free plan runs jobs once a day; GitHub's scheduler is often late). Nobody has to handle the secret. Supabase's pg_net lets the API roles call its functions, which our database role can't take back; they're still out of reach of the website and API, as on every Supabase project with webhooks. |
 | 30/10/2026 | The business is **Shifta** (shifta.com.au). Slogan: "Staff today, not someday." The repository and the Supabase project keep the working name Muster. | The owner's choice: short, memorable, a made-up word they can own on Google and as a trade mark. Renaming the infrastructure would only add risk. |
+| 30/10/2026 | Australia-wide: every state and territory is in the platform, but we take work only in states an admin has opened (NSW to start), and a state that requires a labour hire licence also needs a current one on file. The website shows the other states as coming soon. | The owner wants national reach like Sidekicker. Opening a state needs things the app can't check for itself: workers' compensation cover there, and a labour hire licence in QLD, VIC, SA and the ACT. The switch lets the website and sign-ups go national now, while work starts only where we're covered. |
 | 30/10/2026 | Every industry is accepted, not just restoration and cleaning (owner's decision, a change to the brief; noted at the top of BRIEF.md). Industries are an admin-managed catalogue that groups the work types. | The owner wants to scale now. Industries in the database let admins add new ones without code changes, and give each one a page on the website. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
 
+- **Opening a state.** We're the employer, so before you open a state (Admin → States and licences), you need workers' compensation cover there (each state has its own scheme, like icare in NSW and WorkSafe in Victoria), and in QLD, VIC, SA and the ACT a labour hire licence. NSW has no licence scheme today, but the government has promised one; we'll update its settings if it passes. Tell us which state you'd like next.
+- **A real address lookup.** The demo knows about 150 suburbs, so a business elsewhere can't add its site yet. Going national needs a real address service. The brief names Google Maps Places, which is a paid service (with a free monthly allowance); there are other options, such as the free national address file (G-NAF). We'll ask before adding one.
 - **Industries that need a licence.** Security, aged care and disability support (NDIS), childcare and licensed trades (like electricians) are left out: the business would need its own licence or registration first. Tell us if you want any of them.
 - **Contact phone number.** The contact page and messages show only the email until we have a number.
 - **The 10 questions in `docs/plan.md`.** Phase 1 uses our recommendations. Tell us if any should change.

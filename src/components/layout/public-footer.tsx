@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { brand } from "@/config/brand";
 import { listIndustries } from "@/server/industries";
+import { listLocations } from "@/server/locations";
 
 import { BrandMark } from "./brand-mark";
 import { Container } from "./container";
@@ -33,7 +34,10 @@ const columns = [
 ];
 
 export async function PublicFooter() {
-  const industries = await listIndustries();
+  const [industries, locations] = await Promise.all([
+    listIndustries(),
+    listLocations(),
+  ]);
   const all = [
     ...columns,
     {
@@ -41,6 +45,13 @@ export async function PublicFooter() {
       links: industries.map((industry) => ({
         href: `/industries/${industry.slug}`,
         label: industry.name,
+      })),
+    },
+    {
+      title: "Locations",
+      links: locations.map((location) => ({
+        href: `/locations/${location.slug}`,
+        label: location.name,
       })),
     },
   ];
@@ -53,7 +64,7 @@ export async function PublicFooter() {
             {brand.tagline}
           </p>
           <p className="max-w-xs text-deep-foreground/80">
-            On-demand staff for every industry. Now in {brand.launchCity}.
+            On-demand staff for every industry, Australia-wide.
           </p>
           <p className="text-deep-foreground/80">
             © {new Date().getFullYear()} {brand.name}
@@ -61,7 +72,7 @@ export async function PublicFooter() {
         </div>
         <nav
           aria-label="Footer"
-          className="grid gap-8 sm:grid-cols-2 md:grid-cols-4"
+          className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
         >
           {all.map((column) => (
             <div key={column.title} className="space-y-3">

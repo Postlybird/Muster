@@ -4,7 +4,7 @@ import { DEMO_ABNS } from "@/adapters/abn/mock";
 import { MockGeocoder } from "@/adapters/geocode/mock";
 import { isValidAbn } from "@/adapters/abn/validate";
 import { isDemoEmail } from "@/config/demo";
-import { findSuburb } from "@/data/sydney-suburbs";
+import { findSuburb } from "@/data/suburbs";
 import { normaliseAuMobile, normaliseAuPhone } from "@/lib/phone";
 
 import { INDUSTRY_ICONS } from "@/config/industry-icons";

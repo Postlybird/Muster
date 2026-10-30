@@ -29,6 +29,7 @@ const STATUSES = {
 type JurisdictionValues = {
   code: string;
   name: string;
+  open_for_work: boolean;
   licence_required: boolean;
   worker_notice_required: boolean;
   show_licence_on_invoice: boolean;
@@ -57,6 +58,11 @@ export function JurisdictionRow({
     >
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="font-semibold">{values.name}</h3>
+        {values.open_for_work ? (
+          <Badge variant="success">Taking work</Badge>
+        ) : (
+          <Badge variant="neutral">Not open yet</Badge>
+        )}
         {values.licence_required ? (
           licensed ? (
             <Badge variant="success">Licensed</Badge>
@@ -67,6 +73,30 @@ export function JurisdictionRow({
           <Badge variant="neutral">No licence scheme</Badge>
         )}
       </div>
+      <div className="flex items-center justify-between gap-4 rounded-lg border bg-background p-3">
+        <Label
+          htmlFor={id("open_for_work")}
+          className="flex-col items-start gap-1"
+        >
+          <span>Open for work</span>
+          <span className="text-sm font-normal text-muted-foreground">
+            Businesses here can post work. Turn on once we have workers&apos;
+            compensation cover here
+            {values.licence_required ? " and a current licence" : ""}.
+          </span>
+        </Label>
+        <Switch
+          id={id("open_for_work")}
+          name="open_for_work"
+          defaultChecked={values.open_for_work}
+        />
+      </div>
+      {values.open_for_work && values.licence_required && !licensed ? (
+        <p className="text-sm font-medium text-destructive">
+          Open, but jobs here stay blocked until a current licence is recorded
+          above.
+        </p>
+      ) : null}
       <div className="grid gap-4 sm:grid-cols-3">
         {(
           [

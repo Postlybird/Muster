@@ -8,8 +8,7 @@ export const brand = {
   /** The same promise, said to workers. */
   workerTagline: "Work today, not someday.",
   description:
-    "On-demand staff for every industry. Businesses book checked, job-ready staff in minutes; workers pick up shifts on their phone and get paid every week.",
-  launchCity: "Sydney",
+    "On-demand staff for every industry, Australia-wide. Businesses book checked, job-ready staff in minutes; workers pick up shifts on their phone and get paid every week.",
   supportEmail: "support@shifta.com.au",
   /** Shown only once we have a number to give out. */
   supportPhone: null as string | null,

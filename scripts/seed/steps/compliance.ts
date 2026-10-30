@@ -20,6 +20,8 @@ export async function seedCompliance(client: SeedClient) {
           licensing_body: j.licensingBody ?? null,
           worker_notice_required: j.workerNoticeRequired ?? false,
           show_licence_on_invoice: j.licenceRequired,
+          // We start in NSW; admins open other states (Admin → Licences).
+          open_for_work: j.code === "NSW",
           notes: j.notes ?? "",
         })),
         { onConflict: "code", ignoreDuplicates: true },

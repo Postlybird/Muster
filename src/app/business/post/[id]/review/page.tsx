@@ -112,8 +112,9 @@ export default async function ReviewStepPage({
         {blocked ? (
           <Alert variant="warning" className="max-w-2xl">
             <AlertDescription className="text-foreground">
-              We can&apos;t place workers in {state} yet. Choose a site in
-              another state, or contact us.
+              We&apos;re not taking work in {state} yet. Choose a site in a
+              state we&apos;re open in, or contact us and we&apos;ll let you
+              know as soon as we open in {state}.
             </AlertDescription>
           </Alert>
         ) : null}

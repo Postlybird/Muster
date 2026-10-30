@@ -32,14 +32,14 @@ export default async function LicencesPage() {
       .map((l) => l.jurisdiction),
   );
   const blocked = (jurisdictions ?? []).filter(
-    (j) => j.licence_required && !held.has(j.code),
+    (j) => j.open_for_work && j.licence_required && !held.has(j.code),
   );
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Labour hire licences"
-        description="Where a state requires a labour hire licence, jobs there are blocked until we hold a current one."
+        title="States and licences"
+        description="We take work in the states marked open. Where a state requires a labour hire licence, jobs there are blocked until we hold a current one."
       />
 
       {blocked.length > 0 ? (
@@ -116,6 +116,7 @@ export default async function LicencesPage() {
                 values={{
                   code: j.code,
                   name: j.name,
+                  open_for_work: j.open_for_work,
                   licence_required: j.licence_required,
                   worker_notice_required: j.worker_notice_required,
                   show_licence_on_invoice: j.show_licence_on_invoice,

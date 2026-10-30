@@ -1,9 +1,9 @@
 import {
   findSuburb,
-  SYDNEY_SUBURBS,
   searchSuburbs,
+  SUBURBS,
   type Suburb,
-} from "@/data/sydney-suburbs";
+} from "@/data/suburbs";
 
 import type {
   AddressSuggestion,
@@ -12,7 +12,7 @@ import type {
   SuggestOptions,
 } from "./types";
 
-type Encoded = { line1: string | null; suburb: string };
+type Encoded = { line1: string | null; suburb: string; state?: string };
 
 function encode(value: Encoded): string {
   return Buffer.from(JSON.stringify(value)).toString("base64url");
@@ -57,10 +57,13 @@ function label(line1: string | null, suburb: Suburb): string {
  * street, as in "42 Parramatta Rd, Granville"), and the longest name if two
  * end together ("North Sydney", not "Sydney").
  */
-function suburbInText(text: string): { suburb: Suburb; before: string } | null {
+function suburbInText(
+  text: string,
+): { suburbs: Suburb[]; before: string } | null {
   const lower = text.toLowerCase();
-  let best: { suburb: Suburb; start: number; end: number } | null = null;
-  for (const sub of SYDNEY_SUBURBS) {
+  let best: { start: number; end: number; length: number } | null = null;
+  let found: Suburb[] = [];
+  for (const sub of SUBURBS) {
     const pattern = new RegExp(
       `\\b${sub.name.toLowerCase().replace(/ /g, "\\s+")}\\b`,
       "g",
@@ -68,25 +71,40 @@ function suburbInText(text: string): { suburb: Suburb; before: string } | null {
     for (const match of lower.matchAll(pattern)) {
       const start = match.index;
       const end = start + match[0].length;
-      if (
+      const better =
         !best ||
         end > best.end ||
-        (end === best.end && sub.name.length > best.suburb.name.length)
+        (end === best.end && sub.name.length > best.length);
+      if (better) {
+        best = { start, end, length: sub.name.length };
+        found = [sub];
+      } else if (
+        end === best!.end &&
+        sub.name.length === best!.length &&
+        !found.includes(sub)
       ) {
-        best = { suburb: sub, start, end };
+        found.push(sub); // The same name in another state.
       }
     }
   }
   if (!best) return null;
+  // "Richmond VIC" or "Richmond 3121" picks one of the same-named suburbs.
+  const after = lower.slice(best.end);
+  const hinted = found.filter(
+    (sub) =>
+      new RegExp(`\\b${sub.state.toLowerCase()}\\b`).test(after) ||
+      after.includes(sub.postcode),
+  );
   return {
-    suburb: best.suburb,
+    suburbs: hinted.length > 0 ? hinted : found,
     before: text.slice(0, best.start).replace(/[,\s]+$/, ""),
   };
 }
 
 /**
  * Demo address lookup with no external service. Understands "12 George St,
- * Parramatta" or a suburb name, and places addresses near the suburb centre.
+ * Parramatta" or a suburb name anywhere in ./suburbs.ts, and places
+ * addresses near the suburb centre.
  */
 export class MockGeocoder implements Geocoder {
   readonly name = "mock";
@@ -100,7 +118,7 @@ export class MockGeocoder implements Geocoder {
 
     if (options.kind === "suburb") {
       return searchSuburbs(text, 6).map((sub) => ({
-        id: encode({ line1: null, suburb: sub.name }),
+        id: encode({ line1: null, suburb: sub.name, state: sub.state }),
         label: label(null, sub),
       }));
     }
@@ -108,19 +126,17 @@ export class MockGeocoder implements Geocoder {
     const found = suburbInText(text);
     if (found) {
       const line1 = found.before ? titleCase(found.before) : null;
-      return [
-        {
-          id: encode({ line1, suburb: found.suburb.name }),
-          label: label(line1, found.suburb),
-        },
-      ];
+      return found.suburbs.map((sub) => ({
+        id: encode({ line1, suburb: sub.name, state: sub.state }),
+        label: label(line1, sub),
+      }));
     }
 
     // No suburb typed yet: if it looks like a street address, offer it in the
     // closest-matching suburbs; otherwise treat it as a suburb search.
     if (/^\d/.test(text)) return [];
     return searchSuburbs(text, 6).map((sub) => ({
-      id: encode({ line1: null, suburb: sub.name }),
+      id: encode({ line1: null, suburb: sub.name, state: sub.state }),
       label: label(null, sub),
     }));
   }
@@ -128,7 +144,7 @@ export class MockGeocoder implements Geocoder {
   async resolve(id: string): Promise<GeocodedAddress | null> {
     const decoded = decode(id);
     if (!decoded) return null;
-    const suburb = findSuburb(decoded.suburb);
+    const suburb = findSuburb(decoded.suburb, decoded.state);
     if (!suburb) return null;
     const line1 = decoded.line1;
     // Street addresses land within about 500 m of the suburb centre.

@@ -1,15 +1,9 @@
 /**
- * Greater Sydney suburbs with approximate centre points. Used by the mock
- * address lookup, the suburb picker and the demo data. Coordinates are
+ * Greater Sydney suburbs with approximate centre points: the demo data's
+ * home, and the first part of the list in ./suburbs.ts. Coordinates are
  * approximate (good to a few hundred metres), which is fine for distances.
  */
-export type Suburb = {
-  name: string;
-  postcode: string;
-  state: "NSW";
-  lat: number;
-  lng: number;
-};
+import type { Suburb } from "./suburbs";
 
 const s = (
   name: string,
@@ -88,26 +82,3 @@ export const SYDNEY_SUBURBS: Suburb[] = [
   s("St Marys", "2760", -33.762, 150.774),
   s("Mount Druitt", "2770", -33.768, 150.819),
 ];
-
-/** Suburbs matching what someone has typed, best matches first. */
-export function searchSuburbs(query: string, limit = 8): Suburb[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return [];
-  const byPostcode = /^\d{3,4}$/.test(q);
-  return SYDNEY_SUBURBS.filter((sub) =>
-    byPostcode
-      ? sub.postcode.startsWith(q)
-      : sub.name.toLowerCase().includes(q),
-  )
-    .sort((a, b) => {
-      const aStarts = a.name.toLowerCase().startsWith(q) ? 0 : 1;
-      const bStarts = b.name.toLowerCase().startsWith(q) ? 0 : 1;
-      return aStarts - bStarts || a.name.localeCompare(b.name);
-    })
-    .slice(0, limit);
-}
-
-export function findSuburb(name: string): Suburb | undefined {
-  const n = name.trim().toLowerCase();
-  return SYDNEY_SUBURBS.find((sub) => sub.name.toLowerCase() === n);
-}

@@ -1,15 +1,17 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 import { BrandMark } from "./brand-mark";
 import { Container } from "./container";
 
 const links = [
   { href: "/industries", label: "Industries" },
-  { href: "/#how-it-works", label: "How it works" },
+  { href: "/locations", label: "Locations" },
+  { href: "/#how-it-works", label: "How it works", wide: true },
   { href: "/faq", label: "Questions" },
-  { href: "/contact", label: "Contact" },
+  { href: "/contact", label: "Contact", wide: true },
 ];
 
 export function PublicHeader() {
@@ -22,7 +24,10 @@ export function PublicHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className="hidden rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent md:block"
+              className={cn(
+                "hidden rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent",
+                link.wide ? "lg:block" : "md:block",
+              )}
             >
               {link.label}
             </Link>

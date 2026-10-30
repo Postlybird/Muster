@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 
-import { findSuburb } from "../../../src/data/sydney-suburbs";
+import { findSuburb } from "../../../src/data/suburbs";
 import {
   addDays,
   STEP_KEYS,

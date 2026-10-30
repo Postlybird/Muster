@@ -7,10 +7,11 @@ create extension if not exists pgtap with schema extensions;
 select plan(25);
 
 -- Catalogue and compliance rows (demo data loads the real ones; CI tests run before it).
-insert into public.jurisdictions (code, name) values ('NSW', 'New South Wales')
-on conflict (code) do nothing;
-insert into public.jurisdictions (code, name, licence_required) values ('QLD', 'Queensland', true)
-on conflict (code) do update set licence_required = true;
+-- Both states open for work, so QLD is blocked only by the missing licence.
+insert into public.jurisdictions (code, name, open_for_work) values ('NSW', 'New South Wales', true)
+on conflict (code) do update set open_for_work = true;
+insert into public.jurisdictions (code, name, licence_required, open_for_work) values ('QLD', 'Queensland', true, true)
+on conflict (code) do update set licence_required = true, open_for_work = true;
 update public.licences set archived_at = now() where jurisdiction = 'QLD';
 
 insert into public.categories (id, code, name, default_level) values

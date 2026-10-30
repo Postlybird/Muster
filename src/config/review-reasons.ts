@@ -55,7 +55,7 @@ export function reviewReasons(
  * written to the business owner; admins can edit the wording before sending.
  */
 export const businessHoldReasons = [
-  "We only place workers in Greater Sydney for now. We'll let you know when we cover your area.",
+  "We aren't taking work in your state yet. We'll let you know as soon as we open there.",
   "We couldn't confirm your business details. Please contact us so we can finish setting up your account.",
   "Your ABN is cancelled on the Australian Business Register. Contact us once it's active again.",
   "Some invoices are overdue. Contact us to sort out payment.",

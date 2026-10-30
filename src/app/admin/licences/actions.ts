@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 const STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"] as const;
 
 const jurisdictionSchema = z.object({
+  open_for_work: z.boolean(),
   licence_required: z.boolean(),
   worker_notice_required: z.boolean(),
   show_licence_on_invoice: z.boolean(),
@@ -33,6 +34,7 @@ export async function saveJurisdiction(
   if (!(STATES as readonly string[]).includes(code))
     return failure("Unknown state.");
   const parsed = jurisdictionSchema.safeParse({
+    open_for_work: formBoolean(formData.get("open_for_work")),
     licence_required: formBoolean(formData.get("licence_required")),
     worker_notice_required: formBoolean(formData.get("worker_notice_required")),
     show_licence_on_invoice: formBoolean(

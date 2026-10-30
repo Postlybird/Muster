@@ -1,12 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { searchSuburbs } from "@/data/sydney-suburbs";
+import { searchSuburbs } from "@/data/suburbs";
 
 import { MockGeocoder } from "./mock";
 
 describe("suburb search", () => {
   it("puts names that start with the query first", () => {
-    expect(searchSuburbs("par")[0]?.name).toBe("Parramatta");
+    expect(searchSuburbs("parra")[0]?.name).toBe("Parramatta");
+    expect(searchSuburbs("par").map((s) => s.name)).toContain("Parap");
+  });
+
+  it("knows suburbs in every state and territory", () => {
+    const states = new Set(
+      ["Fremantle", "Glenelg", "Fortitude Valley", "Fitzroy", "Braddon"]
+        .concat(["Sandy Bay", "Darwin City", "Parramatta"])
+        .map((name) => searchSuburbs(name)[0]?.state),
+    );
+    expect(states).toEqual(
+      new Set(["WA", "SA", "QLD", "VIC", "ACT", "TAS", "NT", "NSW"]),
+    );
   });
 
   it("searches by postcode", () => {
@@ -20,6 +32,18 @@ describe("suburb search", () => {
 
 describe("mock geocoder", () => {
   const geocoder = new MockGeocoder();
+
+  it("offers each state's suburb when two share a name, unless the state is typed", async () => {
+    const both = await geocoder.suggest("12 Swan St, Richmond");
+    expect(both.map((s) => s.label)).toEqual([
+      "12 Swan St, Richmond NSW 2753",
+      "12 Swan St, Richmond VIC 3121",
+    ]);
+    const [vic] = await geocoder.suggest("12 Swan St, Richmond VIC");
+    expect(vic?.label).toBe("12 Swan St, Richmond VIC 3121");
+    const resolved = await geocoder.resolve(vic!.id);
+    expect(resolved).toMatchObject({ state: "VIC", postcode: "3121" });
+  });
 
   it("suggests suburbs only when asked for a suburb", async () => {
     const suggestions = await geocoder.suggest("12 George St, Parramatta", {

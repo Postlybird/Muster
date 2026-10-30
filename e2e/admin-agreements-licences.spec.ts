@@ -56,13 +56,30 @@ test.describe("admin agreements and licences", () => {
     ).toContainText("Current");
   });
 
-  test("shows where jobs are blocked, and adding a licence lifts the block", async ({
+  test("an open state without a licence blocks jobs until one is added", async ({
     page,
   }) => {
+    const blockedInQld = page.getByText(/^Jobs are blocked in.*QLD/);
+    const queensland = page.getByRole("form", { name: "Queensland" });
+    const setQueenslandOpen = async (open: boolean) => {
+      const toggle = queensland.getByRole("switch", { name: /Open for work/ });
+      if ((await toggle.getAttribute("aria-checked")) !== String(open)) {
+        await toggle.click();
+      }
+      await queensland.getByRole("button", { name: "Save QLD" }).click();
+      await expect(page.getByText("QLD saved")).toBeVisible();
+      await page.reload();
+    };
+
     await page.goto("/admin/licences");
     await expectAccessible(page);
-    const alert = page.getByText(/^Jobs are blocked in/);
-    await expect(alert).toContainText("QLD");
+    // Closed states don't block anything; we aren't taking work there.
+    await expect(queensland.getByText("Not open yet")).toBeVisible();
+    await expect(blockedInQld).toHaveCount(0);
+
+    await setQueenslandOpen(true);
+    await expect(queensland.getByText("Taking work")).toBeVisible();
+    await expect(blockedInQld).toBeVisible();
 
     await page.getByText("Add a licence").click();
     const form = page.getByRole("form", { name: "New licence" });
@@ -76,20 +93,19 @@ test.describe("admin agreements and licences", () => {
     await expect(page.getByText("Licence added")).toBeVisible();
 
     await page.reload();
-    await expect(page.getByText(/^Jobs are blocked in/)).not.toContainText(
-      "QLD",
-    );
-    await expect(
-      page.getByRole("form", { name: "Queensland" }).getByText("Licensed"),
-    ).toBeVisible();
+    await expect(blockedInQld).toHaveCount(0);
+    await expect(queensland.getByText("Licensed")).toBeVisible();
 
-    // Clean up: a cancelled licence doesn't count, so QLD is blocked again.
+    // Clean up: a cancelled licence doesn't count, so QLD is blocked again
+    // until it's closed.
     const added = page.getByRole("form", { name: `Licence ${number}` });
     await added.getByLabel("Status").click();
     await page.getByRole("option", { name: "Cancelled" }).click();
     await added.getByRole("button", { name: "Save licence" }).click();
     await expect(page.getByText("Licence saved")).toBeVisible();
     await page.reload();
-    await expect(page.getByText(/^Jobs are blocked in/)).toContainText("QLD");
+    await expect(blockedInQld).toBeVisible();
+    await setQueenslandOpen(false);
+    await expect(blockedInQld).toHaveCount(0);
   });
 });

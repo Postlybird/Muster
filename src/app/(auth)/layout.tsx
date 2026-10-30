@@ -35,7 +35,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           </ul>
         </div>
         <p className="text-deep-foreground/80">
-          On-demand staff for every industry · Now in {brand.launchCity}
+          On-demand staff for every industry · Australia-wide
         </p>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
