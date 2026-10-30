@@ -195,7 +195,7 @@ _Last updated: 30/10/2026_
   - **Once booked**, the worker sees the full address, getting-in and parking notes, who to report to (with their phone), the job's photos, directions, and an "Add to calendar" file. The business sees the worker's full name and mobile number.
   - **Worker app:** "My shifts" lists booked shifts, applications and shifts filled by others; the home screen shows the next booked shift. A job that's been filled or taken down says so (for old links in texts).
   - **Business:** each shift shows how many are booked, on the job page and the dashboard.
-  - **Reminders:** the day before and two hours before, by text, never twice. They run when the scheduler calls `/api/cron/reminders` with the `CRON_SECRET`; the scheduler is set up once the site has an address (see Next).
+  - **Reminders:** the day before and two hours before, by text, never twice. They run when the scheduler calls `/api/cron/reminders` with the `CRON_SECRET` (on since 30/10/2026).
   - **Demo data:** applicants and a booked worker on the Harbour flood job, and a booked cleaner on the Westside evening clean. Liam O'Brien is left free to try applying.
   - Tests: 188 pgTAP, 263 unit and 132 browser tests passing.
 
@@ -309,12 +309,12 @@ _Last updated: 30/10/2026_
 
 - **Live site connected** (30/10/2026), once the owner sent the site's address:
   - Sign-in by code on the live site: the hosted project now has its own sign-in settings (`deploy/muster-dev/supabase/config.toml`): the site's address, phone sign-in, and login codes going to the demo outbox. The database workflow pushes them, then checks that a code by text and by email reaches the outbox.
-  - Scheduled jobs: Supabase's scheduler calls the site every 10 minutes for reminders, finished shifts, possible no-shows, timesheets and held notifications; hourly for compliance; and early each morning for the pay run (it only runs on the run day). The site's address and `CRON_SECRET` are kept in the project's Vault, put there by the database workflow, which runs one job to check the site accepts the secret. Locally and in CI the jobs do nothing.
+  - Scheduled jobs: Supabase's scheduler calls the site every 10 minutes for reminders, finished shifts, possible no-shows, timesheets and held notifications; hourly for compliance; and early each morning for the pay run (it only runs on the run day). The site's address and `CRON_SECRET` are kept in the project's Vault, put there by the database workflow, which runs one job to check the site accepts the secret. Switched on 30/10/2026, once the owner added `CRON_SECRET` to GitHub: the live site ran the check job. Locally and in CI the jobs do nothing.
   - Tests: 399 pgTAP, 364 unit and 210 browser tests passing, plus the acceptance run.
 
 ## Next
 
-- **Owner:** add `CRON_SECRET` as a GitHub Actions secret (the same value as in Vercel), then tell me, and I'll run the database workflow to switch the scheduled jobs on. Until then, reminders, timesheet auto-approval, expiry checks and the other scheduled jobs don't run on the live site (an admin can still run the weekly pay run from Pay runs).
+- **Try it:** sign up on the live site as a worker or a business, with test details only (in demo mode anyone with the outbox link can see the codes). Codes appear at `/dev/outbox`.
 - **Optional, any time:** turn on push notifications (Admin → Settings → Push notifications has the steps).
 - **Phase 2:** once you've looked over Phase 1, we'll propose the Phase 2 plan (brief §11: Stripe payments, the Employment Hero Payroll API, automated identity, police check and VEVO checks, in-app messages per shift, recurring jobs, smarter ranking and fuller reports) and wait for your OK before starting.
 
@@ -456,6 +456,6 @@ _Last updated: 30/10/2026_
 - [x] GitHub Actions secrets: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_ID`, `SUPABASE_SECRET_KEY`.
 - [ ] ABN Lookup GUID requested at abr.business.gov.au. When it arrives, add `ABN_LOOKUP_GUID` to Vercel and to the cloud environment's variables.
 - [x] Vercel project imported from GitHub, environment variables added (steps in README). Live at https://muster-two-mauve.vercel.app.
-- [ ] `CRON_SECRET` made, added to Vercel and as a GitHub Actions secret (the same value).
+- [x] `CRON_SECRET` made, added to Vercel and as a GitHub Actions secret (the same value). Scheduled jobs on since 30/10/2026.
 - [ ] Decide whether the GitHub repository should be private. It's public now, so anyone can read the code and BRIEF.md.
 - [ ] Optional: allow `ui.shadcn.com` and `abr.business.gov.au` in the cloud environment's network settings, so the shadcn CLI and the live ABN lookup work from the build container.
