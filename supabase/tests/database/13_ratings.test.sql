@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(24);
+select plan(29);
 
 insert into public.jurisdictions (code, name) values ('NSW', 'New South Wales')
 on conflict (code) do nothing;
@@ -134,6 +134,10 @@ select results_eq(
   'the business sees the rating it gave, not the worker''s'
 );
 select is_empty($$ select * from public.business_workers() $$, 'supervisors don''t manage workers');
+select isnt_empty(
+  format($$ select * from public.business_worker_profile(%L) $$, :'worker_a'),
+  'supervisors see the profile of a worker at their site'
+);
 
 -- The owner
 select set_config('request.jwt.claims', '{"sub": "61111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
@@ -149,6 +153,13 @@ select results_eq(
   $$ values (true) $$,
   'and their favourites'
 );
+select results_eq(
+  format($$ select shifts_here, our_rating, our_rating_count, favourite, tags
+            from public.business_worker_profile(%L) $$, :'worker_a'),
+  $$ values (1, 5.00::numeric, 1, true,
+             '[{"tag": "punctual", "count": 1}, {"tag": "would_rehire", "count": 1}]'::jsonb) $$,
+  'a worker''s profile shows their history here and the tags businesses gave'
+);
 select throws_ok(
   $$ update public.businesses set rating_avg = 5 where id = 'b1111111-0000-0000-0000-000000000001' $$,
   '42501', 'Only an admin can change that', 'businesses can''t change their own rating'
@@ -162,6 +173,16 @@ select results_eq(
   format($$ values (%L::uuid, 1, false) $$, :'worker_a'),
   'only their own history with a worker, not other businesses'' favourites'
 );
+select results_eq(
+  format($$ select shifts_here, our_rating_count, favourite, jsonb_array_length(tags)
+            from public.business_worker_profile(%L) $$, :'worker_a'),
+  $$ values (1, 0, false, 2) $$,
+  'another business sees the tags every business gave, but only its own history'
+);
+select is_empty(
+  format($$ select * from public.business_worker_profile(%L) $$, :'worker_b'),
+  'and nothing of a worker who hasn''t applied to or worked for them'
+);
 
 -- Worker A sees the business's average with its work
 select set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
@@ -173,6 +194,10 @@ select results_eq(
 select is_empty(
   $$ select * from public.ratings where direction = 'worker' $$,
   'but not what the business said about them'
+);
+select is_empty(
+  format($$ select * from public.business_worker_profile(%L) $$, :'worker_b'),
+  'workers can''t read each other''s profiles'
 );
 
 -- An admin

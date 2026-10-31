@@ -80,10 +80,12 @@ function Section({
                   : null
               }
               rating={worker.rating === null ? null : Number(worker.rating)}
+              ratingCount={worker.rating_count}
               reliability={
                 worker.reliability === null ? null : Number(worker.reliability)
               }
               shiftsCompleted={worker.shifts_completed}
+              profileHref={`/business/workers/${worker.worker_id}`}
             >
               <p className="text-sm">{history(worker)}</p>
               {worker.block_id ? (

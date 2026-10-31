@@ -3598,6 +3598,32 @@ export type Database = {
           worker_note: string;
         }[];
       };
+      business_worker_profile: {
+        Args: { p_worker_id: string };
+        Returns: {
+          bio: string;
+          blocked: boolean;
+          display_name: string;
+          favourite: boolean;
+          id_checked: boolean;
+          last_worked_at: string;
+          member_since: string;
+          our_rating: number;
+          our_rating_count: number;
+          photo_path: string;
+          police_checked: boolean;
+          rating: number;
+          rating_count: number;
+          reliability: number;
+          right_to_work_checked: boolean;
+          shifts_completed: number;
+          shifts_here: number;
+          tags: Json;
+          tickets: string[];
+          work_types: Json;
+          worker_id: string;
+        }[];
+      };
       business_workers: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -3734,15 +3760,20 @@ export type Database = {
         Returns: {
           applied_at: string;
           display_name: string;
+          favourite: boolean;
+          level: number;
           note: string;
           photo_path: string;
           rank_score: number;
           rating: number;
+          rating_count: number;
           reliability: number;
           shift_ids: string[];
           shifts_completed: number;
+          shifts_here: number;
           tickets: string[];
           worker_id: string;
+          years_experience: number;
         }[];
       };
       job_bookings: {
@@ -3754,6 +3785,7 @@ export type Database = {
           mobile: string;
           photo_path: string;
           rating: number;
+          rating_count: number;
           reliability: number;
           shift_id: string;
           shifts_completed: number;

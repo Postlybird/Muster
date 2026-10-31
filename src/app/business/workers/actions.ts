@@ -19,7 +19,8 @@ async function managing() {
 const NOT_ALLOWED = "Only owners and managers change favourites and blocks.";
 
 function done(message: string): ActionState {
-  revalidatePath("/business/workers");
+  // The Workers page and each worker's profile under it.
+  revalidatePath("/business/workers", "layout");
   return success(message);
 }
 

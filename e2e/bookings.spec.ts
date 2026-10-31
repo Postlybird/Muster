@@ -75,7 +75,7 @@ test("a worker applies, the business picks them, and they see the address", asyn
     .click();
   await expect(page.getByText("Booked Liam O. for 1 shift.")).toBeVisible();
   const booked = page.getByRole("region", { name: "Booked" });
-  await expect(booked.getByText("Liam O'Brien")).toBeVisible();
+  await expect(booked.getByText("Liam O'Brien", { exact: true })).toBeVisible();
   await expect(
     booked.getByRole("link", { name: "+61 491 570 006" }),
   ).toBeVisible();

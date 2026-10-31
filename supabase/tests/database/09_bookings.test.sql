@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(36);
+select plan(37);
 
 insert into public.jurisdictions (code, name) values ('NSW', 'New South Wales')
 on conflict (code) do nothing;
@@ -206,6 +206,12 @@ select is(
    where worker_id = :'worker_a'),
   'Five years of flood work.',
   'and their note'
+);
+select is(
+  (select row(rating_count, shifts_here, favourite, level)::text
+   from public.job_applicants('f1111111-0000-0000-0000-000000000001') where worker_id = :'worker_a'),
+  row(0, 0, false, null::smallint)::text,
+  'with how many ratings, their history with the business and their level (none set here)'
 );
 select results_eq(
   $$ select result from public.book_applicant('f1111111-0000-0000-0000-000000000001', '$$ || :'worker_a' || $$') $$,

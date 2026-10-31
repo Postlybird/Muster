@@ -6,6 +6,7 @@ import { ConfirmAction } from "@/components/forms/confirm-action";
 import { WorkerCard } from "@/components/jobs/worker-card";
 import { Button } from "@/components/ui/button";
 import { shiftsLabel } from "@/domain/bookings";
+import { workerBadges } from "@/domain/worker-badges";
 import { formatDayShort, formatTime } from "@/lib/format";
 import { attendanceOf } from "@/lib/my-shifts";
 import { formatAuPhone } from "@/lib/phone";
@@ -81,6 +82,7 @@ export async function Applicants({
                 rating={
                   applicant.rating === null ? null : Number(applicant.rating)
                 }
+                ratingCount={applicant.rating_count}
                 reliability={
                   applicant.reliability === null
                     ? null
@@ -88,7 +90,21 @@ export async function Applicants({
                 }
                 shiftsCompleted={applicant.shifts_completed}
                 tickets={applicant.tickets}
+                badges={workerBadges({
+                  rating:
+                    applicant.rating === null ? null : Number(applicant.rating),
+                  ratingCount: applicant.rating_count,
+                  reliability:
+                    applicant.reliability === null
+                      ? null
+                      : Number(applicant.reliability),
+                  shiftsCompleted: applicant.shifts_completed,
+                  shiftsHere: applicant.shifts_here,
+                  favourite: applicant.favourite,
+                  yearsInWork: applicant.years_experience,
+                }).map((badge) => badge.label)}
                 note={applicant.note}
+                profileHref={`/business/workers/${applicant.worker_id}?job=${jobId}`}
               >
                 <p className="text-sm">
                   Applied for:{" "}
@@ -180,12 +196,14 @@ export async function Booked({
                     : null
                 }
                 rating={worker.rating === null ? null : Number(worker.rating)}
+                ratingCount={worker.rating_count}
                 reliability={
                   worker.reliability === null
                     ? null
                     : Number(worker.reliability)
                 }
                 shiftsCompleted={worker.shifts_completed}
+                profileHref={`/business/workers/${worker.worker_id}?job=${jobId}`}
               >
                 <p className="text-sm">
                   Booked for:{" "}
