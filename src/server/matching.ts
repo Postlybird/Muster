@@ -37,7 +37,7 @@ async function notifyUrgentOffers(offers: UrgentOffer[]) {
           suburb: shift.jobs?.sites?.suburb ?? "your area",
           when: `${formatDayShort(shift.starts_at, timeZone)} from ${formatTime(shift.starts_at, timeZone)}`,
           pay: shift.shift_pay?.estimate_cents
-            ? `About ${formatCents(shift.shift_pay.estimate_cents)} with the urgent loading.`
+            ? `About ${formatCents(shift.shift_pay.estimate_cents)} with the call-out rate.`
             : "",
           how:
             shift.jobs?.fill_mode === "auto" ? "First in gets it" : "Apply now",

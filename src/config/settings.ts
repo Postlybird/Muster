@@ -245,6 +245,15 @@ export const SETTINGS = {
     input: { kind: "number", unit: "hours", min: 1, max: 336 },
     isPublic: true,
   }),
+  callout_alert_minutes: define({
+    label: "Call-out not taken after",
+    help: "If nobody has accepted a call-out after this many minutes, we tell the business and our team.",
+    group: "on_the_day",
+    schema: z.number().int().min(5).max(240),
+    defaultValue: 20,
+    input: { kind: "number", unit: "minutes", min: 5, max: 240 },
+    isPublic: false,
+  }),
   quiet_hours: define({
     label: "Quiet hours",
     help: "Non-urgent messages wait until these hours end (Sydney time). Set both to the same time for no quiet hours.",
@@ -337,7 +346,8 @@ export const SETTINGS = {
     help: "Extra percent on pay (paid as an allowance) and on the bill rate for urgent call-outs.",
     group: "money",
     schema: z.object({ pay: percent, bill: percent }),
-    defaultValue: { pay: 10, bill: 20 },
+    // The owner set call-out pay at 20% more (31/10/2026).
+    defaultValue: { pay: 20, bill: 20 },
     input: {
       kind: "percent_fields",
       fields: [

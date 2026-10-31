@@ -25,6 +25,7 @@ import {
   postingProblem,
 } from "@/server/jobs";
 import { loadPricing } from "@/server/pricing";
+import { getAllSettings } from "@/server/settings";
 
 import { PostStepFrame } from "../frame";
 import { ReviewForm } from "./review-form";
@@ -222,6 +223,18 @@ export default async function ReviewStepPage({
             </p>
           )}
         </section>
+
+        {job.type === "urgent" ? (
+          <Alert variant="info">
+            <AlertDescription>
+              As soon as you post, we text and notify every available, qualified
+              worker nearby who takes call-outs, and the first to accept is
+              booked. If no one has within{" "}
+              {(await getAllSettings()).callout_alert_minutes} minutes,
+              we&apos;ll tell you, and our team will look too.
+            </AlertDescription>
+          </Alert>
+        ) : null}
 
         <ReviewForm
           jobId={job.id}

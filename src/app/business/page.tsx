@@ -1,8 +1,9 @@
-import { Briefcase, Check, Circle, Plus } from "lucide-react";
+import { Briefcase, Check, Circle, Plus, Siren } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { EmptyState } from "@/components/empty-state";
+import { ActionButton } from "@/components/forms/action-button";
 import {
   PostShortcutList,
   recentJobShortcuts,
@@ -25,6 +26,8 @@ import {
   getMyBusiness,
   type BusinessRow,
 } from "@/server/businesses";
+
+import { startCallout } from "./post/actions";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -230,12 +233,25 @@ export default async function BusinessDashboardPage({
         }
         actions={
           canPost ? (
-            <Button asChild>
-              <Link href="/business/post">
-                <Plus aria-hidden />
-                Post work
-              </Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild>
+                <Link href="/business/post">
+                  <Plus aria-hidden />
+                  Post work
+                </Link>
+              </Button>
+              {canManage(role) ? (
+                // Someone off sick, or an extra pair of hands needed now.
+                <ActionButton
+                  variant="outline"
+                  action={startCallout}
+                  pendingText="Starting…"
+                >
+                  <Siren aria-hidden />
+                  Post a call-out
+                </ActionButton>
+              ) : null}
+            </div>
           ) : undefined
         }
       />

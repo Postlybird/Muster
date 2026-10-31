@@ -15,7 +15,7 @@ export const JOB_TYPES = {
   urgent: {
     label: "Urgent call-out",
     description:
-      "As soon as possible, at a higher rate. Sent to every eligible worker nearby.",
+      "Someone off sick, or need an extra pair of hands? We text every available, qualified worker nearby straight away, and the first to accept is booked. At the call-out rate.",
   },
 } as const;
 

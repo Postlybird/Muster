@@ -502,6 +502,7 @@ export default async function WorkerJobPage({
             jobId={id}
             mode={job.fill_mode}
             note={note}
+            urgent={urgent}
             shifts={open.map((shift) => ({
               id: shift.shift_id,
               day: formatDayShort(shift.starts_at, siteZone),

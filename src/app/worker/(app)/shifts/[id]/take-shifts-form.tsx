@@ -25,12 +25,15 @@ export function TakeShiftsForm({
   mode,
   shifts,
   note = null,
+  urgent = false,
 }: {
   jobId: string;
   mode: "pick" | "auto";
   shifts: ShiftChoice[];
   /** The note already sent with other days of this job. */
   note?: string | null;
+  /** A call-out: the first to accept gets it. */
+  urgent?: boolean;
 }) {
   const [chosen, setChosen] = useState(() => new Set(shifts.map((s) => s.id)));
   // The page moves on once it's done, so the toast comes from here.
@@ -46,7 +49,9 @@ export function TakeShiftsForm({
   const label = several
     ? `${verb} ${shiftsLabel(chosen.size)}`
     : mode === "auto"
-      ? "Accept this shift"
+      ? urgent
+        ? "Accept now"
+        : "Accept this shift"
       : "Apply";
 
   return (

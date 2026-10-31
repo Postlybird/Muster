@@ -168,8 +168,9 @@ export function WeeklyForm({
         <Label htmlFor="urgent_opt_in" className="flex-col items-start gap-1">
           <span className="text-base">Urgent call-outs</span>
           <span className="font-normal text-muted-foreground">
-            Text me about urgent jobs nearby, even at short notice. They usually
-            pay more.
+            A text and an app notification, at any hour, when urgent work nearby
+            needs someone fast. The first to accept gets it, and call-outs pay
+            more.
           </span>
         </Label>
         <Switch

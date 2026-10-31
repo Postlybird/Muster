@@ -15,6 +15,7 @@ select set_eq(
     'timesheets 6-59/10 * * * *',
     'notifications 8-59/10 * * * *',
     'compliance 15 * * * *',
+    'callouts 1-59/5 * * * *',
     'pay-run 5 19,20,21 * * *',
     'tidy-scheduler-log 30 17 * * *'
   ],

@@ -1654,6 +1654,8 @@ export type Database = {
         Row: {
           archived_at: string | null;
           business_id: string;
+          callout_alerted_at: string | null;
+          callout_started_at: string | null;
           cancellation_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: string | null;
@@ -1692,6 +1694,8 @@ export type Database = {
         Insert: {
           archived_at?: string | null;
           business_id: string;
+          callout_alerted_at?: string | null;
+          callout_started_at?: string | null;
           cancellation_reason?: string | null;
           cancelled_at?: string | null;
           cancelled_by?: string | null;
@@ -1729,6 +1733,8 @@ export type Database = {
         Update: {
           archived_at?: string | null;
           business_id?: string;
+          callout_alerted_at?: string | null;
+          callout_started_at?: string | null;
           cancellation_reason?: string | null;
           cancelled_at?: string | null;
           cancelled_by?: string | null;
@@ -3730,6 +3736,14 @@ export type Database = {
           worker_id: string;
         }[];
       };
+      flag_unfilled_callouts: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          job_id: string;
+          reach: number;
+          waited_minutes: number;
+        }[];
+      };
       hook_send_email: { Args: { event: Json }; Returns: Json };
       hook_send_sms: { Args: { event: Json }; Returns: Json };
       hours_approved: { Args: { p_assignment_id: string }; Returns: boolean };
@@ -3792,6 +3806,7 @@ export type Database = {
           worker_id: string;
         }[];
       };
+      job_callout_reach: { Args: { p_job_id: string }; Returns: number };
       job_offer_count: { Args: { p_job_id: string }; Returns: number };
       job_open_to_all_at: { Args: { p_job_id: string }; Returns: string };
       log_access_event: {
@@ -3806,6 +3821,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      make_callout: { Args: { p_job_id: string }; Returns: number };
       mark_invoice_paid: {
         Args: { p_id: string; p_paid_on: string; p_reference?: string };
         Returns: undefined;

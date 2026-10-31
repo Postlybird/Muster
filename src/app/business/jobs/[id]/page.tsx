@@ -4,9 +4,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { ActionButton } from "@/components/forms/action-button";
+import { ConfirmAction } from "@/components/forms/confirm-action";
 import { JobSummary } from "@/components/jobs/job-summary";
 import { StatusBadge } from "@/components/status/status-badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   formatCents,
   formatDateTime,
@@ -22,6 +24,7 @@ import { loadJobDetails } from "@/server/jobs";
 import { getAllSettings } from "@/server/settings";
 
 import { repeatJob } from "../../post/actions";
+import { makeCallout } from "./actions";
 import { CancelWork } from "./cancel-work";
 import { Applicants, Booked } from "./people";
 import { SaveTemplateForm } from "./save-template-form";
@@ -45,12 +48,15 @@ export default async function JobPage({
     .maybeSingle();
   if (!job) notFound();
   if (job.status === "draft") redirect(`/business/post/${job.id}`);
+  const urgent = job.type === "urgent";
   const [
     details,
     { data: template },
     { data: offeredTo },
     { data: openToAllAt },
     { data: booked },
+    { data: reach },
+    { count: waiting },
   ] = await Promise.all([
     loadJobDetails(job),
     supabase
@@ -66,6 +72,16 @@ export default async function JobPage({
       .select("shift_id, shifts!inner(job_id)")
       .eq("shifts.job_id", job.id)
       .eq("status", "confirmed"),
+    // How many workers a call-out reached.
+    urgent
+      ? supabase.rpc("job_callout_reach", { p_job_id: job.id })
+      : Promise.resolve({ data: null }),
+    // Applicants still waiting to be picked.
+    supabase
+      .from("applications")
+      .select("id, shifts!inner(job_id)", { count: "exact", head: true })
+      .eq("shifts.job_id", job.id)
+      .eq("status", "applied"),
   ]);
   const manager = canManage(role);
   const bookedOn = (shiftId: string) =>
@@ -82,6 +98,22 @@ export default async function JobPage({
         )
       : [];
   const settings = toCome.length > 0 ? await getAllSettings() : null;
+  // Open shifts still to come, which a call-out could fill.
+  const stillOpen = details.shifts.filter(
+    (shift) => shift.status === "open" && new Date(shift.starts_at) > now,
+  );
+  // Work starting within 48 hours that still needs people, with no one
+  // waiting to be picked, can become a call-out (make_callout()).
+  const canCallout =
+    manager &&
+    job.status === "posted" &&
+    !urgent &&
+    stillOpen.length > 0 &&
+    (waiting ?? 0) === 0 &&
+    stillOpen.every(
+      (shift) =>
+        new Date(shift.starts_at).getTime() - now.getTime() <= 48 * 3_600_000,
+    );
   const describeCancel = (shifts: typeof toCome) => {
     const people = shifts.reduce((sum, shift) => sum + bookedOn(shift.id), 0);
     if (people === 0) return "No one's booked yet, so there's no charge.";
@@ -130,11 +162,64 @@ export default async function JobPage({
       {posted ? (
         <Alert variant="success">
           <AlertDescription>
-            {job.fill_mode === "auto"
-              ? "Posted. Workers who match can see it now and are booked as they accept. We'll email you when it's fully booked."
-              : "Posted. Workers who match can see it now. Applicants show below as they apply, and we'll email you when the first one does."}
+            {urgent
+              ? "Posted. We're telling every available, qualified worker nearby who takes call-outs, and the first to accept is booked. We'll email you when it's fully booked."
+              : job.fill_mode === "auto"
+                ? "Posted. Workers who match can see it now and are booked as they accept. We'll email you when it's fully booked."
+                : "Posted. Workers who match can see it now. Applicants show below as they apply, and we'll email you when the first one does."}
           </AlertDescription>
         </Alert>
+      ) : null}
+
+      {urgent && job.status === "posted" ? (
+        <section
+          aria-labelledby="callout"
+          className="space-y-2 rounded-xl border border-warning/30 bg-warning-soft p-5"
+        >
+          <h2 id="callout" className="text-lg font-semibold">
+            Call-out
+          </h2>
+          {reach !== null ? (
+            <p className="text-sm">
+              {reach === 0
+                ? "No one free and qualified who takes call-outs is nearby yet. We'll tell workers as they become available."
+                : `Sent to ${workersLabel(reach)} by text and app notification. The first to accept is booked, and we'll tell you straight away.`}
+            </p>
+          ) : null}
+          <p className="text-sm">
+            {stillOpen.length === 0
+              ? details.shifts.some((shift) => shift.status === "open")
+                ? "It's past the start time, and no one took it."
+                : "Filled. Who's coming is under Booked."
+              : job.callout_alerted_at
+                ? "No one has accepted yet, so our team is looking for someone too."
+                : `Waiting for someone to accept. If no one has within ${settings?.callout_alert_minutes ?? 20} minutes, we'll tell you, and our team will look too.`}
+          </p>
+        </section>
+      ) : null}
+
+      {canCallout ? (
+        <section
+          aria-labelledby="need-someone"
+          className="space-y-3 rounded-xl border bg-card p-5"
+        >
+          <h2 id="need-someone" className="text-lg font-semibold">
+            Need someone fast?
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Make it a call-out: we&apos;ll text every available, qualified
+            worker nearby now, and the first to accept is booked. Call-outs cost{" "}
+            {settings?.urgent_loading_pct.bill ?? 20}% more per hour.
+          </p>
+          <ConfirmAction
+            trigger={<Button variant="outline">Make it a call-out</Button>}
+            title="Make this a call-out?"
+            description={`We'll text and notify every available, qualified worker nearby now, and the first to accept is booked. The open ${stillOpen.length === 1 ? "shift costs" : "shifts cost"} ${settings?.urgent_loading_pct.bill ?? 20}% more per hour; anyone already booked stays on their rate.`}
+            confirmLabel="Make it a call-out"
+            action={makeCallout.bind(null, job.id)}
+            variant="default"
+          />
+        </section>
       ) : null}
 
       <section
@@ -144,7 +229,7 @@ export default async function JobPage({
         <h2 id="shifts" className="text-lg font-semibold">
           Shifts
         </h2>
-        {job.status === "posted" && offeredTo !== null ? (
+        {job.status === "posted" && !urgent && offeredTo !== null ? (
           <p className="text-sm">
             {offeredTo === 0
               ? "No workers match yet. We'll offer it to new workers as soon as they're verified."
@@ -223,6 +308,9 @@ export default async function JobPage({
             {formatCents(job.estimate_cents + (job.estimate_gst_cents ?? 0))}{" "}
             including GST, when posted. We invoice weekly for the hours actually
             worked.
+            {job.callout_started_at
+              ? ` Since it became a call-out, the open shifts cost ${settings?.urgent_loading_pct.bill ?? 20}% more per hour.`
+              : ""}
           </p>
         </section>
       ) : null}

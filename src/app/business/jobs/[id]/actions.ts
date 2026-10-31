@@ -13,7 +13,7 @@ import {
 } from "@/server/booking-notices";
 import { canManage, getMyBusiness } from "@/server/businesses";
 import { saveFailed } from "@/server/errors";
-import { refreshWorkerMatches } from "@/server/matching";
+import { matchPostedJob, refreshWorkerMatches } from "@/server/matching";
 import { refreshReliability } from "@/server/reliability";
 
 const name = z
@@ -177,4 +177,33 @@ export async function confirmArrival(
   }
   revalidatePath(`/business/jobs/${jobId}`);
   return success("Arrival confirmed");
+}
+
+/**
+ * Turns open work starting soon into a call-out, say after a worker
+ * cancels: every available, qualified worker who opted in hears now, the
+ * first to accept is booked, and the call-out rate applies to the open
+ * shifts. People already booked keep their terms.
+ */
+export async function makeCallout(jobId: string): Promise<ActionState> {
+  const { business, role } = await getMyBusiness();
+  if (!business || !canManage(role)) {
+    return failure("Only owners and managers can make a call-out.");
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("make_callout", { p_job_id: jobId });
+  // Its own reasons ("Pick from your applicants first") read as they are.
+  if (
+    error?.code === "23514" &&
+    !/violates check constraint/.test(error.message)
+  ) {
+    return failure(`${error.message}.`);
+  }
+  if (error) return saveFailed(error);
+  // Prices the open shifts with the call-out loading and tells the workers.
+  await matchPostedJob(jobId);
+  revalidatePath(`/business/jobs/${jobId}`);
+  return success(
+    "It's a call-out now. We're telling every available, qualified worker nearby.",
+  );
 }

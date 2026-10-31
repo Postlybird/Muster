@@ -350,3 +350,38 @@ export async function notifyPossibleNoShow(jobId: string, workerId: string) {
     { url: `/business/jobs/${jobId}` },
   );
 }
+
+/**
+ * Tells the business, and every admin, that nobody has taken a call-out
+ * after the wait (a setting), so our team can ring around.
+ */
+export async function notifyCalloutUnfilled(
+  jobId: string,
+  minutes: number,
+  reach: number,
+) {
+  const job = await jobFacts(jobId);
+  if (!job) return;
+  const first = job.shifts
+    .filter((s) => s.status === "open")
+    .toSorted((a, b) => a.starts_at.localeCompare(b.starts_at))[0];
+  if (!first) return;
+  const values = {
+    work: job.category,
+    site: job.site,
+    when: `${formatDayShort(first.starts_at, job.timeZone)} from ${formatTime(first.starts_at, job.timeZone)}`,
+    minutes: String(minutes),
+    reach: reach === 1 ? "1 worker" : `${reach} workers`,
+  };
+  if (job.postedBy) {
+    await notify("callout_unfilled", job.postedBy, values, {
+      url: `/business/jobs/${jobId}`,
+      dedupeKey: `callout_unfilled:${jobId}`,
+    });
+  }
+  await notifyAdmins(
+    "admin_callout_unfilled",
+    { business: job.business, ...values },
+    { url: "/admin/shifts", dedupeKey: `admin_callout_unfilled:${jobId}` },
+  );
+}

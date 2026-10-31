@@ -44,6 +44,47 @@ export async function startJob(): Promise<ActionState> {
   redirect(`/business/post/${data.id}/what`);
 }
 
+/**
+ * Starts a call-out for someone off sick or an extra pair of hands: a copy
+ * of the business's latest job (same site and work) as an urgent call-out,
+ * or a blank one, ready to choose the time.
+ */
+export async function startCallout(): Promise<ActionState> {
+  const mine = await poster();
+  if (!mine.ok) return mine.error;
+  const supabase = await createClient();
+  const { data: latest } = await supabase
+    .from("jobs")
+    .select("id")
+    .eq("business_id", mine.business.id)
+    .neq("status", "draft")
+    .order("posted_at", { ascending: false, nullsFirst: false })
+    .limit(1)
+    .maybeSingle();
+  const draft = latest
+    ? await supabase.rpc("duplicate_job", { p_job_id: latest.id })
+    : await supabase
+        .from("jobs")
+        .insert({ business_id: mine.business.id })
+        .select("id")
+        .single()
+        .then(({ data, error }) => ({ data: data?.id ?? null, error }));
+  if (draft.error || !draft.data) {
+    return saveFailed(draft.error ?? { message: "No draft made" });
+  }
+  // Call-outs book the first eligible workers (brief §4.4).
+  const { error } = await supabase
+    .from("jobs")
+    .update({
+      type: "urgent",
+      fill_mode: "auto",
+      favourites_first_minutes: null,
+    })
+    .eq("id", draft.data);
+  if (error) return saveFailed(error);
+  redirect(`/business/post/${draft.data}/${latest ? "when" : "what"}`);
+}
+
 /** Copies a job into a new draft: everything but the dates. */
 export async function repeatJob(jobId: string): Promise<ActionState> {
   const mine = await poster();

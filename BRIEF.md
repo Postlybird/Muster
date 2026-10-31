@@ -3,6 +3,11 @@
 > **Owner update, 30/10/2026.** The business is now **Shifta** (shifta.com.au), with the slogan "Staff today, not someday." It takes work in **every industry** from now on, not just restoration and cleaning: industries group the work types and are managed in Admin like the other catalogues. Where this brief says the market is restoration and cleaning, read "every industry". Work that needs a licence the business doesn't hold yet (security, aged care and disability support, childcare, licensed trades) is left out until the owner decides.
 >
 > **Owner update, 30/10/2026 (later).** Shifta is **Australia-wide**, not just Sydney. Where this brief says Sydney or Greater Sydney, read "Australia-wide, state by state": every state and territory is in the platform, and admins open each one for work (NSW first) once we have workers' compensation cover there and any labour hire licence the state requires (today QLD, VIC, SA and the ACT). Where it says to display times in Australia/Sydney, a shift's times show in its site's own time zone.
+>
+> **Owner update, 31/10/2026.** Workers can stand out, and call-outs are faster (changes to §4.3 and §4.4):
+> - **What businesses see of a worker** goes beyond §4.4: a profile with the worker's bio, their stars with how many ratings, the tags businesses gave, badges, their experience and level in each type of work, the checks we've done and their history with that business. Never documents, date of birth, visa or contact details.
+> - **Applying can carry a note** ("why I'm a good fit", up to 300 characters). Notes and bios can't hold phone numbers, emails or links.
+> - **Call-outs** pay 20% more per hour and go out by text and app notification at any hour, to workers who opted in. If nobody accepts within 20 minutes, the business and our team are told. Open work starting within 48 hours can be turned into a call-out, say after a worker cancels.
 
 *"Muster" is a working name only. Keep the brand in a single config value (`src/config/brand.ts`) so swapping in the real name is a one-line change.*
 

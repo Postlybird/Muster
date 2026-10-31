@@ -300,7 +300,9 @@ test("an urgent call-out texts workers nearby who opted in", async ({
   await page.getByRole("button", { name: "Post work" }).click();
   await expect(page).toHaveURL(/\?posted=1$/);
   await expect(
-    page.getByText(/^Offered to \d+ workers? who match/),
+    page
+      .getByRole("region", { name: "Call-out" })
+      .getByText(/^Sent to \d+ workers? by text and app notification/),
   ).toBeVisible();
 
   const jobId = new URL(page.url()).pathname.split("/").at(-1);

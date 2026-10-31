@@ -81,6 +81,21 @@ export async function saveWeekly(
   return success("Availability saved");
 }
 
+/** Call-outs: urgent work nearby by text and app notification, or not. */
+export async function setCalloutOptIn(on: boolean): Promise<ActionState> {
+  const { worker } = await getMyWorker();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("workers")
+    .update({ urgent_opt_in: on })
+    .eq("id", worker.id);
+  if (error) return saveFailed(error);
+  revalidatePath("/worker", "layout");
+  return success(
+    on ? "You'll hear about call-outs" : "You won't hear about call-outs",
+  );
+}
+
 /** The "available now" switch: on for a few hours, or off. */
 export async function setAvailableNow(on: boolean): Promise<ActionState> {
   const { worker } = await getMyWorker();

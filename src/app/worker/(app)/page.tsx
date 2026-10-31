@@ -11,7 +11,9 @@ import { WhatsNext } from "@/components/status/whats-next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { isAvailableNow } from "@/domain/availability";
 import { ONBOARDING_STEPS } from "@/domain/onboarding";
+import { formatTime, zoneOf } from "@/lib/format";
 import { groupMyShifts } from "@/lib/my-shifts";
 import { groupOffers } from "@/lib/offers";
 import {
@@ -22,6 +24,7 @@ import {
 } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
 import { currentAgreement } from "@/server/agreements";
+import { getAllSettings } from "@/server/settings";
 import { loadTickets } from "@/server/tickets";
 import {
   getMyWorker,
@@ -29,6 +32,8 @@ import {
   type WorkerRow,
 } from "@/server/workers";
 
+import { AvailableNow } from "./availability/available-now";
+import { CalloutOptIn } from "./availability/callout-opt-in";
 import { Checklist, type ChecklistItem } from "./checklist";
 import { StartButton } from "./start-button";
 
@@ -299,6 +304,7 @@ export default async function WorkerHomePage({
 
   const isDraft = worker.status === "draft";
   const active = worker.status === "active";
+  const availableNow = isAvailableNow(worker.available_now_until, new Date());
   const started = isDraft ? await hasStartedOnboarding(user.id) : true;
 
   return (
@@ -336,6 +342,27 @@ export default async function WorkerHomePage({
         <>
           <Offers />
           <NextShift active={active} />
+          <section aria-labelledby="callouts-heading" className="space-y-3">
+            <h2 id="callouts-heading" className="text-lg font-semibold">
+              Urgent work
+            </h2>
+            <CalloutOptIn
+              on={worker.urgent_opt_in}
+              payPct={(await getAllSettings()).urgent_loading_pct.pay}
+            />
+            <AvailableNow
+              on={availableNow}
+              untilLabel={
+                availableNow && worker.available_now_until
+                  ? formatTime(
+                      worker.available_now_until,
+                      zoneOf(worker.home_state),
+                    )
+                  : null
+              }
+              canUse={active}
+            />
+          </section>
         </>
       ) : null}
 
