@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { brand } from "@/config/brand";
 import { cn } from "@/lib/utils";
 
 import { BrandMark } from "./brand-mark";
@@ -8,7 +9,7 @@ import { Container } from "./container";
 
 const links = [
   { href: "/#how-it-works", label: "How it works" },
-  { href: "/#call-outs", label: "Call-outs", wide: true },
+  { href: "/#why-shifta", label: `Why ${brand.name}`, wide: true },
   { href: "/industries", label: "Industries", wide: true },
   { href: "/faq", label: "Questions" },
   { href: "/contact", label: "Contact", wide: true },

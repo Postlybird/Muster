@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { expectAccessible } from "./helpers";
 
-test("the home page shows the promise, call-outs and each side's steps", async ({
+test("the home page leads with general and skilled labour, and call-outs come later", async ({
   page,
 }) => {
   await page.goto("/");
@@ -16,13 +16,35 @@ test("the home page shows the promise, call-outs and each side's steps", async (
       )
       .first(),
   ).toBeVisible();
+  // The pictures of the app carry no labels (owner, 01/11/2026).
+  await expect(page.getByRole("main")).not.toContainText(/example/i);
 
-  // Call-outs, step by step, with the extra pay.
+  // Our core service: general or skilled labour, from the live catalogue.
+  const staff = page.getByRole("region", {
+    name: "General or skilled labour, when you need it",
+  });
+  await expect(
+    staff
+      .getByRole("region", { name: "General labour" })
+      .getByRole("listitem")
+      .filter({ hasText: "General labourer" }),
+  ).toBeVisible();
+  await expect(
+    staff
+      .getByRole("region", { name: "Skilled labour" })
+      .getByRole("listitem")
+      .filter({ hasText: "Forklift driver" }),
+  ).toBeVisible();
+
+  // Call-outs are an add-on, further down, with the extra pay.
   const callouts = page.getByRole("region", {
-    name: "Someone off sick? Find cover fast.",
+    name: "Someone off sick? Send a call-out.",
   });
   await expect(callouts.getByRole("listitem")).toHaveCount(4);
   await expect(callouts).toContainText("20% more an hour");
+  const staffTop = (await staff.boundingBox())!.y;
+  const calloutsTop = (await callouts.boundingBox())!.y;
+  expect(calloutsTop).toBeGreaterThan(staffTop);
 
   // Each side's steps open with a tap.
   const steps = page.getByRole("region", {
@@ -65,7 +87,7 @@ test("we're in Sydney for now, with no state-by-state pages", async ({
   page,
 }) => {
   await page.goto("/");
-  await expect(page.getByText(/Sydney · Every industry/i)).toBeVisible();
+  await expect(page.getByText(/On-demand staff · Sydney/i)).toBeVisible();
   await expect(page.locator("body")).not.toContainText(
     /Melbourne|Brisbane|Perth|Adelaide|Hobart|Darwin|Canberra|Locations/,
   );
@@ -78,7 +100,7 @@ test("each industry has a page with the work and the tickets it needs", async ({
 }) => {
   await page.goto("/");
   await page
-    .getByRole("region", { name: "Staff for the work you do" })
+    .getByRole("region", { name: "Staff for every industry" })
     .getByRole("link", { name: "Hospitality" })
     .click();
   await expect(page).toHaveURL(/\/industries\/hospitality$/);

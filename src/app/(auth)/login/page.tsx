@@ -37,7 +37,7 @@ const copy = {
   },
 };
 
-/** What a worker sees: a shift offered to them. Example details only. */
+/** What a worker sees: a shift offered to them. The details are illustrative. */
 function ShiftOffer() {
   return (
     <figure
@@ -45,14 +45,9 @@ function ShiftOffer() {
       className="mx-auto w-full max-w-md"
     >
       <div className="rounded-3xl border bg-card p-6 shadow-soft">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-muted-foreground">
-            A shift for you
-          </p>
-          <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-            Example
-          </span>
-        </div>
+        <p className="text-sm font-semibold text-muted-foreground">
+          A shift for you
+        </p>
         <p className="mt-4 text-2xl font-bold text-deep">
           Restoration labourer
         </p>
@@ -85,7 +80,7 @@ function ShiftOffer() {
         id="shift-offer-caption"
         className="mt-3 text-center text-xs text-muted-foreground"
       >
-        An example of a shift in the worker app.
+        A shift in the worker app.
       </figcaption>
     </figure>
   );
@@ -193,9 +188,13 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       </div>
 
       {/* Stays beside the form, even when demo accounts make it long. */}
-      <div className="hidden rounded-[2rem] bg-primary-soft p-10 lg:sticky lg:top-[calc(var(--banner-h)+3rem)] lg:block xl:p-14">
-        {as === "worker" ? <ShiftOffer /> : <HeroVisual />}
-      </div>
+      {as === "worker" ? (
+        <div className="hidden rounded-[2rem] bg-primary-soft p-10 lg:sticky lg:top-[calc(var(--banner-h)+3rem)] lg:block xl:p-14">
+          <ShiftOffer />
+        </div>
+      ) : (
+        <HeroVisual className="hidden lg:sticky lg:top-[calc(var(--banner-h)+3rem)] lg:block" />
+      )}
     </div>
   );
 }

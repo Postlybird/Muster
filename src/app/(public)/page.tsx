@@ -1,28 +1,46 @@
-import { HandCoins, LifeBuoy, Mail } from "lucide-react";
+import { CircleCheck, HandCoins, LifeBuoy, Mail } from "lucide-react";
 import Link from "next/link";
 
 import { CalloutPhone, calloutSteps } from "@/components/home/callout-visual";
 import { DashboardFeatures } from "@/components/home/dashboard-features";
 import { HeroVisual } from "@/components/home/hero-visual";
 import { HowItWorks } from "@/components/home/how-it-works";
+import { IndustryStrip } from "@/components/home/industry-strip";
+import { LabourTypes } from "@/components/home/labour-types";
 import { WhyShifta } from "@/components/home/why-shifta";
-import { IndustryCards } from "@/components/industries/industry-cards";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { brand } from "@/config/brand";
 import { listIndustries } from "@/server/industries";
 import { getAllSettings } from "@/server/settings";
 
+const HERO_POINTS = [
+  "General and skilled labour",
+  "ID, right to work and tickets checked",
+  "No lock-in contracts",
+  "Workers paid every week",
+];
+
 const QUICK_ANSWERS = [
+  {
+    question: "What kind of staff can I get?",
+    answer:
+      "General labourers and skilled workers across hospitality, events, warehousing, manufacturing, retail, cleaning, construction, offices and restoration, for a single shift or a busy season.",
+  },
+  {
+    question: "How quickly can I get someone?",
+    answer:
+      "Your shift goes to matching workers as soon as you post it. Choose who comes, or let the first qualified worker book.",
+  },
   {
     question: "How much does it cost?",
     answer:
       "An hourly rate for each worker, covering their wages, super and insurance. You see the total before you post, and there are no sign-up, monthly or placement fees.",
   },
   {
-    question: "How quickly can I get someone?",
+    question: "Do you check the workers?",
     answer:
-      "Your shift goes to matching workers as soon as you post it. For short notice, post a call-out and workers nearby hear straight away.",
+      "Yes. Before their first shift we check every worker's photo ID, right to work, and tickets or licences, and we keep track of when they expire.",
   },
   {
     question: "Who employs the workers?",
@@ -76,21 +94,26 @@ export default async function HomePage() {
 
   return (
     <main className="flex-1">
-      {/* Above the fold: the promise, and what it looks like in the app. */}
-      <section aria-labelledby="hero-title" className="bg-primary-soft">
-        <Container className="grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
-          <div className="space-y-7">
+      {/* First screen: what we do, and people ready to work. */}
+      <section aria-labelledby="hero-title" className="bg-card">
+        <Container className="grid items-center gap-8 pt-6 pb-10 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12 lg:py-12">
+          <div className="space-y-5">
             <p className="text-sm font-semibold tracking-wide text-primary uppercase">
-              {brand.area} · Every industry
+              On-demand staff · {brand.area}
             </p>
             <h1
               id="hero-title"
-              className="text-6xl font-extrabold tracking-tight text-deep sm:text-7xl lg:text-8xl"
+              className="text-5xl font-extrabold tracking-tight text-deep sm:text-6xl xl:text-7xl"
             >
               {brand.tagline}
             </h1>
-            <p className="max-w-xl text-xl text-foreground sm:text-2xl">
+            <p className="max-w-xl text-xl font-medium text-foreground sm:text-2xl">
               {brand.strapline}
+            </p>
+            <p className="max-w-xl text-lg text-muted-foreground">
+              General labourers and skilled staff for {brand.area} businesses,
+              fast. Post a shift in about a minute and checked workers hear
+              about it straight away.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-13 px-7 text-base">
@@ -100,34 +123,115 @@ export default async function HomePage() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="h-13 bg-card px-7 text-base"
+                className="h-13 px-7 text-base"
               >
                 <Link href="/login?as=worker">Find work</Link>
               </Button>
             </div>
-            <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-deep">
-              <li>Checked, job-ready workers</li>
-              <li>Call-outs for last-minute cover</li>
-              <li>Workers paid every week</li>
+            <ul className="grid gap-x-6 gap-y-2 text-sm font-medium text-deep sm:grid-cols-2">
+              {HERO_POINTS.map((point) => (
+                <li key={point} className="flex items-center gap-2">
+                  <CircleCheck
+                    className="size-5 shrink-0 text-success"
+                    aria-hidden
+                  />
+                  {point}
+                </li>
+              ))}
             </ul>
           </div>
-          <HeroVisual />
+          {/* On phones the people come first, as the first thing you see. */}
+          <HeroVisual className="order-first lg:order-none" />
         </Container>
       </section>
 
-      {/* Call-outs, with what they look like. */}
+      {/* Every industry, in one row. */}
+      <section
+        aria-labelledby="industries-title"
+        className="border-y bg-background py-6"
+      >
+        <Container>
+          <IndustryStrip industries={industries} headingId="industries-title" />
+        </Container>
+      </section>
+
+      {/* The core service: general or skilled labour, fast. */}
+      <section
+        id="staff"
+        aria-labelledby="staff-title"
+        className="scroll-mt-24 bg-card py-16 sm:py-24"
+      >
+        <Container className="space-y-10">
+          <SectionHeading
+            id="staff-title"
+            eyebrow="On-demand labour"
+            title="General or skilled labour, when you need it"
+            intro="Tell us the work, the site and the times. Workers who match hear about it straight away, and you choose who comes, or let the first qualified worker book."
+          />
+          <LabourTypes industries={industries} />
+        </Container>
+      </section>
+
+      {/* Step by step, for each side. */}
+      <section
+        id="how-it-works"
+        aria-labelledby="how-it-works-title"
+        className="scroll-mt-24 py-16 sm:py-24"
+      >
+        <Container className="space-y-12">
+          <SectionHeading
+            id="how-it-works-title"
+            eyebrow="How it works"
+            title="Step by step, from sign-up to pay day"
+            intro="Tap a step to see what happens."
+            centred
+          />
+          <HowItWorks autoApproveHours={settings.auto_approve_hours} />
+        </Container>
+      </section>
+
+      {/* Against an agency. */}
+      <section
+        id="why-shifta"
+        aria-labelledby="why-title"
+        className="scroll-mt-24 bg-primary-soft py-16 sm:py-24"
+      >
+        <Container className="space-y-12">
+          <SectionHeading
+            id="why-title"
+            eyebrow={`Why ${brand.name}`}
+            title="Everything an agency does, without the agency"
+            intro="We employ the workers, pay them and cover their insurance, like an agency. What's different is everything else."
+          />
+          <WhyShifta />
+        </Container>
+      </section>
+
+      {/* What's in each account. */}
+      <section aria-labelledby="features-title" className="py-16 sm:py-24">
+        <Container className="space-y-12">
+          <SectionHeading
+            id="features-title"
+            eyebrow="Inside your account"
+            title="Built for both sides of the shift"
+          />
+          <DashboardFeatures />
+        </Container>
+      </section>
+
+      {/* Call-outs: an add-on for short notice. */}
       <section
         id="call-outs"
         aria-labelledby="call-outs-title"
-        className="scroll-mt-24 bg-card py-20 sm:py-28"
+        className="scroll-mt-24 bg-card py-16 sm:py-24"
       >
         <Container className="grid items-center gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-16">
           <div className="space-y-10">
             <SectionHeading
               id="call-outs-title"
-              eyebrow="Call-outs"
-              title="Someone off sick? Find cover fast."
-              intro={`When you need an extra pair of hands now, post a call-out. Workers nearby hear straight away, the first to accept is booked, and they earn ${payPct}% more an hour for it.`}
+              eyebrow="Add-on: call-outs"
+              title="Someone off sick? Send a call-out."
+              intro={`For short notice, turn a shift into a call-out. Workers nearby who take call-outs hear straight away, the first to accept is booked, and they earn ${payPct}% more an hour for it.`}
             />
             <ol className="grid gap-6 sm:grid-cols-2">
               {calloutSteps(settings.callout_alert_minutes).map(
@@ -152,56 +256,10 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* Step by step, for each side. */}
-      <section
-        id="how-it-works"
-        aria-labelledby="how-it-works-title"
-        className="scroll-mt-24 py-20 sm:py-28"
-      >
-        <Container className="space-y-12">
-          <SectionHeading
-            id="how-it-works-title"
-            eyebrow="How it works"
-            title="Step by step, from sign-up to pay day"
-            intro="Tap a step to see what happens."
-            centred
-          />
-          <HowItWorks autoApproveHours={settings.auto_approve_hours} />
-        </Container>
-      </section>
-
-      {/* Against an agency. */}
-      <section
-        aria-labelledby="why-title"
-        className="bg-primary-soft py-20 sm:py-28"
-      >
-        <Container className="space-y-12">
-          <SectionHeading
-            id="why-title"
-            eyebrow={`Why ${brand.name}`}
-            title="Everything an agency does, without the agency"
-            intro="We employ the workers, pay them and cover their insurance, like an agency. What's different is everything else."
-          />
-          <WhyShifta />
-        </Container>
-      </section>
-
-      {/* What's in each account. */}
-      <section aria-labelledby="features-title" className="py-20 sm:py-28">
-        <Container className="space-y-12">
-          <SectionHeading
-            id="features-title"
-            eyebrow="Inside your account"
-            title="Built for both sides of the shift"
-          />
-          <DashboardFeatures />
-        </Container>
-      </section>
-
       {/* Weekly pay and real support. */}
       <section
         aria-labelledby="support-title"
-        className="bg-deep py-20 text-deep-foreground sm:py-24"
+        className="bg-deep py-16 text-deep-foreground sm:py-24"
       >
         <Container className="grid gap-10 lg:grid-cols-2">
           <div className="space-y-4">
@@ -246,29 +304,8 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* Every industry. */}
-      <section aria-labelledby="work-title" className="bg-card py-20 sm:py-28">
-        <Container className="space-y-10">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <SectionHeading
-              id="work-title"
-              eyebrow="Every industry"
-              title="Staff for the work you do"
-              intro="From a single shift to a busy season."
-            />
-            <Link
-              href="/industries"
-              className="text-lg font-semibold text-primary underline underline-offset-4 hover:no-underline"
-            >
-              All industries
-            </Link>
-          </div>
-          <IndustryCards industries={industries} />
-        </Container>
-      </section>
-
       {/* Quick answers. */}
-      <section aria-labelledby="answers-title" className="py-20 sm:py-28">
+      <section aria-labelledby="answers-title" className="py-16 sm:py-24">
         <Container className="space-y-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <SectionHeading
@@ -300,7 +337,7 @@ export default async function HomePage() {
       {/* One more nudge. */}
       <section
         aria-labelledby="start-title"
-        className="bg-primary py-20 text-primary-foreground sm:py-24"
+        className="bg-primary py-16 text-primary-foreground sm:py-24"
       >
         <Container className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="space-y-3">

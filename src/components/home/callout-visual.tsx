@@ -40,7 +40,7 @@ const EXAMPLE_HOURS_PAY_CENTS = 13_252;
 
 /**
  * A phone showing a call-out text, worded as the real message is, and the
- * booking that follows. Example details only.
+ * booking that follows. The details are illustrative (the footer says so).
  */
 export function CalloutPhone({ payPct }: { payPct: number }) {
   const dollars = Math.round(
@@ -84,7 +84,7 @@ export function CalloutPhone({ payPct }: { payPct: number }) {
         id="callout-phone-caption"
         className="mt-3 text-center text-xs text-muted-foreground"
       >
-        What a worker sees. Example details.
+        What a worker sees.
       </figcaption>
     </figure>
   );

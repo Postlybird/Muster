@@ -6,6 +6,8 @@ import { industrySlug, workTypeNeeds } from "@/lib/industries";
 import { createClient } from "@/lib/supabase/server";
 
 export type PublicWorkType = {
+  /** The work type's code, which doesn't change when it's renamed. */
+  code: string;
   name: string;
   description: string;
   needs: string[];
@@ -31,7 +33,7 @@ export const listIndustries = cache(async (): Promise<PublicIndustry[]> => {
   const { data, error } = await supabase
     .from("industries")
     .select(
-      "code, name, summary, description, icon, categories(name, description, sort_order, active, archived_at, police_check_required, category_credentials(credential_types(name, family, sort_order, active)))",
+      "code, name, summary, description, icon, categories(code, name, description, sort_order, active, archived_at, police_check_required, category_credentials(credential_types(name, family, sort_order, active)))",
     )
     .eq("active", true)
     .is("archived_at", null)
@@ -54,6 +56,7 @@ export const listIndustries = cache(async (): Promise<PublicIndustry[]> => {
         (a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name),
       )
       .map((c) => ({
+        code: c.code,
         name: c.name,
         description: c.description,
         needs: workTypeNeeds(c),
