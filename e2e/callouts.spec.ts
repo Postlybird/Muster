@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import {
+  acceptCurrentAgreement,
   expectAccessible,
   moveShift,
   postTestJob,
@@ -163,6 +164,8 @@ test("a call-out nobody takes in 20 minutes alerts the business and our team", a
 test("a business starts a call-out from its dashboard, from its latest job", async ({
   page,
 }) => {
+  // Another test publishes new agreement versions, which stops posting.
+  await acceptCurrentAgreement("Harbour Restoration");
   await signInAsDemo(page, "Lisa Nguyen");
   await page.goto("/business");
   await page.getByRole("button", { name: "Post a call-out" }).click();
