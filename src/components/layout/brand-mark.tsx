@@ -30,23 +30,27 @@ export function LogoMark({ className }: { className?: string }) {
 export function BrandMark({
   href = "/",
   tone = "brand",
+  size = "md",
   className,
 }: {
   href?: string;
   /** "light" for the name on a dark background. */
   tone?: "brand" | "light";
+  /** "lg" for the website's header and footer. */
+  size?: "md" | "lg";
   className?: string;
 }) {
   return (
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2 text-lg font-extrabold tracking-tight",
+        "flex items-center font-extrabold tracking-tight",
+        size === "lg" ? "gap-2.5 text-2xl sm:text-3xl" : "gap-2 text-lg",
         tone === "light" ? "text-deep-foreground" : "text-deep",
         className,
       )}
     >
-      <LogoMark />
+      <LogoMark className={size === "lg" ? "size-9 sm:size-11" : undefined} />
       {brand.name}
     </Link>
   );

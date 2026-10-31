@@ -2,10 +2,10 @@ import { expect, test } from "@playwright/test";
 
 import {
   acceptCurrentAgreement,
+  enterEmailedCode,
   expectAccessible,
   moveShift,
   postTestJob,
-  readCodeFromOutbox,
   releaseTestJob,
   serviceClient,
   signInAsDemo,
@@ -17,13 +17,15 @@ test.afterEach(async () => {
   for (const jobId of posted.splice(0)) await releaseTestJob(jobId);
 });
 
+const LIAM_EMAIL = "liam.obrien@demo.test";
+
 /** Liam takes call-outs and is free now, so the time of day doesn't matter. */
 async function liamTakesCallouts() {
   const service = serviceClient();
   const { data: liam } = await service
     .from("profiles")
     .select("id, phone")
-    .eq("email", "liam.obrien@demo.test")
+    .eq("email", LIAM_EMAIL)
     .single();
   await service
     .from("workers")
@@ -83,13 +85,10 @@ test("open work becomes a call-out, and a worker accepts it from the text", asyn
   await page.context().clearCookies();
   await page.goto(`/worker/shifts/${jobId}`);
   await expect(page).toHaveURL(/\/login\?next=/);
-  await page.getByLabel("Mobile number").fill("0491 570 006");
+  await page.getByLabel("Email address").fill(LIAM_EMAIL);
   const sentAfter = new Date();
-  await page.getByRole("button", { name: "Send code" }).click();
-  await page
-    .getByLabel("6-digit code")
-    .fill(await readCodeFromOutbox(page, liam.phone, { sentAfter }));
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "Email me a code" }).click();
+  await enterEmailedCode(page, LIAM_EMAIL, sentAfter);
   await expect(page).toHaveURL(new RegExp(`/worker/shifts/${jobId}$`));
   await page.getByRole("button", { name: "Accept now" }).click();
   await expect(

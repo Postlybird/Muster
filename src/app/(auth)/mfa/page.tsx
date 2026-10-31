@@ -26,7 +26,7 @@ export default async function MfaPage() {
   const factor = data?.totp?.[0];
 
   return (
-    <Card>
+    <Card className="mx-auto max-w-md">
       <CardHeader>
         <CardTitle>
           <h1 className="text-xl">

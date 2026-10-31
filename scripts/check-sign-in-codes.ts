@@ -1,6 +1,7 @@
 /**
- * After a deploy: asks the project for a sign-in code by text and by email,
- * as the sign-in page does, and checks each one lands in the demo outbox.
+ * After a deploy: asks the project for a code by text and by email, and
+ * checks each one lands in the demo outbox. People sign in by email; texted
+ * codes confirm a worker's mobile number, through the same hook.
  * It asks for demo accounts' codes only (the seed makes them), so no real
  * person is sent anything.
  *

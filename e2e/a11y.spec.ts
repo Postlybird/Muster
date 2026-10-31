@@ -2,6 +2,7 @@ import { test } from "@playwright/test";
 
 import {
   expectAccessible,
+  randomEmail,
   signInAsNewBusiness,
   signInAsNewWorker,
 } from "./helpers";
@@ -17,8 +18,7 @@ test.describe("accessibility (WCAG 2.1 AA)", () => {
     "/contact",
     "/industries",
     "/industries/hospitality",
-    "/locations",
-    "/locations/melbourne",
+    "/login?as=worker",
     "/dev/ui",
     "/dev/ui/wizard",
     "/dev/outbox",
@@ -31,8 +31,8 @@ test.describe("accessibility (WCAG 2.1 AA)", () => {
 
   test("sign-in code step", async ({ page }) => {
     await page.goto("/login?as=worker");
-    await page.getByLabel("Mobile number").fill("0412 345 678");
-    await page.getByRole("button", { name: "Send code" }).click();
+    await page.getByLabel("Email address").fill(randomEmail("a11y"));
+    await page.getByRole("button", { name: "Email me a code" }).click();
     await page.getByLabel("6-digit code").waitFor();
     await expectAccessible(page);
   });

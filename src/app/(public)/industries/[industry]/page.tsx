@@ -53,7 +53,7 @@ export default async function IndustryPage({
               id="industry-title"
               className="max-w-4xl text-4xl font-extrabold tracking-tight text-balance text-deep sm:text-5xl lg:text-6xl"
             >
-              {industry.name} staff today, not someday.
+              {industry.name} staff, sorted.
             </h1>
             {industry.description ? (
               <p className="max-w-2xl text-xl text-muted-foreground">

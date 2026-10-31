@@ -2,17 +2,75 @@ import { expect, test } from "@playwright/test";
 
 import { expectAccessible } from "./helpers";
 
-test("the landing page shows both paths and how each works", async ({
+test("the home page shows the promise, call-outs and each side's steps", async ({
   page,
 }) => {
   await page.goto("/");
-  for (const path of ["Find work", "Hire staff"]) {
-    await expect(
-      page.getByRole("region", { name: path }).getByRole("listitem"),
-    ).toHaveCount(4);
-  }
-  await page.getByRole("link", { name: "Sign up to work" }).click();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Work, sorted." }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByText(
+        "Connecting great businesses with great people, one shift at a time.",
+      )
+      .first(),
+  ).toBeVisible();
+
+  // Call-outs, step by step, with the extra pay.
+  const callouts = page.getByRole("region", {
+    name: "Someone off sick? Find cover fast.",
+  });
+  await expect(callouts.getByRole("listitem")).toHaveCount(4);
+  await expect(callouts).toContainText("20% more an hour");
+
+  // Each side's steps open with a tap.
+  const steps = page.getByRole("region", {
+    name: "Step by step, from sign-up to pay day",
+  });
+  await expect(
+    steps
+      .getByRole("tablist", { name: "Steps for businesses" })
+      .getByRole("tab"),
+  ).toHaveCount(6);
+  await steps.getByRole("tab", { name: "Post your shift" }).click();
+  await expect(
+    steps.getByRole("heading", { name: "Post your shift" }),
+  ).toBeVisible();
+  await expect(steps).toContainText("You see the full cost");
+
+  await steps.getByRole("tab", { name: "For workers" }).click();
+  await steps.getByRole("tab", { name: "Add your documents" }).click();
+  await expect(steps).toContainText("photo ID with a selfie");
+  await expectAccessible(page);
+  await steps.getByRole("link", { name: "Start your sign-up" }).click();
   await expect(page).toHaveURL(/\/login\?as=worker$/);
+
+  // The footer's link for workers opens their side, from another page or
+  // from this one.
+  await page.goto("/#how-it-works-workers");
+  const forWorkers = page.getByRole("tab", { name: "For workers" });
+  const forBusinesses = page.getByRole("tab", { name: "For businesses" });
+  await expect(forWorkers).toHaveAttribute("aria-selected", "true");
+  const footer = page.getByRole("contentinfo");
+  await footer
+    .getByRole("link", { name: "How it works for businesses" })
+    .click();
+  await expect(forBusinesses).toHaveAttribute("aria-selected", "true");
+  await footer.getByRole("link", { name: "How it works for workers" }).click();
+  await expect(forWorkers).toHaveAttribute("aria-selected", "true");
+});
+
+test("we're in Sydney for now, with no state-by-state pages", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByText(/Sydney · Every industry/i)).toBeVisible();
+  await expect(page.locator("body")).not.toContainText(
+    /Melbourne|Brisbane|Perth|Adelaide|Hobart|Darwin|Canberra|Locations/,
+  );
+  const gone = await page.goto("/locations");
+  expect(gone?.status()).toBe(404);
 });
 
 test("each industry has a page with the work and the tickets it needs", async ({
@@ -20,14 +78,14 @@ test("each industry has a page with the work and the tickets it needs", async ({
 }) => {
   await page.goto("/");
   await page
-    .getByRole("region", { name: "Staff for every industry" })
+    .getByRole("region", { name: "Staff for the work you do" })
     .getByRole("link", { name: "Hospitality" })
     .click();
   await expect(page).toHaveURL(/\/industries\/hospitality$/);
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Hospitality staff today, not someday.",
+      name: "Hospitality staff, sorted.",
     }),
   ).toBeVisible();
   const bartender = page
@@ -50,28 +108,6 @@ test("each industry has a page with the work and the tickets it needs", async ({
 
   const missing = await page.goto("/industries/not-an-industry");
   expect(missing?.status()).toBe(404);
-});
-
-test("cities show whether we're open, and closed ones invite sign-ups", async ({
-  page,
-}) => {
-  await page.goto("/");
-  const where = page.getByRole("region", {
-    name: "Australia-wide, state by state",
-  });
-  await expect(
-    where.getByRole("listitem").filter({ hasText: "Sydney" }),
-  ).toContainText("Open now");
-  await where.getByRole("link", { name: "Melbourne" }).click();
-  await expect(page).toHaveURL(/\/locations\/melbourne$/);
-  const band = page.getByRole("region", {
-    name: "Staff in Melbourne today, not someday.",
-  });
-  await expect(band.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(band.getByText("Coming soon")).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "Get your business ready" }),
-  ).toHaveAttribute("href", "/login?as=business");
 });
 
 test("questions are answered with the rules as they stand", async ({

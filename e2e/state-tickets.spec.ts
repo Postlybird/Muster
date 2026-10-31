@@ -15,7 +15,7 @@ import {
 test("a worker in Victoria is asked for Victoria's RSA, not the NSW card", async ({
   page,
 }) => {
-  const mobile = await signInAsNewWorker(page);
+  const email = await signInAsNewWorker(page);
   await page.getByRole("button", { name: "Start" }).click();
   await expect(page).toHaveURL(/\/worker\/onboarding\/about$/);
 
@@ -23,7 +23,7 @@ test("a worker in Victoria is asked for Victoria's RSA, not the NSW card", async
   const { data: profile } = await service
     .from("profiles")
     .select("id")
-    .eq("phone", mobile.e164)
+    .eq("email", email)
     .single();
   const [{ data: worker }, { data: bartender }] = await Promise.all([
     service.from("workers").select("id").eq("profile_id", profile!.id).single(),

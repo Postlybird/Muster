@@ -72,7 +72,7 @@ export default async function OpenGraphImage() {
           {brand.tagline}
         </div>
         <div style={{ fontSize: 38, fontWeight: 500, color: "#526072" }}>
-          On-demand staff for every industry, Australia-wide.
+          {brand.strapline}
         </div>
       </div>
     </div>,

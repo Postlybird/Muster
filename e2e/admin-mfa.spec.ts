@@ -11,7 +11,7 @@ import {
 async function signInByEmail(page: Page, email: string) {
   await page.goto("/login?as=business");
   await page.getByLabel("Email address").fill(email);
-  await page.getByRole("button", { name: "Send code" }).click();
+  await page.getByRole("button", { name: "Email me a code" }).click();
   await page
     .getByLabel("6-digit code")
     .fill(await readCodeFromOutbox(page, email));

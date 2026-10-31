@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 import {
   chooseWorkType,
   expectAccessible,
-  randomEmail,
+  randomMobile,
   readCodeFromOutbox,
   signInAsDemo,
   signInAsNewWorker,
@@ -53,14 +53,15 @@ test("a new worker goes from sign-up to submitted", async ({ page }) => {
   await expectAccessible(page);
   await next(page);
 
-  // 2. Contact details: signed up by mobile, so add an email with a code.
+  // 2. Contact details: signed up by email, so add a mobile with a code
+  // (it's how we text about call-outs and reminders).
   await expect(page).toHaveURL(/\/contact$/);
-  const email = randomEmail("worker");
-  await page.getByLabel("Email address").fill(email);
+  const mobile = randomMobile();
+  await page.getByLabel("Mobile number").fill(mobile.local);
   await next(page, "Send code");
   await page
     .getByLabel("6-digit code")
-    .fill(await readCodeFromOutbox(page, email));
+    .fill(await readCodeFromOutbox(page, mobile.e164));
   await expectAccessible(page);
   await next(page, "Confirm");
 

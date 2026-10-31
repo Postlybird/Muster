@@ -5,6 +5,7 @@ import {
   pageLoaded,
   randomAbn,
   randomEmail,
+  randomMobile,
   readCodeFromOutbox,
   signInAsNewBusiness,
   signInAsNewWorker,
@@ -103,13 +104,17 @@ export type Worker = {
   first: string;
   last: string;
   name: string;
+  email: string;
   mobile: { local: string; e164: string };
   industry: string;
   category: string;
   ticket: string | null;
 };
 
-/** A worker signs up with their mobile and submits their details (brief §4.1). */
+/**
+ * A worker signs up with their email, adds and confirms their mobile, and
+ * submits their details (brief §4.1).
+ */
 export async function signUpWorker(
   page: Page,
   person: {
@@ -121,7 +126,7 @@ export async function signUpWorker(
   },
 ): Promise<Worker> {
   await page.context().clearCookies();
-  const mobile = await signInAsNewWorker(page);
+  const email = await signInAsNewWorker(page);
   await page.getByRole("button", { name: "Start" }).click();
 
   await expect(page).toHaveURL(/\/worker\/onboarding\/about$/);
@@ -134,12 +139,12 @@ export async function signUpWorker(
   await next(page);
 
   await expect(page).toHaveURL(/\/contact$/);
-  const email = randomEmail("worker");
-  await page.getByLabel("Email address").fill(email);
+  const mobile = randomMobile();
+  await page.getByLabel("Mobile number").fill(mobile.local);
   await next(page, "Send code");
   await page
     .getByLabel("6-digit code")
-    .fill(await readCodeFromOutbox(page, email));
+    .fill(await readCodeFromOutbox(page, mobile.e164));
   await next(page, "Confirm");
 
   await expect(page).toHaveURL(/\/travel$/);
@@ -203,6 +208,7 @@ export async function signUpWorker(
   return {
     ...person,
     name: `${person.first} ${person.last}`,
+    email,
     mobile,
   };
 }
@@ -324,18 +330,12 @@ export async function postWork(page: Page, posting: Posting): Promise<string> {
   return new URL(page.url()).pathname.split("/").at(-1)!;
 }
 
-/** Signs a worker in again with a code texted to their mobile. */
+/** Signs a worker in again with a code emailed to them. */
 export async function signInWorker(page: Page, worker: Worker) {
-  await page.context().clearCookies();
-  await page.goto("/login?as=worker");
-  await page.getByLabel("Mobile number").fill(worker.mobile.local);
-  const sentAfter = new Date();
-  await page.getByRole("button", { name: "Send code" }).click();
-  await page
-    .getByLabel("6-digit code")
-    .fill(await readCodeFromOutbox(page, worker.mobile.e164, { sentAfter }));
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/worker$/);
+  await signInWithEmailCode(page, worker.email, {
+    as: "worker",
+    home: /\/worker$/,
+  });
 }
 
 /** A worker takes every shift of a job: accepted, or applied for. */

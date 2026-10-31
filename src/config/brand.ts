@@ -3,12 +3,15 @@
  */
 export const brand = {
   name: "Shifta",
-  /** The slogan, said to businesses. */
-  tagline: "Staff today, not someday.",
-  /** The same promise, said to workers. */
-  workerTagline: "Work today, not someday.",
+  /** The slogan (owner's choice, 31/10/2026). */
+  tagline: "Work, sorted.",
+  /** What we do, in a line. */
+  strapline:
+    "Connecting great businesses with great people, one shift at a time.",
+  /** Where we take work for now: Sydney (owner's choice, 31/10/2026). */
+  area: "Sydney",
   description:
-    "On-demand staff for every industry, Australia-wide. Businesses book checked, job-ready staff in minutes; workers pick up shifts on their phone and get paid every week.",
+    "Connecting great businesses with great people, one shift at a time. Sydney businesses book checked, job-ready staff in minutes; workers pick up shifts on their phone and get paid every week.",
   supportEmail: "support@shifta.com.au",
   /** Shown only once we have a number to give out. */
   supportPhone: null as string | null,

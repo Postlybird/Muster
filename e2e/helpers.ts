@@ -65,32 +65,36 @@ export async function readCodeFromOutbox(
   return text;
 }
 
-/** Signs up a brand-new worker with an SMS code. */
-export async function signInAsNewWorker(page: Page) {
-  const mobile = randomMobile();
-  await page.goto("/login?as=worker");
-  await page.getByLabel("Mobile number").fill(mobile.local);
-  await page.getByRole("button", { name: "Send code" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Enter your code" }),
-  ).toBeVisible();
-  await page
-    .getByLabel("6-digit code")
-    .fill(await readCodeFromOutbox(page, mobile.e164));
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/worker$/);
-  return mobile;
-}
-
-/** Signs a business user in (or up) with a code emailed to them. */
-export async function signInWithEmailCode(page: Page, email: string) {
+/**
+ * Signs someone in (or up) with a code emailed to them: everyone signs in
+ * by email (owner, 31/10/2026). `as` picks the sign-up path, and `home` is
+ * where they should land.
+ */
+export async function signInWithEmailCode(
+  page: Page,
+  email: string,
+  {
+    as = "business",
+    home = /\/business$/,
+  }: { as?: "worker" | "business"; home?: RegExp } = {},
+) {
   await page.context().clearCookies();
-  await page.goto("/login?as=business");
+  await page.goto(`/login?as=${as}`);
   await page.getByLabel("Email address").fill(email);
   const sentAfter = new Date();
-  await page.getByRole("button", { name: "Send code" }).click();
+  await page.getByRole("button", { name: "Email me a code" }).click();
+  await enterEmailedCode(page, email, sentAfter);
+  await expect(page).toHaveURL(home);
+}
+
+/** On the code step: types the code just emailed to `email`, then signs in. */
+export async function enterEmailedCode(
+  page: Page,
+  email: string,
+  sentAfter: Date,
+) {
   // The code step, or the reason there isn't one.
-  const codeStep = page.getByRole("heading", { name: "Enter your code" });
+  const codeStep = page.getByRole("heading", { name: "Check your email" });
   const problem = page.getByRole("main").getByRole("alert");
   await expect(codeStep.or(problem)).toBeVisible();
   if (await problem.isVisible()) {
@@ -100,7 +104,13 @@ export async function signInWithEmailCode(page: Page, email: string) {
     .getByLabel("6-digit code")
     .fill(await readCodeFromOutbox(page, email, { sentAfter }));
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/business$/);
+}
+
+/** Signs up a brand-new worker with an email code. Returns their email. */
+export async function signInAsNewWorker(page: Page) {
+  const email = randomEmail("worker");
+  await signInWithEmailCode(page, email, { as: "worker", home: /\/worker$/ });
+  return email;
 }
 
 /** Signs up a brand-new business user with an email code. */
@@ -110,7 +120,6 @@ export async function signInAsNewBusiness(page: Page) {
   return email;
 }
 
-/** Fails the test with a readable list if the page breaks WCAG 2.1 AA rules. */
 /**
  * On the work types step: opens the industry (they start closed) and ticks
  * one of its work types.
@@ -139,6 +148,7 @@ export async function pageLoaded(page: Page) {
   await expect(page.locator("[data-page-skeleton]")).toHaveCount(0);
 }
 
+/** Fails the test with a readable list if the page breaks WCAG 2.1 AA rules. */
 export async function expectAccessible(page: Page) {
   await pageLoaded(page);
   // Let fades finish: a toast that's still appearing is partly transparent.

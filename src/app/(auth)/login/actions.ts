@@ -6,14 +6,14 @@ import { z } from "zod";
 
 import { isDemoEmail } from "@/config/demo";
 import { isDemoMode } from "@/lib/env";
-import { normaliseAuMobile } from "@/lib/phone";
 import { safeNextPath } from "@/lib/redirects";
 import { roleHome, signupRoleFor } from "@/lib/roles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { requestOrigin } from "@/server/request";
 
-export type LoginMethod = "phone" | "email";
+/** Everyone signs in with an email address (owner, 31/10/2026). */
+export type LoginMethod = "email";
 
 export type SendCodeResult =
   | { ok: true; method: LoginMethod; destination: string }
@@ -22,14 +22,14 @@ export type SendCodeResult =
 export type VerifyCodeResult = { ok: false; error: string };
 
 const sendCodeSchema = z.object({
-  method: z.enum(["phone", "email"]),
+  method: z.literal("email"),
   value: z.string().trim().min(1).max(254),
   as: z.enum(["worker", "business"]).optional(),
   next: z.string().max(500).optional(),
 });
 
 const verifyCodeSchema = z.object({
-  method: z.enum(["phone", "email"]),
+  method: z.literal("email"),
   destination: z.string().trim().min(1).max(254),
   code: z.string().trim(),
   next: z.string().max(500).optional(),
@@ -37,12 +37,9 @@ const verifyCodeSchema = z.object({
 
 function friendlyAuthError(error: AuthError): string {
   switch (error.code) {
-    case "over_sms_send_rate_limit":
     case "over_email_send_rate_limit":
     case "over_request_rate_limit":
       return "Too many codes requested. Wait a minute, then try again.";
-    case "sms_send_failed":
-      return "We couldn't send a text to that number. Check it, or sign in with email instead.";
     case "email_address_invalid":
       return "That email address doesn't look right. Check it and try again.";
     case "signup_disabled":
@@ -52,33 +49,17 @@ function friendlyAuthError(error: AuthError): string {
   }
 }
 
-/** Step 1: send a 6-digit sign-in code by SMS or email. */
+/** Step 1: email a 6-digit sign-in code and link. */
 export async function sendCode(
   input: z.input<typeof sendCodeSchema>,
 ): Promise<SendCodeResult> {
   const parsed = sendCodeSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: "Enter your mobile number or email address." };
+    return { ok: false, error: "Enter your email address." };
   }
   const { method, value, as, next } = parsed.data;
   const data = { signup_role: signupRoleFor(as) };
   const supabase = await createClient();
-
-  if (method === "phone") {
-    const phone = normaliseAuMobile(value);
-    if (!phone) {
-      return {
-        ok: false,
-        error: "Enter an Australian mobile number, like 0412 345 678.",
-      };
-    }
-    const { error } = await supabase.auth.signInWithOtp({
-      phone,
-      options: { shouldCreateUser: true, data },
-    });
-    if (error) return { ok: false, error: friendlyAuthError(error) };
-    return { ok: true, method, destination: phone };
-  }
 
   const email = z.email().safeParse(value.toLowerCase());
   if (!email.success) {
@@ -111,25 +92,18 @@ export async function verifyCode(
   if (!parsed.success) {
     return { ok: false, error: "Enter the 6-digit code." };
   }
-  const { method, destination, next } = parsed.data;
+  const { destination, next } = parsed.data;
   const code = parsed.data.code.replace(/\s/g, "");
   if (!/^\d{6}$/.test(code)) {
     return { ok: false, error: "Enter the 6-digit code." };
   }
 
   const supabase = await createClient();
-  const { data, error } =
-    method === "phone"
-      ? await supabase.auth.verifyOtp({
-          phone: destination,
-          token: code,
-          type: "sms",
-        })
-      : await supabase.auth.verifyOtp({
-          email: destination,
-          token: code,
-          type: "email",
-        });
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: destination,
+    token: code,
+    type: "email",
+  });
 
   if (error || !data.user) {
     return {

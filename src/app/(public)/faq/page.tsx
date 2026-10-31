@@ -73,8 +73,9 @@ export default async function FaqPage() {
       question: "How do I sign up?",
       answer: (
         <p>
-          Sign up with your mobile number, then add your details, right to work,
-          photo ID, the work you do and your tickets. It takes about five
+          Sign up with your email address, then add your mobile number,
+          details, right to work, photo ID, the work you do and your tickets.
+          It takes about five
           minutes on your phone. We check everything and text you when
           you&apos;re ready to work. You need to be at least{" "}
           {settings.min_worker_age}.

@@ -1,308 +1,154 @@
-import {
-  ArrowRight,
-  BriefcaseBusiness,
-  Clock3,
-  Smartphone,
-} from "lucide-react";
+import { HandCoins, LifeBuoy, Mail } from "lucide-react";
 import Link from "next/link";
 
-import { BrandFeatures } from "@/components/home/brand-features";
-import { ShiftPreview } from "@/components/home/shift-preview";
+import { CalloutPhone, calloutSteps } from "@/components/home/callout-visual";
+import { DashboardFeatures } from "@/components/home/dashboard-features";
+import { HeroVisual } from "@/components/home/hero-visual";
+import { HowItWorks } from "@/components/home/how-it-works";
+import { WhyShifta } from "@/components/home/why-shifta";
 import { IndustryCards } from "@/components/industries/industry-cards";
-import { LocationList } from "@/components/locations/location-list";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { brand } from "@/config/brand";
-import { cn } from "@/lib/utils";
 import { listIndustries } from "@/server/industries";
-import { listLocations } from "@/server/locations";
-
-type Step = { title: string; text: string; time: string };
-
-const BUSINESS_STEPS: Step[] = [
-  {
-    title: "Sign up with your ABN",
-    text: "We look up your business details for you. Add your sites and anyone on your team who posts work.",
-    time: "2 minutes",
-  },
-  {
-    title: "Post the shift",
-    text: "Where, when, how many people and what they'll do. You see the cost before you post. Next time, repeat it in a couple of taps.",
-    time: "About a minute",
-  },
-  {
-    title: "Get checked staff",
-    text: "Choose from the people who apply, or let the first qualified workers book. Short notice? We text available workers nearby straight away.",
-    time: "As soon as you post",
-  },
-  {
-    title: "Approve hours, pay one invoice",
-    text: "Workers clock in and out on their phones. Check their hours, approve them in one go, and get one invoice a week.",
-    time: "Once a week",
-  },
-];
-
-const WORKER_STEPS: Step[] = [
-  {
-    title: "Sign up on your phone",
-    text: "Your details, right to work, photo ID and any tickets you hold. Save and come back any time.",
-    time: "About 5 minutes",
-  },
-  {
-    title: "We check you",
-    text: "Our team checks your ID, right to work and tickets, and texts you when you're ready to start.",
-    time: "Usually 2 business days",
-  },
-  {
-    title: "Pick shifts that suit you",
-    text: "See the pay, suburb, hazards and gear before you say yes. Accept in one tap, and only take what you want.",
-    time: "One tap",
-  },
-  {
-    title: "Clock in, get paid weekly",
-    text: "Clock in and out with your phone. You're our casual employee, so we pay your wages and super every week.",
-    time: "Every week",
-  },
-];
+import { getAllSettings } from "@/server/settings";
 
 const QUICK_ANSWERS = [
   {
     question: "How much does it cost?",
     answer:
-      "You pay an hourly rate for each worker, and you see the total before you post. It covers their wages, super and insurance.",
+      "An hourly rate for each worker, covering their wages, super and insurance. You see the total before you post, and there are no sign-up, monthly or placement fees.",
   },
   {
     question: "How quickly can I get someone?",
     answer:
-      "Your shift goes to matching workers as soon as you post it. For short-notice shifts we also text workers nearby who take last-minute work.",
+      "Your shift goes to matching workers as soon as you post it. For short notice, post a call-out and workers nearby hear straight away.",
   },
   {
     question: "Who employs the workers?",
     answer:
-      "We do. Workers are our casual employees, so we pay their wages and super and cover workers' compensation.",
+      "We do. Workers are our casual employees, so we pay their wages and super every week and cover workers' compensation.",
   },
   {
-    question: "What do I need to start working?",
+    question: "Can I hire someone permanently?",
     answer:
-      "The right to work in Australia, photo ID, and any tickets the work needs, like an RSA or a White Card. Some jobs also need a police check.",
+      "Yes. If you find someone great, offer them a permanent job. There's no placement fee and no agency contract.",
   },
 ];
 
-function StepList({
+function SectionHeading({
   id,
-  audience,
+  eyebrow,
   title,
   intro,
-  steps,
-  icon: Icon,
-  action,
-  tone,
+  centred = false,
 }: {
   id: string;
-  audience: string;
+  eyebrow: string;
   title: string;
-  intro: string;
-  steps: Step[];
-  icon: typeof Smartphone;
-  action: React.ReactNode;
-  tone: "deep" | "light";
+  intro?: string;
+  centred?: boolean;
 }) {
-  const deep = tone === "deep";
   return (
-    <section
-      id={id}
-      aria-labelledby={`${id}-title`}
-      className={cn(
-        "flex scroll-mt-24 flex-col gap-6 rounded-3xl p-6 sm:p-8",
-        deep ? "bg-deep text-deep-foreground" : "border bg-card shadow-soft",
-      )}
-    >
-      <div className="space-y-2">
-        <p
-          className={cn(
-            "flex items-center gap-2 text-sm font-semibold",
-            deep ? "text-deep-foreground/85" : "text-muted-foreground",
-          )}
-        >
-          <Icon className="size-4" aria-hidden />
-          {audience}
-        </p>
-        <h3
-          id={`${id}-title`}
-          className="text-2xl font-extrabold tracking-tight sm:text-3xl"
-        >
-          {title}
-        </h3>
-        <p
-          className={deep ? "text-deep-foreground/85" : "text-muted-foreground"}
-        >
-          {intro}
-        </p>
-      </div>
-      <ol className="space-y-5">
-        {steps.map((step, index) => (
-          <li key={step.title} className="flex gap-4">
-            <span
-              aria-hidden
-              className={cn(
-                "flex size-10 shrink-0 items-center justify-center rounded-full text-base font-bold",
-                deep
-                  ? "bg-deep-foreground text-deep"
-                  : "bg-primary text-primary-foreground",
-              )}
-            >
-              {index + 1}
-            </span>
-            <div className="space-y-1">
-              <h4 className="text-lg leading-snug font-bold">{step.title}</h4>
-              <p
-                className={
-                  deep ? "text-deep-foreground/85" : "text-muted-foreground"
-                }
-              >
-                {step.text}
-              </p>
-              <p
-                className={cn(
-                  "inline-flex items-center gap-1.5 text-sm font-semibold",
-                  deep ? "text-highlight" : "text-primary",
-                )}
-              >
-                <Clock3 className="size-4" aria-hidden />
-                {step.time}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ol>
-      <div className="mt-auto">{action}</div>
-    </section>
+    <div className={centred ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}>
+      <p className="text-sm font-semibold tracking-wide text-primary uppercase">
+        {eyebrow}
+      </p>
+      <h2
+        id={id}
+        className="mt-2 text-3xl font-extrabold tracking-tight text-balance text-deep sm:text-5xl"
+      >
+        {title}
+      </h2>
+      {intro ? (
+        <p className="mt-4 text-lg text-muted-foreground sm:text-xl">{intro}</p>
+      ) : null}
+    </div>
   );
 }
 
 export default async function HomePage() {
-  const [industries, locations] = await Promise.all([
+  const [industries, settings] = await Promise.all([
     listIndustries(),
-    listLocations(),
+    getAllSettings(),
   ]);
+  const payPct = settings.urgent_loading_pct.pay;
+
   return (
     <main className="flex-1">
-      {/* The first screen: who it's for, and two doors in. */}
+      {/* Above the fold: the promise, and what it looks like in the app. */}
       <section aria-labelledby="hero-title" className="bg-primary-soft">
-        <Container className="grid items-center gap-12 py-12 sm:py-16 lg:min-h-[calc(100svh-4rem-var(--banner-h))] lg:grid-cols-[1.15fr_0.85fr] lg:py-20">
-          <div className="space-y-8">
-            <p className="flex items-center gap-2 font-semibold text-deep">
-              <span
-                className="size-2.5 rounded-full bg-highlight"
-                aria-hidden
-              />
-              Australia-wide · Every industry
+        <Container className="grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+          <div className="space-y-7">
+            <p className="text-sm font-semibold tracking-wide text-primary uppercase">
+              {brand.area} · Every industry
             </p>
             <h1
               id="hero-title"
-              className="max-w-3xl text-5xl leading-[1.02] font-extrabold tracking-tight text-balance text-deep sm:text-6xl xl:text-7xl"
+              className="text-6xl font-extrabold tracking-tight text-deep sm:text-7xl lg:text-8xl"
             >
               {brand.tagline}
             </h1>
-            <p className="max-w-2xl text-xl text-muted-foreground">
-              {brand.name} finds checked, job-ready staff for any business, from
-              cafés and warehouses to events, offices and building sites. Post a
-              shift in about a minute. Workers pick the shifts that suit them
-              and get paid every week.
+            <p className="max-w-xl text-xl text-foreground sm:text-2xl">
+              {brand.strapline}
             </p>
-            <div className="grid max-w-3xl gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-5 rounded-3xl bg-primary p-6 text-primary-foreground shadow-soft">
-                <div className="space-y-1.5">
-                  <h2 className="text-2xl font-bold">I need staff</h2>
-                  <p className="text-primary-foreground">
-                    Post a shift in about a minute. Checked, job-ready people.
-                  </p>
-                </div>
-                <Button
-                  asChild
-                  size="lg"
-                  className="mt-auto bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-                >
-                  <Link href="/login?as=business">
-                    Hire staff
-                    <ArrowRight aria-hidden />
-                  </Link>
-                </Button>
-              </div>
-              <div className="flex flex-col gap-5 rounded-3xl bg-card p-6 shadow-soft">
-                <div className="space-y-1.5">
-                  <h2 className="text-2xl font-bold text-foreground">
-                    I want work
-                  </h2>
-                  <p className="text-muted-foreground">
-                    {brand.workerTagline} Sign up on your phone in about 5
-                    minutes.
-                  </p>
-                </div>
-                <Button asChild size="lg" className="mt-auto">
-                  <Link href="/login?as=worker">
-                    Find work
-                    <ArrowRight aria-hidden />
-                  </Link>
-                </Button>
-              </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg" className="h-13 px-7 text-base">
+                <Link href="/login?as=business">Hire staff</Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-13 bg-card px-7 text-base"
+              >
+                <Link href="/login?as=worker">Find work</Link>
+              </Button>
             </div>
+            <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-deep">
+              <li>Checked, job-ready workers</li>
+              <li>Call-outs for last-minute cover</li>
+              <li>Workers paid every week</li>
+            </ul>
           </div>
-          <ShiftPreview />
+          <HeroVisual />
         </Container>
       </section>
 
-      {/* Every industry, each with its own page. */}
-      <section aria-labelledby="work-title" className="bg-card py-20 sm:py-28">
-        <Container className="space-y-10">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div className="max-w-3xl space-y-4">
-              <h2
-                id="work-title"
-                className="text-4xl font-extrabold tracking-tight text-balance text-deep sm:text-5xl"
-              >
-                Staff for every industry
-              </h2>
-              <p className="text-xl text-muted-foreground">
-                One app for the shifts every business has to fill, from a single
-                shift to a busy season.
-              </p>
-            </div>
-            <Link
-              href="/industries"
-              className="text-lg font-semibold text-primary underline underline-offset-4 hover:no-underline"
-            >
-              Every industry
-            </Link>
+      {/* Call-outs, with what they look like. */}
+      <section
+        id="call-outs"
+        aria-labelledby="call-outs-title"
+        className="scroll-mt-24 bg-card py-20 sm:py-28"
+      >
+        <Container className="grid items-center gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-16">
+          <div className="space-y-10">
+            <SectionHeading
+              id="call-outs-title"
+              eyebrow="Call-outs"
+              title="Someone off sick? Find cover fast."
+              intro={`When you need an extra pair of hands now, post a call-out. Workers nearby hear straight away, the first to accept is booked, and they earn ${payPct}% more an hour for it.`}
+            />
+            <ol className="grid gap-6 sm:grid-cols-2">
+              {calloutSteps(settings.callout_alert_minutes).map(
+                (step, index) => (
+                  <li key={step.title} className="flex gap-4">
+                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-highlight-soft text-deep">
+                      <step.icon className="size-5" aria-hidden />
+                    </span>
+                    <div>
+                      <p className="font-semibold text-deep">
+                        <span className="sr-only">Step {index + 1}: </span>
+                        {step.title}
+                      </p>
+                      <p className="mt-1 text-muted-foreground">{step.text}</p>
+                    </div>
+                  </li>
+                ),
+              )}
+            </ol>
           </div>
-          <IndustryCards industries={industries} />
-        </Container>
-      </section>
-
-      {/* Where we work: every city, open or coming soon. */}
-      <section aria-labelledby="where-title" className="py-20 sm:py-28">
-        <Container className="space-y-10">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div className="max-w-3xl space-y-4">
-              <h2
-                id="where-title"
-                className="text-4xl font-extrabold tracking-tight text-balance text-deep sm:text-5xl"
-              >
-                Australia-wide, state by state
-              </h2>
-              <p className="text-xl text-muted-foreground">
-                Where we&apos;re not open yet, sign up now and be ready on day
-                one.
-              </p>
-            </div>
-            <Link
-              href="/locations"
-              className="text-lg font-semibold text-primary underline underline-offset-4 hover:no-underline"
-            >
-              Every location
-            </Link>
-          </div>
-          <LocationList locations={locations} />
+          <CalloutPhone payPct={payPct} />
         </Container>
       </section>
 
@@ -310,71 +156,126 @@ export default async function HomePage() {
       <section
         id="how-it-works"
         aria-labelledby="how-it-works-title"
-        className="scroll-mt-16 bg-primary-soft py-20 sm:py-28"
+        className="scroll-mt-24 py-20 sm:py-28"
       >
         <Container className="space-y-12">
-          <div className="max-w-3xl space-y-4">
+          <SectionHeading
+            id="how-it-works-title"
+            eyebrow="How it works"
+            title="Step by step, from sign-up to pay day"
+            intro="Tap a step to see what happens."
+            centred
+          />
+          <HowItWorks autoApproveHours={settings.auto_approve_hours} />
+        </Container>
+      </section>
+
+      {/* Against an agency. */}
+      <section
+        aria-labelledby="why-title"
+        className="bg-primary-soft py-20 sm:py-28"
+      >
+        <Container className="space-y-12">
+          <SectionHeading
+            id="why-title"
+            eyebrow={`Why ${brand.name}`}
+            title="Everything an agency does, without the agency"
+            intro="We employ the workers, pay them and cover their insurance, like an agency. What's different is everything else."
+          />
+          <WhyShifta />
+        </Container>
+      </section>
+
+      {/* What's in each account. */}
+      <section aria-labelledby="features-title" className="py-20 sm:py-28">
+        <Container className="space-y-12">
+          <SectionHeading
+            id="features-title"
+            eyebrow="Inside your account"
+            title="Built for both sides of the shift"
+          />
+          <DashboardFeatures />
+        </Container>
+      </section>
+
+      {/* Weekly pay and real support. */}
+      <section
+        aria-labelledby="support-title"
+        className="bg-deep py-20 text-deep-foreground sm:py-24"
+      >
+        <Container className="grid gap-10 lg:grid-cols-2">
+          <div className="space-y-4">
+            <HandCoins className="size-10 text-highlight" aria-hidden />
             <h2
-              id="how-it-works-title"
-              className="text-4xl font-extrabold tracking-tight text-balance text-deep sm:text-5xl"
+              id="support-title"
+              className="text-3xl font-extrabold tracking-tight sm:text-4xl"
             >
-              How it works
+              Weekly pay. Weekly invoices.
             </h2>
-            <p className="text-xl text-muted-foreground">
-              Four steps each way, with nothing to print or post. Most of it is
-              done in a few minutes, on your phone or your computer.
+            <p className="text-lg text-deep-foreground/85">
+              Workers are paid their wages and super every week. Businesses get
+              one itemised tax invoice a week, with every shift listed.
             </p>
           </div>
-          <div className="grid gap-6 lg:grid-cols-2">
-            <StepList
-              id="hire-staff"
-              audience="For businesses"
-              title="Hire staff"
-              intro="Checked, job-ready people for one shift, a busy week or a last-minute gap, in any industry."
-              steps={BUSINESS_STEPS}
-              icon={BriefcaseBusiness}
-              tone="deep"
-              action={
-                <Button
-                  asChild
-                  size="lg"
-                  className="w-full bg-deep-foreground text-deep hover:bg-deep-foreground/90 sm:w-auto"
-                >
-                  <Link href="/login?as=business">Sign up your business</Link>
-                </Button>
-              }
-            />
-            <StepList
-              id="find-work"
-              audience="For workers"
-              title="Find work"
-              intro="Shifts in hospitality, events, warehousing, retail, cleaning and more, near you, on your phone."
-              steps={WORKER_STEPS}
-              icon={Smartphone}
-              tone="light"
-              action={
-                <Button asChild size="lg" className="w-full sm:w-auto">
-                  <Link href="/login?as=worker">Sign up to work</Link>
-                </Button>
-              }
-            />
+          <div className="space-y-4">
+            <LifeBuoy className="size-10 text-highlight" aria-hidden />
+            <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+              Support from real people
+            </h2>
+            <p className="text-lg text-deep-foreground/85">
+              A question about a shift, your pay or an invoice? Get in touch and
+              a person on our team will help you sort it out.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild size="lg" variant="secondary">
+                <a href={`mailto:${brand.supportEmail}`}>
+                  <Mail aria-hidden />
+                  {brand.supportEmail}
+                </a>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-deep-foreground/40 bg-transparent text-deep-foreground hover:bg-deep-foreground/10 hover:text-deep-foreground"
+              >
+                <Link href="/contact">Contact us</Link>
+              </Button>
+            </div>
           </div>
         </Container>
       </section>
 
-      {/* What the app does for every shift, by name. */}
-      <BrandFeatures />
+      {/* Every industry. */}
+      <section aria-labelledby="work-title" className="bg-card py-20 sm:py-28">
+        <Container className="space-y-10">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <SectionHeading
+              id="work-title"
+              eyebrow="Every industry"
+              title="Staff for the work you do"
+              intro="From a single shift to a busy season."
+            />
+            <Link
+              href="/industries"
+              className="text-lg font-semibold text-primary underline underline-offset-4 hover:no-underline"
+            >
+              All industries
+            </Link>
+          </div>
+          <IndustryCards industries={industries} />
+        </Container>
+      </section>
 
       {/* Quick answers. */}
       <section aria-labelledby="answers-title" className="py-20 sm:py-28">
         <Container className="space-y-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2
+            <SectionHeading
               id="answers-title"
-              className="text-4xl font-extrabold tracking-tight text-balance text-deep sm:text-5xl"
-            >
-              Quick answers
-            </h2>
+              eyebrow="Questions"
+              title="Quick answers"
+            />
             <Link
               href="/faq"
               className="text-lg font-semibold text-primary underline underline-offset-4 hover:no-underline"
@@ -388,9 +289,7 @@ export default async function HomePage() {
                 key={question}
                 className="space-y-2 rounded-3xl border bg-card p-7 shadow-soft"
               >
-                <dt className="text-xl font-bold text-foreground">
-                  {question}
-                </dt>
+                <dt className="text-xl font-bold text-deep">{question}</dt>
                 <dd className="text-lg text-muted-foreground">{answer}</dd>
               </div>
             ))}
@@ -409,18 +308,9 @@ export default async function HomePage() {
               id="start-title"
               className="text-4xl font-extrabold tracking-tight text-balance sm:text-5xl"
             >
-              Need staff this week?
+              {brand.tagline}
             </h2>
-            <p className="text-xl text-primary-foreground">
-              Post it now and see who&apos;s available. Questions first?{" "}
-              <Link
-                href="/contact"
-                className="font-semibold text-primary-foreground underline underline-offset-4 hover:no-underline"
-              >
-                Talk to us
-              </Link>
-              .
-            </p>
+            <p className="text-xl text-primary-foreground">{brand.strapline}</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button
@@ -428,7 +318,7 @@ export default async function HomePage() {
               size="lg"
               className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
             >
-              <Link href="/login?as=business">Post a shift</Link>
+              <Link href="/login?as=business">Hire staff</Link>
             </Button>
             <Button
               asChild
@@ -436,7 +326,7 @@ export default async function HomePage() {
               variant="outline"
               className="border-primary-foreground bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
             >
-              <Link href="/login?as=worker">Look for shifts</Link>
+              <Link href="/login?as=worker">Find work</Link>
             </Button>
           </div>
         </Container>

@@ -7,9 +7,9 @@ import { BrandMark } from "./brand-mark";
 import { Container } from "./container";
 
 const links = [
-  { href: "/industries", label: "Industries" },
-  { href: "/locations", label: "Locations" },
-  { href: "/#how-it-works", label: "How it works", wide: true },
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/#call-outs", label: "Call-outs", wide: true },
+  { href: "/industries", label: "Industries", wide: true },
   { href: "/faq", label: "Questions" },
   { href: "/contact", label: "Contact", wide: true },
 ];
@@ -17,8 +17,8 @@ const links = [
 export function PublicHeader() {
   return (
     <header className="sticky top-(--banner-h) z-30 border-b bg-card/95 backdrop-blur">
-      <Container className="flex h-16 items-center justify-between gap-4">
-        <BrandMark />
+      <Container className="flex h-18 items-center justify-between gap-4 sm:h-20">
+        <BrandMark size="lg" />
         <nav aria-label="Main" className="flex items-center gap-1 sm:gap-2">
           {links.map((link) => (
             <Link

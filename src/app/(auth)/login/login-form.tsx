@@ -1,27 +1,27 @@
 "use client";
 
-import { ArrowLeft, Loader2, Mail, Smartphone } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useId, useRef, useState, useTransition } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatAuPhone } from "@/lib/phone";
 import { useHydrated } from "@/lib/use-hydrated";
 
-import { sendCode, verifyCode, type LoginMethod } from "./actions";
+import { sendCode, verifyCode } from "./actions";
 
 type Props = {
   as?: "worker" | "business";
   next?: string;
-  defaultMethod: LoginMethod;
 };
 
-export function LoginForm({ as, next, defaultMethod }: Props) {
-  const [method, setMethod] = useState<LoginMethod>(defaultMethod);
-  const [values, setValues] = useState({ phone: "", email: "" });
+/**
+ * Sign in or sign up with an email address (owner, 31/10/2026: email only).
+ * We email a 6-digit code and a link; there's no password.
+ */
+export function LoginForm({ as, next }: Props) {
+  const [email, setEmail] = useState("");
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +30,7 @@ export function LoginForm({ as, next, defaultMethod }: Props) {
   const errorId = useId();
   const codeRef = useRef<HTMLInputElement>(null);
   // Until the page's script has loaded, a tap would reload the page with
-  // the mobile or email in the address, so the form waits.
+  // the email in the address, so the form waits.
   const hydrated = useHydrated();
 
   function requestCode() {
@@ -38,8 +38,8 @@ export function LoginForm({ as, next, defaultMethod }: Props) {
     setNotice(null);
     startTransition(async () => {
       const result = await sendCode({
-        method,
-        value: values[method],
+        method: "email",
+        value: email,
         as,
         next,
       });
@@ -60,7 +60,7 @@ export function LoginForm({ as, next, defaultMethod }: Props) {
     setNotice(null);
     startTransition(async () => {
       const result = await verifyCode({
-        method,
+        method: "email",
         destination: sentTo,
         code,
         next,
@@ -77,24 +77,25 @@ export function LoginForm({ as, next, defaultMethod }: Props) {
   ) : null;
 
   if (sentTo) {
-    const shown = method === "phone" ? formatAuPhone(sentTo) : sentTo;
     return (
       <form
-        className="space-y-5"
+        className="space-y-6"
         onSubmit={(event) => {
           event.preventDefault();
           submitCode();
         }}
       >
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold">Enter your code</h2>
-          <p className="text-sm text-muted-foreground">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold tracking-tight text-deep">
+            Check your email
+          </h2>
+          <p className="text-muted-foreground">
             We sent a 6-digit code to{" "}
-            <span className="font-medium text-foreground">{shown}</span>.
-            {method === "email"
-              ? " You can also tap the link in the email."
-              : null}{" "}
-            It expires in 15 minutes.
+            <span className="font-semibold [overflow-wrap:anywhere] text-foreground">
+              {sentTo}
+            </span>
+            . Enter it below, or tap the link in the email. It works for 15
+            minutes.
           </p>
         </div>
 
@@ -112,7 +113,7 @@ export function LoginForm({ as, next, defaultMethod }: Props) {
             onChange={(event) => setCode(event.target.value)}
             aria-invalid={!!error}
             aria-describedby={error ? errorId : undefined}
-            className="text-center text-2xl tracking-[0.4em]"
+            className="h-14 text-center text-2xl tracking-[0.4em]"
             autoFocus
             required
           />
@@ -123,7 +124,12 @@ export function LoginForm({ as, next, defaultMethod }: Props) {
           {notice ? <p className="text-sm text-success">{notice}</p> : null}
         </div>
 
-        <Button type="submit" size="lg" className="w-full" disabled={pending}>
+        <Button
+          type="submit"
+          size="lg"
+          className="h-12 w-full text-base"
+          disabled={pending}
+        >
           {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
           Sign in
         </Button>
@@ -140,9 +146,7 @@ export function LoginForm({ as, next, defaultMethod }: Props) {
             }}
           >
             <ArrowLeft aria-hidden />
-            {method === "phone"
-              ? "Use a different number"
-              : "Use a different email"}
+            Use a different email
           </Button>
           <Button
             type="button"
@@ -159,78 +163,43 @@ export function LoginForm({ as, next, defaultMethod }: Props) {
   }
 
   return (
-    <Tabs
-      value={method}
-      onValueChange={(value) => {
-        setMethod(value as LoginMethod);
-        setError(null);
+    <form
+      className="space-y-5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (hydrated) requestCode();
       }}
     >
-      <TabsList aria-label="How would you like to sign in?">
-        <TabsTrigger value="phone">
-          <Smartphone aria-hidden />
-          Mobile
-        </TabsTrigger>
-        <TabsTrigger value="email">
-          <Mail aria-hidden />
-          Email
-        </TabsTrigger>
-      </TabsList>
-
-      {(["phone", "email"] as const).map((tab) => (
-        <TabsContent key={tab} value={tab}>
-          <form
-            className="space-y-5"
-            onSubmit={(event) => {
-              event.preventDefault();
-              requestCode();
-            }}
-          >
-            <div className="space-y-2">
-              <Label htmlFor={tab}>
-                {tab === "phone" ? "Mobile number" : "Email address"}
-              </Label>
-              <Input
-                id={tab}
-                name={tab}
-                type={tab === "phone" ? "tel" : "email"}
-                inputMode={tab === "phone" ? "tel" : "email"}
-                autoComplete={tab === "phone" ? "tel" : "email"}
-                placeholder={
-                  tab === "phone" ? "0412 345 678" : "you@example.com"
-                }
-                value={values[tab]}
-                onChange={(event) =>
-                  setValues((v) => ({ ...v, [tab]: event.target.value }))
-                }
-                readOnly={!hydrated}
-                aria-invalid={!!error}
-                aria-describedby={error ? errorId : `${tab}-hint`}
-                required
-              />
-              <p id={`${tab}-hint`} className="text-sm text-muted-foreground">
-                {tab === "phone"
-                  ? "We'll text you a 6-digit code. No password needed."
-                  : "We'll email you a 6-digit code and a sign-in link. No password needed."}
-              </p>
-            </div>
-
-            <div aria-live="polite">{errorAlert}</div>
-
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full"
-              disabled={pending || !hydrated}
-            >
-              {pending ? (
-                <Loader2 className="animate-spin" aria-hidden />
-              ) : null}
-              Send code
-            </Button>
-          </form>
-        </TabsContent>
-      ))}
-    </Tabs>
+      <div className="space-y-2">
+        <Label htmlFor="email">Email address</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${errorId} email-hint` : "email-hint"}
+          className="h-12 text-base"
+          required
+        />
+        <p id="email-hint" className="text-sm text-muted-foreground">
+          We&apos;ll email you a code to sign in. No password to remember.
+        </p>
+      </div>
+      <div aria-live="polite">{errorAlert}</div>
+      <Button
+        type="submit"
+        size="lg"
+        className="h-12 w-full text-base"
+        disabled={pending || !hydrated}
+      >
+        {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
+        Email me a code
+      </Button>
+    </form>
   );
 }

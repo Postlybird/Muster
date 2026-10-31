@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { brand } from "@/config/brand";
 import { listIndustries } from "@/server/industries";
-import { listLocations } from "@/server/locations";
 
 import { BrandMark } from "./brand-mark";
 import { Container } from "./container";
@@ -12,14 +11,15 @@ const columns = [
     title: "Businesses",
     links: [
       { href: "/login?as=business", label: "Hire staff" },
-      { href: "/#hire-staff", label: "How it works for businesses" },
+      { href: "/#how-it-works", label: "How it works for businesses" },
+      { href: "/#call-outs", label: "Call-outs" },
     ],
   },
   {
     title: "Workers",
     links: [
       { href: "/login?as=worker", label: "Find work" },
-      { href: "/#find-work", label: "How it works for workers" },
+      { href: "/#how-it-works-workers", label: "How it works for workers" },
     ],
   },
   {
@@ -34,10 +34,7 @@ const columns = [
 ];
 
 export async function PublicFooter() {
-  const [industries, locations] = await Promise.all([
-    listIndustries(),
-    listLocations(),
-  ]);
+  const industries = await listIndustries();
   const all = [
     ...columns,
     {
@@ -47,32 +44,23 @@ export async function PublicFooter() {
         label: industry.name,
       })),
     },
-    {
-      title: "Locations",
-      links: locations.map((location) => ({
-        href: `/locations/${location.slug}`,
-        label: location.name,
-      })),
-    },
   ];
   return (
     <footer className="bg-deep text-deep-foreground">
       <Container className="grid gap-10 py-14 text-sm lg:grid-cols-[1fr_3fr]">
         <div className="space-y-3">
-          <BrandMark tone="light" />
-          <p className="text-xl font-extrabold tracking-tight">
+          <BrandMark tone="light" size="lg" />
+          <p className="text-2xl font-extrabold tracking-tight">
             {brand.tagline}
           </p>
-          <p className="max-w-xs text-deep-foreground/80">
-            On-demand staff for every industry, Australia-wide.
-          </p>
+          <p className="max-w-xs text-deep-foreground/80">{brand.strapline}</p>
           <p className="text-deep-foreground/80">
             © {new Date().getFullYear()} {brand.name}
           </p>
         </div>
         <nav
           aria-label="Footer"
-          className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+          className="grid gap-8 sm:grid-cols-2 md:grid-cols-4"
         >
           {all.map((column) => (
             <div key={column.title} className="space-y-3">

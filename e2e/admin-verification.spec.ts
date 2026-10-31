@@ -3,8 +3,8 @@ import { expect, test, type Page } from "@playwright/test";
 import {
   createPendingWorker,
   expectAccessible,
-  readCodeFromOutbox,
   signInAsDemo,
+  signInWithEmailCode,
 } from "./helpers";
 
 async function decide(
@@ -100,15 +100,10 @@ test("a rejection reaches the worker with the reason", async ({ page }) => {
   await expect(page.getByText("Photo rejected")).toBeVisible();
 
   // The worker signs in and sees what to fix.
-  await page.context().clearCookies();
-  await page.goto("/login?as=worker");
-  await page.getByLabel("Mobile number").fill(worker.mobile.local);
-  await page.getByRole("button", { name: "Send code" }).click();
-  await page
-    .getByLabel("6-digit code")
-    .fill(await readCodeFromOutbox(page, worker.mobile.e164));
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/worker$/);
+  await signInWithEmailCode(page, worker.email, {
+    as: "worker",
+    home: /\/worker$/,
+  });
   await expect(page.getByText(/take off sunglasses or a hat/)).toBeVisible();
   await expect(page.getByRole("link", { name: /Change photo/ })).toBeVisible();
 });

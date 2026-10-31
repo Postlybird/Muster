@@ -103,7 +103,7 @@ test("Phase 1 acceptance: 10 workers and 3 businesses onboarded, 20 shifts fille
     }
   });
 
-  // 2. Ten workers sign up with their mobiles, and an admin checks them.
+  // 2. Ten workers sign up with their email, and an admin checks them.
   const people = [
     "Ava",
     "Ben",
