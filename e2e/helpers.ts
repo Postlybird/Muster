@@ -20,11 +20,41 @@ export function randomEmail(prefix = "e2e"): string {
   return `${prefix}.${Date.now()}.${Math.floor(Math.random() * 1e6)}@e2e.test`;
 }
 
-/** Reads the newest sign-in code sent to `recipient` from the demo outbox. */
+/**
+ * Reads the newest sign-in code sent to `recipient` from the demo outbox.
+ * With `sentAfter` (taken just before asking for the code), it waits for a
+ * code sent since then, so an earlier code to someone signing in again
+ * can't be read by mistake.
+ */
 export async function readCodeFromOutbox(
   page: Page,
   recipient: string,
+  { sentAfter }: { sentAfter?: Date } = {},
 ): Promise<string> {
+  if (sentAfter) {
+    // A second's leeway either side of the clocks; earlier codes are older.
+    const since = new Date(sentAfter.getTime() - 1000).toISOString();
+    let code = "";
+    await expect
+      .poll(
+        async () => {
+          const { data } = await serviceClient()
+            .from("dev_outbox")
+            .select("meta")
+            .eq("recipient", recipient)
+            .gte("created_at", since)
+            .order("created_at", { ascending: false })
+            .limit(1);
+          code = String(
+            (data?.[0]?.meta as { otp?: string } | undefined)?.otp ?? "",
+          );
+          return code;
+        },
+        { message: `a new code for ${recipient}` },
+      )
+      .toMatch(/^\d{6}$/);
+    return code;
+  }
   const outbox = await page.context().newPage();
   await outbox.goto(`/dev/outbox?to=${encodeURIComponent(recipient)}`);
   const code = outbox.getByLabel(/^Code /).first();
@@ -57,6 +87,7 @@ export async function signInWithEmailCode(page: Page, email: string) {
   await page.context().clearCookies();
   await page.goto("/login?as=business");
   await page.getByLabel("Email address").fill(email);
+  const sentAfter = new Date();
   await page.getByRole("button", { name: "Send code" }).click();
   // The code step, or the reason there isn't one.
   const codeStep = page.getByRole("heading", { name: "Enter your code" });
@@ -67,7 +98,7 @@ export async function signInWithEmailCode(page: Page, email: string) {
   }
   await page
     .getByLabel("6-digit code")
-    .fill(await readCodeFromOutbox(page, email));
+    .fill(await readCodeFromOutbox(page, email, { sentAfter }));
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(/\/business$/);
 }

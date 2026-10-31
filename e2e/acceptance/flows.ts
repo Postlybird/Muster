@@ -329,10 +329,11 @@ export async function signInWorker(page: Page, worker: Worker) {
   await page.context().clearCookies();
   await page.goto("/login?as=worker");
   await page.getByLabel("Mobile number").fill(worker.mobile.local);
+  const sentAfter = new Date();
   await page.getByRole("button", { name: "Send code" }).click();
   await page
     .getByLabel("6-digit code")
-    .fill(await readCodeFromOutbox(page, worker.mobile.e164));
+    .fill(await readCodeFromOutbox(page, worker.mobile.e164, { sentAfter }));
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(/\/worker$/);
 }
