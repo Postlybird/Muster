@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 31/10/2026_
+_Last updated: 01/11/2026_
 
 ## Status
 
@@ -356,9 +356,16 @@ _Last updated: 31/10/2026_
   - **Sydney only:** the Locations and city pages are gone, and the website and footer no longer mention other states. The platform still has every state, ready to open more. Industry pages now read "Hospitality staff, sorted."
   - **Sign-in and sign-up are by email only**, on a new layout: the form on one side and an example of the app on the other (a shift offer on the workers' page). Workers add and confirm their mobile number while signing up, because call-outs and reminders come by text. Test accounts made on the live site with only a mobile number can't sign in any more: sign up again with an email.
   - Tests: 451 pgTAP, 399 unit and 236 browser tests, plus the acceptance run.
+- **A fuller first screen, led by the core service** (01/11/2026, owner's feedback: too much space above the fold; look at Sidekicker):
+  - The first screen is full: a worker's profile as businesses see it (stars, reliability, tags from businesses, shifts done, experience, their licence checked and their note) beside four workers ready to book, and a booking going through. On phones the people come first, then "Work, sorted." and the buttons. The industries sit in one row just below.
+  - It leads with what we sell: fast, on-demand labour, **general or skilled**. A new section shows both, with work types from the live catalogue (general labourers, cleaners, kitchen hands, pick-packers and more; forklift drivers, traffic controllers, trades assistants, bartenders and more) and what we check before a first shift.
+  - **Call-outs are an add-on**, lower down (after how it works, why us and what's in each account), and the header's link to them is now "Why Shifta".
+  - No "Example" labels on any picture of the app, here or on the sign-in pages. The footer says the people and details in them are illustrative.
+  - **Photos:** the people show initials for now. Photo libraries are blocked from our build environment, so real photos need the owner (see Next).
 
 ## Next
 
+- **Owner: photos of people for the home page.** Either allow the photo library in this environment (steps in our chat, 01/11/2026), and I'll pick free photos of people at work; or send me photos you have the rights to, like your own workers with their permission. Each person in the pictures (Laura, Jack, Priya, Daniel and Mei) then shows a photo instead of initials.
 - **Before opening each new state:** enter its public holidays (Admin → Rates → Public holidays) from the state's official list, and check its tickets in Admin → Catalogues → Tickets (who issues them, and whether they expire). The official state websites are blocked from our build environment, so we haven't loaded their holiday dates; we only have NSW's.
 - **Owner: before opening another state**, see "Opening a state" in the open questions.
 - **Owner: connect shifta.com.au** (steps below in the owner setup checklist). Then I'll switch sign-in links and the scheduled jobs to it.
@@ -484,6 +491,8 @@ _Last updated: 31/10/2026_
 | 31/10/2026 | Everyone signs in and up by email, with a code or the emailed link; there's no sign-in by mobile (owner's decision). Workers still add and confirm a mobile number in onboarding. Codes by text stay switched on in Supabase, because confirming a mobile uses them. | The owner's choice: one way in for everyone. We still text call-outs and reminders, so we still need a confirmed mobile. |
 | 31/10/2026 | The website is about Sydney only for now: the Locations and city pages are removed, and the home page and footer don't mention other states (owner's decision). The platform keeps every state, and the admin switch to open them. | We're launching in Sydney, and talking about other states would promise what we can't do yet. The city pages can come back from the history when we open another state. |
 | 31/10/2026 | The home page's pictures of the app use example people and figures that match our current placeholder rates and settings: $33.13 an hour for a restoration labourer on a weekday, about $159 for a four-hour call-out. | Examples a worker or business will recognise in the app. When the real rates are set, we update the examples to match (the call-out figure already follows the call-out setting). |
+| 01/11/2026 | Pictures of the app on the website carry no "Example" labels (owner's decision). The footer says the people and details in them are illustrative, and there are still no quoted reviews, client logos or made-up numbers about us. | The owner wants the site to look complete, like Sidekicker's. A line in the footer keeps us honest without labelling every picture: the ratings and names show how the app works, not real reviews (Australian Consumer Law treats fake reviews as misleading). |
+| 01/11/2026 | People's photos go on the site only when we have the rights to them: free photo libraries (Unsplash) for people at work, and ideally our own workers, with their permission, once we have them. | Free libraries don't get model releases, so using their faces as named workers is a grey area; our own workers' photos are the most credible. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner

@@ -13,6 +13,8 @@
 > - **Slogan:** "Work, sorted." with "Connecting great businesses with great people, one shift at a time."
 > - **The website talks about Sydney only for now**: no state-by-state or city pages, and the home page and footer don't mention other states. The platform still holds every state, ready for when we open more.
 > - **Everyone signs in and up with their email** (a code, or the link in the email). There's no sign-in by mobile; workers add and confirm their mobile number while signing up, because call-outs and reminders come by text.
+>
+> **Owner update, 01/11/2026.** The home page leads with what we sell: **on-demand labour for businesses, fast, general or skilled**. Call-outs are an add-on, lower down the page. The first screen is full, like Sidekicker's, with people in it (real photos once we have them), and pictures of the app carry no "Example" labels.
 
 *"Muster" is a working name only. Keep the brand in a single config value (`src/config/brand.ts`) so swapping in the real name is a one-line change.*
 
