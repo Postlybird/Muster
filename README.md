@@ -1,6 +1,6 @@
 # Shifta
 
-Staff today, not someday. On-demand labour hire for every industry:
+Work, sorted. On-demand labour hire for every industry:
 businesses book checked staff for shifts, and workers pick up shifts on their
 phones. We are the labour hire provider. The name, slogan and contact details
 are set in `src/config/brand.ts`. (The repository and the Supabase project
@@ -59,7 +59,7 @@ npm run test:acceptance   # the Phase 1 acceptance run (needs local Supabase + s
 - **Database:** `.github/workflows/db-deploy.yml` runs when migrations, the seed or the hosted settings change (or from the Actions tab: Deploy database → Run workflow). It uses the repository secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_ID`, `SUPABASE_SECRET_KEY` and `CRON_SECRET`. On the Supabase project `muster-dev` it:
   - applies new migrations
   - pushes the sign-in settings in `deploy/muster-dev/supabase/config.toml` (the live site's address, and login codes going to the demo outbox). `supabase config push` changes only what that file declares.
-  - loads the demo data, then checks a sign-in code by text and by email reaches the demo outbox
+  - loads the demo data, then checks a code by text (used to confirm a worker's mobile) and a sign-in code by email reach the demo outbox
   - saves the site's address and `CRON_SECRET` in the project's Vault, and runs one scheduled job to check the site accepts it
 - **Scheduled jobs:** Supabase's scheduler (pg_cron) calls `/api/cron/<job>` on the live site with the `CRON_SECRET`: reminders, finished shifts, possible no-shows, timesheets and held notifications every 10 minutes, compliance hourly, and the pay run early each morning (it only runs on the run day). The schedule is in `supabase/migrations/20261030000000_scheduled_jobs.sql`. After changing `CRON_SECRET`, change it in Vercel and GitHub, redeploy the site, then run the database workflow again.
 - **App:** Vercel, with functions pinned to Sydney (`syd1`, see `vercel.json`). Set these environment variables in Vercel:

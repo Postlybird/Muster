@@ -18,7 +18,7 @@ Every push to GitHub runs the checks in `.github/workflows/ci.yml`:
 | Flow                        | Browser tests                                                                                                                                                                        |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Moving between pages        | `navigation` (the loading bar while the next page loads)                                                                                                                 |
-| Signing in                  | `auth` (texted and emailed codes, the email link, wrong codes, who can open what), `demo`, `admin-mfa`                                                                               |
+| Signing in                  | `auth` (emailed codes only, the email link, wrong codes, who can open what), `demo`, `admin-mfa`                                                                                     |
 | 4.1 Worker onboarding       | `worker-onboarding` (sign-up to submitted, the collection notice, rejected checks, profile and availability), `admin-verification` (checks, activation, rejections, VEVO)            |
 | 4.2 Business onboarding     | `business-onboarding` (ABN lookup to submitted, duplicate ABNs), `admin-businesses` (approval, account terms, cancelled ABNs), `business-account` (sites, team and roles, agreement) |
 | 4.3 Posting work            | `post-work` (cost before posting, posting again from the dashboard, templates, favourites' head start, urgent call-outs, who can post), `callouts` (making open work a call-out, accepting from the text, the 20-minute alert), `state-tickets` (each state's own RSA for workers and for work)                                               |
@@ -30,7 +30,7 @@ Every push to GitHub runs the checks in `.github/workflows/ci.yml`:
 | 4.9 Compliance              | `compliance` (ticket warnings and expiry, bookings at risk, VEVO re-checks), `admin-agreements-licences`, `admin-reports` (audit log)                                                |
 | 5 Notifications             | `notifications` (push instead of texts, preferences, quiet hours, editing templates), `outbox`                                                                                       |
 | 6 Admin console             | `admin-lists` (workers, businesses, shift board), `admin-queues`, `admin-reports` (reports, dashboard), `admin-catalogues`, `admin-settings`                                         |
-| 7 Public pages (industry and city pages) | `public`, `a11y`                                                                                                                                                                 |
+| 7 Public pages (home and industry pages) | `public`, `a11y`                                                                                                                                                                 |
 
 ## The Phase 1 acceptance run
 
@@ -41,8 +41,8 @@ exactly that, the way people would in the app:
 
 1. Three business owners sign up, look up their ABN, add a site, accept the
    agreement and submit. An admin approves each one.
-2. Ten workers sign up with their mobile numbers and go through the whole
-   wizard. An admin checks each one's photo, right to work, ID and tickets,
+2. Ten workers sign up with their email, confirm their mobile number and go
+   through the whole wizard. An admin checks each one's photo, right to work, ID and tickets,
    records their payroll setup and activates them.
 3. The businesses post 20 shifts over six jobs for the week after next,
    some "first in" and some "I'll choose".

@@ -8,6 +8,11 @@
 > - **What businesses see of a worker** goes beyond §4.4: a profile with the worker's bio, their stars with how many ratings, the tags businesses gave, badges, their experience and level in each type of work, the checks we've done and their history with that business. Never documents, date of birth, visa or contact details.
 > - **Applying can carry a note** ("why I'm a good fit", up to 300 characters). Notes and bios can't hold phone numbers, emails or links.
 > - **Call-outs** pay 20% more per hour and go out by text and app notification at any hour, to workers who opted in. If nobody accepts within 20 minutes, the business and our team are told. Open work starting within 48 hours can be turned into a call-out, say after a worker cancels.
+>
+> **Owner update, 31/10/2026 (later).** A new website and sign-in (changes to §4.1 and §7):
+> - **Slogan:** "Work, sorted." with "Connecting great businesses with great people, one shift at a time."
+> - **The website talks about Sydney only for now**: no state-by-state or city pages, and the home page and footer don't mention other states. The platform still holds every state, ready for when we open more.
+> - **Everyone signs in and up with their email** (a code, or the link in the email). There's no sign-in by mobile; workers add and confirm their mobile number while signing up, because call-outs and reminders come by text.
 
 *"Muster" is a working name only. Keep the brand in a single config value (`src/config/brand.ts`) so swapping in the real name is a one-line change.*
 
