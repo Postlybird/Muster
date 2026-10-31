@@ -40,9 +40,11 @@ export async function seedBookings(client: SeedClient) {
       for (const name of plan.applied ?? []) {
         const id = workerId.get(name);
         if (!id) continue;
+        const note = plan.notes?.[name] ?? null;
         const rows = canDo(id).map((shift) => ({
           shift_id: shift.id,
           worker_id: id,
+          note,
         }));
         if (rows.length === 0) continue;
         const inserted = must(
@@ -56,6 +58,22 @@ export async function seedBookings(client: SeedClient) {
           "applications",
         );
         applied += inserted.length;
+        // Notes added since a demo applied.
+        if (note) {
+          must(
+            await client
+              .from("applications")
+              .update({ note })
+              .eq("worker_id", id)
+              .in(
+                "shift_id",
+                rows.map((row) => row.shift_id),
+              )
+              .is("note", null)
+              .select("id"),
+            "application notes",
+          );
+        }
       }
       for (const name of plan.booked ?? []) {
         const id = workerId.get(name);

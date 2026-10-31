@@ -32,6 +32,7 @@ import { getAllSettings } from "@/server/settings";
 import { withdrawApplications } from "./actions";
 import { CancelBookingsForm } from "./cancel-bookings-form";
 import { ClockCard } from "./clock-card";
+import { ApplicationNoteForm } from "./application-note-form";
 import { TakeShiftsForm } from "./take-shifts-form";
 
 export const metadata: Metadata = { title: "Shift details" };
@@ -174,6 +175,21 @@ export default async function WorkerJobPage({
   const declined = (mine ?? []).filter(
     (s) => s.application_status === "declined",
   );
+  // The note sent with their applications (one per job).
+  const { data: sent } = applied.length
+    ? await supabase
+        .from("applications")
+        .select("note")
+        .in(
+          "shift_id",
+          applied.map((s) => s.shift_id),
+        )
+        .eq("status", "applied")
+        .not("note", "is", null)
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
+  const note = sent?.note ?? null;
   const cancelledByBusiness = (mine ?? []).filter(
     (s) => s.assignment_status === "cancelled_by_business",
   );
@@ -401,6 +417,20 @@ export default async function WorkerJobPage({
             Waiting for {job.business_name} to choose. We&apos;ll text you if
             you&apos;re picked.
           </p>
+          {note ? (
+            <p className="text-sm">
+              <span className="text-muted-foreground">Your note: </span>
+              {note}
+            </p>
+          ) : null}
+          <details className="rounded-lg border bg-card p-3">
+            <summary className="min-h-11 cursor-pointer content-center text-sm font-medium text-primary">
+              {note ? "Change your note" : "Add a note for the business"}
+            </summary>
+            <div className="pt-3">
+              <ApplicationNoteForm jobId={id} note={note} />
+            </div>
+          </details>
           <ActionButton
             variant="outline"
             action={withdrawApplications.bind(null, id)}
@@ -471,6 +501,7 @@ export default async function WorkerJobPage({
           <TakeShiftsForm
             jobId={id}
             mode={job.fill_mode}
+            note={note}
             shifts={open.map((shift) => ({
               id: shift.shift_id,
               day: formatDayShort(shift.starts_at, siteZone),

@@ -43,10 +43,22 @@ test("a worker applies, the business picks them, and they see the address", asyn
   await expect(
     page.getByRole("heading", { name: "Apply for this work" }),
   ).toBeVisible();
+  // This time with a note, which can't carry his number.
+  const pitch = "Four years on water damage jobs, and my own ute.";
+  const note = page.getByLabel("Why you're a good fit (optional)");
+  await note.fill("Call me on 0412 345 678");
+  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await expect(
+    page.getByText(
+      "Take out the phone number. Businesses reach you through Shifta.",
+    ),
+  ).toBeVisible();
+  await note.fill(pitch);
   await page.getByRole("button", { name: "Apply", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Applied for 1 shift" }),
   ).toBeVisible();
+  await expect(page.getByText(`Your note: ${pitch}`)).toBeVisible();
   await expectAccessible(page);
 
   // A manager sees him among the applicants and books him.
@@ -56,6 +68,7 @@ test("a worker applies, the business picks them, and they see the address", asyn
   const applicants = page.getByRole("region", { name: "Applicants" });
   await expect(applicants.getByText("Liam O.", { exact: true })).toBeVisible();
   await expect(applicants.getByText("White Card")).toBeVisible();
+  await expect(applicants.getByText(pitch)).toBeVisible();
   await expectAccessible(page);
   await applicants
     .getByRole("button", { name: "Book 1 shift for Liam O." })

@@ -4,12 +4,12 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 import { ActionFeedback } from "@/components/forms/action-feedback";
-import { FormField } from "@/components/forms/form-field";
 import { useServerForm } from "@/components/forms/use-server-form";
+import { WorkerWordsField } from "@/components/forms/worker-words-field";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
-import { Textarea } from "@/components/ui/textarea";
+import { BIO_MAX } from "@/domain/worker-words";
 import { cn } from "@/lib/utils";
 
 import { StepActions } from "../step-actions";
@@ -63,7 +63,6 @@ export function WorkTypesForm({
           .map((group) => group.name),
       ),
   );
-  const [bioLength, setBioLength] = useState(bio.length);
   const categoryError = errors?.category_ids?.[0];
 
   return (
@@ -196,24 +195,16 @@ export function WorkTypesForm({
         ) : null}
       </fieldset>
 
-      <FormField
+      <WorkerWordsField
         id="bio"
+        name="bio"
         label="A little about you (optional)"
-        hint={`What businesses see when you apply. ${500 - bioLength} characters left.`}
+        hint="Businesses see this on your profile. No phone numbers, emails or links."
+        defaultValue={bio}
         error={errors?.bio}
-      >
-        {(props) => (
-          <Textarea
-            {...props}
-            name="bio"
-            defaultValue={bio}
-            rows={4}
-            maxLength={500}
-            placeholder="For example: three years behind a busy bar, happy to start early."
-            onChange={(event) => setBioLength(event.target.value.length)}
-          />
-        )}
-      </FormField>
+        max={BIO_MAX}
+        placeholder="For example: three years behind a busy bar, happy to start early."
+      />
 
       <ActionFeedback state={state} />
       <StepActions mode={mode} step="work-types" pending={pending} />

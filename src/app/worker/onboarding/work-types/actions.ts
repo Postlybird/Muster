@@ -1,13 +1,10 @@
 "use server";
 
-import { z } from "zod";
-
+import { BIO_MAX, workerWordsProblem } from "@/domain/worker-words";
 import { failure, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import { getMyWorker, goOn, stepsWith } from "@/server/workers";
 import { saveFailed } from "@/server/errors";
-
-const bioSchema = z.string().trim().max(500, "Keep it under 500 characters");
 
 export async function saveWorkTypes(
   _prev: ActionState,
@@ -39,9 +36,10 @@ export async function saveWorkTypes(
   if (selected.length === 0) {
     errors.category_ids = ["Choose at least one type of work"];
   }
-  const bio = bioSchema.safeParse(formData.get("bio") ?? "");
-  if (!bio.success) errors.bio = [bio.error.issues[0]!.message];
-  if (Object.keys(errors).length > 0 || !bio.success) {
+  const bio = String(formData.get("bio") ?? "").trim();
+  const bioProblem = workerWordsProblem(bio, BIO_MAX);
+  if (bioProblem) errors.bio = [bioProblem];
+  if (Object.keys(errors).length > 0) {
     return failure("Check the highlighted fields.", errors);
   }
 
@@ -80,7 +78,7 @@ export async function saveWorkTypes(
   const { error } = await supabase
     .from("workers")
     .update({
-      bio: bio.data || null,
+      bio: bio || null,
       onboarding_steps: stepsWith(worker, "work-types"),
     })
     .eq("id", worker.id);

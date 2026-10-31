@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { shiftsLabel, takeOutcome } from "@/domain/bookings";
 import type { FillMode } from "@/domain/jobs";
+import { workerWordsProblem } from "@/domain/worker-words";
 import { formatTime, zoneOf } from "@/lib/format";
 import { failure, success, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
@@ -52,12 +53,18 @@ export async function takeShifts(
       shift: ["Choose at least one shift"],
     });
   }
+  const note = mode === "pick" ? String(formData.get("note") ?? "").trim() : "";
+  const noteProblem = workerWordsProblem(note);
+  if (noteProblem) return failure("Check your note.", { note: [noteProblem] });
   const supabase = await createClient();
   await refreshWorkerMatches(worker.id, { notify: false });
   const { data, error } =
     mode === "auto"
       ? await supabase.rpc("accept_shifts", { p_shift_ids: shiftIds })
-      : await supabase.rpc("apply_for_shifts", { p_shift_ids: shiftIds });
+      : await supabase.rpc("apply_for_shifts", {
+          p_shift_ids: shiftIds,
+          p_note: note,
+        });
   if (error) return saveFailed(error);
   const results = (data ?? []).map((row) => row.result);
   const outcome = takeOutcome(mode, results);
@@ -67,6 +74,30 @@ export async function takeShifts(
   if (mode === "auto") await notifyIfFilled(jobId);
   else await notifyFirstApplicant(jobId);
   return success(outcome.message);
+}
+
+/** Changes the note sent with a job's applications while the business chooses. */
+export async function saveApplicationNote(
+  jobId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const note = String(formData.get("note") ?? "").trim();
+  const problem = workerWordsProblem(note);
+  if (problem) return failure("Check your note.", { note: [problem] });
+  const supabase = await createClient();
+  const { data: changed, error } = await supabase.rpc("set_application_note", {
+    p_job_id: jobId,
+    p_note: note,
+  });
+  if (error) return saveFailed(error);
+  if (!changed) {
+    return failure(
+      "The business has already decided, so your note can't change now.",
+    );
+  }
+  refresh(jobId);
+  return success(note ? "Note saved." : "Note removed.");
 }
 
 /** Withdraws the worker's applications for a job, before anyone picks. */

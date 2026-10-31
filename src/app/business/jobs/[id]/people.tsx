@@ -88,6 +88,7 @@ export async function Applicants({
                 }
                 shiftsCompleted={applicant.shifts_completed}
                 tickets={applicant.tickets}
+                note={applicant.note}
               >
                 <p className="text-sm">
                   Applied for:{" "}

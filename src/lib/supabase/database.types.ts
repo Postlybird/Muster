@@ -206,6 +206,7 @@ export type Database = {
           created_at: string;
           decided_at: string | null;
           id: string;
+          note: string | null;
           shift_id: string;
           status: Database["public"]["Enums"]["application_status"];
           updated_at: string;
@@ -216,6 +217,7 @@ export type Database = {
           created_at?: string;
           decided_at?: string | null;
           id?: string;
+          note?: string | null;
           shift_id: string;
           status?: Database["public"]["Enums"]["application_status"];
           updated_at?: string;
@@ -225,6 +227,7 @@ export type Database = {
           created_at?: string;
           decided_at?: string | null;
           id?: string;
+          note?: string | null;
           shift_id?: string;
           status?: Database["public"]["Enums"]["application_status"];
           updated_at?: string;
@@ -3515,7 +3518,7 @@ export type Database = {
         }[];
       };
       apply_for_shifts: {
-        Args: { p_shift_ids: string[] };
+        Args: { p_note?: string; p_shift_ids: string[] };
         Returns: {
           result: string;
           shift_id: string;
@@ -3731,6 +3734,7 @@ export type Database = {
         Returns: {
           applied_at: string;
           display_name: string;
+          note: string;
           photo_path: string;
           rank_score: number;
           rating: number;
@@ -3990,6 +3994,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      set_application_note: {
+        Args: { p_job_id: string; p_note: string };
+        Returns: number;
+      };
       set_current_agreement: {
         Args: { p_agreement_id: string };
         Returns: undefined;
@@ -4035,6 +4043,10 @@ export type Database = {
       withdraw_applications: {
         Args: { p_shift_ids: string[] };
         Returns: number;
+      };
+      worker_words_ok: {
+        Args: { p_max?: number; p_text: string };
+        Returns: boolean;
       };
     };
     Enums: {

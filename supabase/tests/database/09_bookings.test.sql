@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(31);
+select plan(36);
 
 insert into public.jurisdictions (code, name) values ('NSW', 'New South Wales')
 on conflict (code) do nothing;
@@ -90,15 +90,42 @@ select set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111
 
 select results_eq(
   $$ select result from public.apply_for_shifts(array['a1111111-0000-0000-0000-000000000001',
-       'a2222222-0000-0000-0000-000000000002']::uuid[]) $$,
+       'a2222222-0000-0000-0000-000000000002']::uuid[], ' Three years of flood work. ') $$,
   array['applied', 'applied'],
-  'a worker applies for the days of a job the business picks for'
+  'a worker applies for the days of a job the business picks for, with a note'
 );
 
 select results_eq(
   $$ select result from public.apply_for_shifts(array['a1111111-0000-0000-0000-000000000001']::uuid[]) $$,
   array['already_applied'],
   'applying twice changes nothing'
+);
+
+-- Their note: short, and no way to reach them outside the app
+select throws_ok(
+  $$ select public.set_application_note('f1111111-0000-0000-0000-000000000001', 'Call me on 0412 345 678') $$,
+  '23514',
+  null,
+  'a note can''t hold a phone number'
+);
+select is(
+  public.set_application_note('f1111111-0000-0000-0000-000000000001', 'Five years of flood work.'),
+  2,
+  'they can change their note on every day they applied for'
+);
+select throws_ok(
+  $$ update public.workers set bio = 'Email me at alex@example.com'
+     where profile_id = '11111111-1111-1111-1111-111111111111' $$,
+  '23514',
+  null,
+  'nor can a bio hold an email address'
+);
+update public.workers set bio = 'White card, my own boots and a ute.'
+where profile_id = '11111111-1111-1111-1111-111111111111';
+select is(
+  (select bio from public.workers where profile_id = '11111111-1111-1111-1111-111111111111'),
+  'White card, my own boots and a ute.',
+  'workers write their own bio'
 );
 
 select is_empty(
@@ -173,6 +200,12 @@ select is(
    from public.job_applicants('f1111111-0000-0000-0000-000000000001') where worker_id = :'worker_a'),
   row('Alex A.', 2)::text,
   'applicants show a first name and initial, and the days they applied for'
+);
+select is(
+  (select note from public.job_applicants('f1111111-0000-0000-0000-000000000001')
+   where worker_id = :'worker_a'),
+  'Five years of flood work.',
+  'and their note'
 );
 select results_eq(
   $$ select result from public.book_applicant('f1111111-0000-0000-0000-000000000001', '$$ || :'worker_a' || $$') $$,

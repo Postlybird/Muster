@@ -13,8 +13,9 @@ function initials(name: string): string {
 
 /**
  * What a business sees of a worker (brief §4.4): photo, name, rating,
- * reliability, shifts completed and verified ticket names. Never documents,
- * date of birth or visa details.
+ * reliability, shifts completed and verified ticket names, and the note
+ * they sent with an application. Never documents, date of birth or visa
+ * details.
  */
 export function WorkerCard({
   name,
@@ -23,6 +24,7 @@ export function WorkerCard({
   reliability,
   shiftsCompleted,
   tickets,
+  note,
   children,
 }: {
   name: string;
@@ -31,6 +33,8 @@ export function WorkerCard({
   reliability: number | null;
   shiftsCompleted: number;
   tickets?: string[];
+  /** Why they're a good fit, in their words. */
+  note?: string | null;
   children?: React.ReactNode;
 }) {
   const facts = [
@@ -61,6 +65,16 @@ export function WorkerCard({
               </li>
             ))}
           </ul>
+        ) : null}
+        {note ? (
+          <figure className="rounded-md border-l-4 border-primary/40 bg-muted/50 px-3 py-2 text-sm">
+            <figcaption className="text-muted-foreground">
+              Why they&apos;re a good fit
+            </figcaption>
+            <blockquote className="mt-0.5 [overflow-wrap:anywhere]">
+              {note}
+            </blockquote>
+          </figure>
         ) : null}
         {children}
       </div>

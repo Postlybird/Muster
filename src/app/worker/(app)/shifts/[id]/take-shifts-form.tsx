@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ActionFeedback } from "@/components/forms/action-feedback";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { useServerForm } from "@/components/forms/use-server-form";
+import { WorkerWordsField } from "@/components/forms/worker-words-field";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { shiftsLabel } from "@/domain/bookings";
@@ -17,15 +18,19 @@ export type ShiftChoice = { id: string; day: string; detail: string };
 /**
  * Apply for ("I'll choose") or accept ("First in") a job's shifts: all of
  * them by default, or chosen days (plan: "Accept all days" by default).
+ * Applying comes with an optional note for the business.
  */
 export function TakeShiftsForm({
   jobId,
   mode,
   shifts,
+  note = null,
 }: {
   jobId: string;
   mode: "pick" | "auto";
   shifts: ShiftChoice[];
+  /** The note already sent with other days of this job. */
+  note?: string | null;
 }) {
   const [chosen, setChosen] = useState(() => new Set(shifts.map((s) => s.id)));
   // The page moves on once it's done, so the toast comes from here.
@@ -90,6 +95,16 @@ export function TakeShiftsForm({
       ) : (
         <input type="hidden" name="shift" value={shifts[0]?.id} />
       )}
+      {mode === "pick" ? (
+        <WorkerWordsField
+          id="note"
+          name="note"
+          label="Why you're a good fit (optional)"
+          hint="The business reads this with your application: your experience with this kind of work, your tickets, anything that makes you stand out. No phone numbers, emails or links."
+          defaultValue={note}
+          error={fieldErrors?.note}
+        />
+      ) : null}
       <ActionFeedback state={state} successToast={false} />
       <p className="text-sm text-muted-foreground">
         {mode === "auto"
