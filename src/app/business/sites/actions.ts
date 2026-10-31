@@ -37,7 +37,7 @@ function savedLabel(site: {
 /** Adds or changes a site. During setup the page stays put so another can be added. */
 export async function saveSite(
   siteId: string | null,
-  context: "onboarding" | "page",
+  context: "inline" | "page",
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {

@@ -99,7 +99,7 @@ export function LabourTypes({ industries }: { industries: PublicIndustry[] }) {
               ) : null}
               <div className="mt-auto pt-6">
                 <Button asChild size="lg">
-                  <Link href="/login?as=business">{kind.cta}</Link>
+                  <Link href="/register/business">{kind.cta}</Link>
                 </Button>
               </div>
             </section>

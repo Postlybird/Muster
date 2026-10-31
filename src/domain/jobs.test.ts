@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  draftingBlocker,
   datesInRange,
   datesProblem,
   isOvernightShift,
@@ -150,5 +151,19 @@ describe("urgent call-outs", () => {
     expect(urgentStartAt(new Date("2026-11-01T03:00:00Z")).toISOString()).toBe(
       "2026-11-01T04:00:00.000Z",
     );
+  });
+});
+
+describe("setting up shifts before approval", () => {
+  it("lets a business set up shifts while we check it", () => {
+    expect(draftingBlocker({ status: "pending" })).toBeNull();
+    expect(draftingBlocker({ status: "approved" })).toBeNull();
+  });
+
+  it("waits for sign-up, and stops while on hold", () => {
+    expect(draftingBlocker({ status: "draft" })).toMatch(
+      /Confirm your business/,
+    );
+    expect(draftingBlocker({ status: "suspended" })).toMatch(/on hold/);
   });
 });

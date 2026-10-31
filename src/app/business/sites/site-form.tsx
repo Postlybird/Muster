@@ -42,12 +42,12 @@ export function SiteForm({
   submitLabel,
 }: {
   values: SiteValues;
-  context: "onboarding" | "page";
+  context: "inline" | "page";
   defaultRadiusM: number;
   submitLabel?: string;
 }) {
-  // Toast as soon as the save returns: after adding a site during setup the
-  // page gives this form a new key, so it starts again empty.
+  // Toast as soon as the save returns: after adding a site in the post-work
+  // steps the page swaps this form for the next step's.
   const save = saveSite.bind(null, values.id, context);
   const {
     state,
@@ -164,10 +164,7 @@ export function SiteForm({
         )}
       </FormField>
       <ActionFeedback state={state} successToast={false} />
-      <SubmitButton
-        pending={pending}
-        variant={context === "onboarding" ? "outline" : "default"}
-      >
+      <SubmitButton pending={pending}>
         {submitLabel ?? (values.id ? "Save site" : "Add site")}
       </SubmitButton>
     </form>

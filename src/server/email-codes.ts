@@ -1,0 +1,63 @@
+import "server-only";
+
+import type { AuthError } from "@supabase/supabase-js";
+import { z } from "zod";
+
+import { safeNextPath } from "@/lib/redirects";
+import { createClient } from "@/lib/supabase/server";
+
+import { requestOrigin } from "./request";
+
+/**
+ * Signing in and registering both work by email (owner, 31/10/2026): we
+ * email a 6-digit code and a link, and there's no password. New accounts are
+ * made on the first code; `data` becomes the new account's details (role,
+ * name, and what a business gave us), and is ignored for someone who already
+ * has an account.
+ */
+export type EmailCodeResult =
+  { ok: true; destination: string } | { ok: false; error: string };
+
+export function friendlyAuthError(error: AuthError): string {
+  switch (error.code) {
+    case "over_email_send_rate_limit":
+    case "over_request_rate_limit":
+      return "Too many codes requested. Wait a minute, then try again.";
+    case "email_address_invalid":
+      return "That email address doesn't look right. Check it and try again.";
+    case "signup_disabled":
+      return "New accounts can't be created right now. Contact us for help.";
+    default:
+      return "Something went wrong sending your code. Please try again.";
+  }
+}
+
+/** The email address, cleaned up, or null if it isn't one. */
+export function cleanEmail(value: string): string | null {
+  const email = z.email().safeParse(value.trim().toLowerCase());
+  return email.success ? email.data : null;
+}
+
+export async function sendEmailCode({
+  email,
+  data,
+  next,
+}: {
+  email: string;
+  data: Record<string, string>;
+  next?: string;
+}): Promise<EmailCodeResult> {
+  const supabase = await createClient();
+  const confirmUrl = new URL("/auth/confirm", await requestOrigin());
+  if (next) confirmUrl.searchParams.set("next", safeNextPath(next, "/"));
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+      data,
+      emailRedirectTo: confirmUrl.toString(),
+    },
+  });
+  if (error) return { ok: false, error: friendlyAuthError(error) };
+  return { ok: true, destination: email };
+}

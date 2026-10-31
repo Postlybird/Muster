@@ -10,18 +10,36 @@ export type OnboardingStep = {
   optional?: boolean;
 };
 
+/**
+ * In order: the quick sign-up covers the first four (owner, 01/11/2026), so
+ * a worker sees shifts near them straight away; the rest is "Get ready to
+ * work", done in their own time before we check them.
+ */
 export const ONBOARDING_STEPS = [
-  { key: "about", title: "About you" },
   { key: "contact", title: "Contact details" },
   { key: "travel", title: "Getting to work" },
-  { key: "right-to-work", title: "Right to work" },
-  { key: "identity", title: "Photo ID" },
   { key: "work-types", title: "Work types" },
-  { key: "tickets", title: "Tickets", optional: true },
   { key: "availability", title: "Availability" },
+  { key: "about", title: "About you" },
+  { key: "identity", title: "Photo ID" },
+  { key: "right-to-work", title: "Right to work" },
+  { key: "tickets", title: "Tickets", optional: true },
   { key: "paperwork", title: "Employment paperwork" },
   { key: "submit", title: "Check and submit" },
 ] as const satisfies readonly OnboardingStep[];
+
+/** The steps the quick sign-up covers (owner, 01/11/2026). */
+export const QUICK_START_STEPS = [
+  "contact",
+  "travel",
+  "work-types",
+  "availability",
+] as const satisfies readonly OnboardingStepKey[];
+
+/** Whether the quick sign-up is done, so the worker can see shifts. */
+export function quickStartDone(done: readonly string[]): boolean {
+  return QUICK_START_STEPS.every((step) => done.includes(step));
+}
 
 export type OnboardingStepKey = (typeof ONBOARDING_STEPS)[number]["key"];
 
@@ -213,6 +231,10 @@ export function missingSteps(
   snapshot: OnboardingSnapshot,
 ): OnboardingStepKey[] {
   const missing: OnboardingStepKey[] = [];
+  if (!snapshot.email || !snapshot.phone) missing.push("contact");
+  if (!snapshot.homeSuburb) missing.push("travel");
+  if (snapshot.categoryCount === 0) missing.push("work-types");
+  if (!snapshot.hasAvailability) missing.push("availability");
   if (
     !snapshot.legalFirstName ||
     !snapshot.legalLastName ||
@@ -221,12 +243,8 @@ export function missingSteps(
   ) {
     missing.push("about");
   }
-  if (!snapshot.email || !snapshot.phone) missing.push("contact");
-  if (!snapshot.homeSuburb) missing.push("travel");
-  if (!snapshot.hasRightToWork) missing.push("right-to-work");
   if (!snapshot.hasIdentityCheck) missing.push("identity");
-  if (snapshot.categoryCount === 0) missing.push("work-types");
-  if (!snapshot.hasAvailability) missing.push("availability");
+  if (!snapshot.hasRightToWork) missing.push("right-to-work");
   if (snapshot.unacceptedDocuments > 0) missing.push("paperwork");
   return missing;
 }

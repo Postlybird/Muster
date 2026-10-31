@@ -21,14 +21,12 @@ const copy = {
   worker: {
     eyebrow: "For workers",
     title: "Find work",
-    description:
-      "Sign in, or create your account with your email. Setting up takes about 5 minutes on your phone.",
+    description: "Sign in with your email, and we'll send you a code.",
   },
   business: {
     eyebrow: "For businesses",
     title: "Hire staff",
-    description:
-      "Sign in, or create your business account with your work email.",
+    description: "Sign in with your work email, and we'll send you a code.",
   },
   default: {
     eyebrow: brand.tagline,
@@ -126,6 +124,20 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
 
         <LoginForm as={as} next={next} />
 
+        {as ? (
+          <p className="text-muted-foreground">
+            New here?{" "}
+            <Link
+              href={as === "worker" ? "/register/worker" : "/register/business"}
+              className="font-semibold text-primary underline underline-offset-4"
+            >
+              {as === "worker"
+                ? "Sign up as a worker"
+                : "Sign up as a business"}
+            </Link>
+          </p>
+        ) : null}
+
         <p className="border-t pt-6 text-muted-foreground">
           {as === "worker" ? (
             <>
@@ -151,19 +163,12 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
             <>
               New to {brand.name}?{" "}
               <Link
-                href={withNext("worker")}
+                href="/register"
                 className="font-semibold text-primary underline underline-offset-4"
               >
-                Find work
-              </Link>{" "}
-              or{" "}
-              <Link
-                href={withNext("business")}
-                className="font-semibold text-primary underline underline-offset-4"
-              >
-                hire staff
+                Register
               </Link>
-              .
+              : it&apos;s free.
             </>
           )}
         </p>

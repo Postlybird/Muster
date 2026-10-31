@@ -12,6 +12,7 @@ import {
   policeCheckAcceptedUntil,
   policeCheckProblem,
   previousStep,
+  quickStartDone,
   resumeStep,
   ticketDateProblems,
   type OnboardingSnapshot,
@@ -19,18 +20,31 @@ import {
 
 describe("steps", () => {
   it("moves forward and back through the wizard", () => {
-    expect(nextStep("about")).toBe("contact");
+    // The quick sign-up first, then getting ready to work.
+    expect(nextStep("contact")).toBe("travel");
+    expect(nextStep("availability")).toBe("about");
+    expect(nextStep("about")).toBe("identity");
     expect(nextStep("paperwork")).toBe("submit");
     expect(nextStep("submit")).toBeNull();
-    expect(previousStep("about")).toBeNull();
-    expect(previousStep("contact")).toBe("about");
+    expect(previousStep("contact")).toBeNull();
+    expect(previousStep("identity")).toBe("about");
   });
 
   it("resumes at the first unfinished step", () => {
-    expect(resumeStep([])).toBe("about");
-    expect(resumeStep(["about", "contact"])).toBe("travel");
+    expect(resumeStep([])).toBe("contact");
+    // After the quick sign-up: photo and ID next.
+    expect(
+      resumeStep(["contact", "travel", "work-types", "availability"]),
+    ).toBe("about");
     // Skipping around: the earliest gap wins.
-    expect(resumeStep(["about", "travel", "right-to-work"])).toBe("contact");
+    expect(resumeStep(["contact", "work-types", "about"])).toBe("travel");
+  });
+
+  it("knows when the quick sign-up is done", () => {
+    expect(quickStartDone(["contact", "travel", "work-types"])).toBe(false);
+    expect(
+      quickStartDone(["contact", "travel", "work-types", "availability"]),
+    ).toBe(true);
   });
 
   it("goes to the final check once every step is done", () => {
@@ -227,6 +241,6 @@ describe("missing steps", () => {
         hasAvailability: false,
         unacceptedDocuments: 2,
       }),
-    ).toEqual(["about", "contact", "work-types", "availability", "paperwork"]);
+    ).toEqual(["contact", "work-types", "availability", "about", "paperwork"]);
   });
 });

@@ -336,11 +336,13 @@ test("supervisors see their sites' jobs but don't post", async ({ page }) => {
   await expectAccessible(page);
 });
 
-test("a business waiting for approval can't post yet", async ({ page }) => {
+test("a business waiting for approval sets up a shift, but can't post it yet", async ({
+  page,
+}) => {
   const business = await createPendingBusiness();
   await signInWithEmailCode(page, business.ownerEmail);
   await page.goto("/business/post");
-  await expect(
-    page.getByText("You can post work once your business is approved."),
-  ).toBeVisible();
+  await expect(page.getByText(/We're checking your business/)).toBeVisible();
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect(page).toHaveURL(/\/business\/post\/[^/]+\/what$/);
 });

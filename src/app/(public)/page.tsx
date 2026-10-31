@@ -117,7 +117,7 @@ export default async function HomePage() {
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-13 px-7 text-base">
-                <Link href="/login?as=business">Hire staff</Link>
+                <Link href="/register/business">Hire staff</Link>
               </Button>
               <Button
                 asChild
@@ -125,7 +125,7 @@ export default async function HomePage() {
                 variant="outline"
                 className="h-13 px-7 text-base"
               >
-                <Link href="/login?as=worker">Find work</Link>
+                <Link href="/register/worker">Find work</Link>
               </Button>
             </div>
             <ul className="grid gap-x-6 gap-y-2 text-sm font-medium text-deep sm:grid-cols-2">
@@ -355,7 +355,7 @@ export default async function HomePage() {
               size="lg"
               className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
             >
-              <Link href="/login?as=business">Hire staff</Link>
+              <Link href="/register/business">Hire staff</Link>
             </Button>
             <Button
               asChild
@@ -363,7 +363,7 @@ export default async function HomePage() {
               variant="outline"
               className="border-primary-foreground bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
             >
-              <Link href="/login?as=worker">Find work</Link>
+              <Link href="/register/worker">Find work</Link>
             </Button>
           </div>
         </Container>

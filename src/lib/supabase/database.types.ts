@@ -3964,6 +3964,22 @@ export type Database = {
         }[];
       };
       post_job: { Args: { p_job_id: string }; Returns: undefined };
+      preview_shift_offers: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          break_minutes: number;
+          category_name: string;
+          distance_km: number;
+          ends_at: string;
+          estimate_cents: number;
+          hourly_cents: number;
+          job_id: string;
+          shift_id: string;
+          starts_at: string;
+          state: string;
+          suburb: string;
+        }[];
+      };
       rate_site: {
         Args: {
           p_assignment_id: string;

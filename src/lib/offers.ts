@@ -19,18 +19,36 @@ export type ShiftOffer = Omit<
   business_rating: number | null;
 };
 
+/**
+ * A shift shown to a worker we haven't checked yet (from
+ * preview_shift_offers()): no business, address or way to apply.
+ */
+export type ShiftPreview = Omit<
+  Database["public"]["Functions"]["preview_shift_offers"]["Returns"][number],
+  "distance_km"
+> & { distance_km: number | null };
+
+type GroupableShift = {
+  job_id: string;
+  starts_at: string;
+  hourly_cents: number | null;
+  estimate_cents: number | null;
+};
+
 /** A job's offered shifts, shown together (a multi-day job is one offer). */
-export type JobOffer = {
+export type JobOffer<T extends GroupableShift = ShiftOffer> = {
   jobId: string;
-  first: ShiftOffer;
-  shifts: ShiftOffer[];
+  first: T;
+  shifts: T[];
   /** Pay for all the offered shifts, when every one has been worked out. */
   totalCents: number | null;
 };
 
-/** Groups offered shifts by job, soonest first. */
-export function groupOffers(rows: readonly ShiftOffer[]): JobOffer[] {
-  const byJob = new Map<string, ShiftOffer[]>();
+/** Groups offered (or previewed) shifts by job, soonest first. */
+export function groupOffers<T extends GroupableShift = ShiftOffer>(
+  rows: readonly T[],
+): JobOffer<T>[] {
+  const byJob = new Map<string, T[]>();
   const sorted = [...rows].sort((a, b) =>
     a.starts_at.localeCompare(b.starts_at),
   );
@@ -57,7 +75,7 @@ export function distanceLabel(
 }
 
 /** "$33.13 an hour · about $132.52 for the shift" */
-export function payLabel(offer: JobOffer): string {
+export function payLabel<T extends GroupableShift>(offer: JobOffer<T>): string {
   const hourly = offer.first.hourly_cents;
   if (!hourly) return "Pay to be confirmed";
   const total =

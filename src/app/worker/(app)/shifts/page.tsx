@@ -5,7 +5,9 @@ import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { OfferCard } from "@/components/shifts/offer-card";
+import { PreviewList } from "@/components/shifts/preview-list";
 import { Button } from "@/components/ui/button";
+import { quickStartDone } from "@/domain/onboarding";
 import { groupOffers } from "@/lib/offers";
 import { workerStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
@@ -19,29 +21,42 @@ export default async function FindShiftsPage() {
   const { worker } = await getMyWorker();
   if (worker.status !== "active") {
     const waiting = worker.status === "draft" || worker.status === "pending";
+    const signedUp = quickStartDone(worker.onboarding_steps);
     return (
       <div className="space-y-6">
         <PageHeader title="Find shifts" />
-        <EmptyState
-          icon={Search}
-          title={
-            waiting
-              ? "Shifts show here once you're verified"
-              : "You can't take new shifts right now"
-          }
-          description={
-            waiting
-              ? "Finish your checklist on the home screen and we'll check your details."
-              : workerStatuses[worker.status].next
-          }
-          action={
-            waiting ? (
+        {waiting && signedUp ? (
+          // Not checked yet: what's near them, but they can't apply.
+          <>
+            {worker.status === "draft" ? (
               <Button asChild variant="outline">
-                <Link href="/worker">Go to your checklist</Link>
+                <Link href="/worker">Get ready to work</Link>
               </Button>
-            ) : undefined
-          }
-        />
+            ) : null}
+            <PreviewList headingLevel="h2" />
+          </>
+        ) : (
+          <EmptyState
+            icon={Search}
+            title={
+              waiting
+                ? "Finish signing up to see shifts near you"
+                : "You can't take new shifts right now"
+            }
+            description={
+              waiting
+                ? "Two quick things: your mobile, and your suburb and the work you want."
+                : workerStatuses[worker.status].next
+            }
+            action={
+              waiting ? (
+                <Button asChild variant="outline">
+                  <Link href="/worker/onboarding/start">Finish signing up</Link>
+                </Button>
+              ) : undefined
+            }
+          />
+        )}
       </div>
     );
   }

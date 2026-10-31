@@ -3,16 +3,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { EmptyState } from "@/components/empty-state";
-import { Markdown } from "@/components/markdown";
-import { ScrollBox } from "@/components/scroll-box";
 import { MyShiftCard } from "@/components/shifts/my-shift-card";
 import { OfferCard } from "@/components/shifts/offer-card";
+import { PreviewList } from "@/components/shifts/preview-list";
 import { WhatsNext } from "@/components/status/whats-next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { isAvailableNow } from "@/domain/availability";
-import { ONBOARDING_STEPS } from "@/domain/onboarding";
+import { quickStartDone, type OnboardingStepKey } from "@/domain/onboarding";
 import { formatTime, zoneOf } from "@/lib/format";
 import { groupMyShifts } from "@/lib/my-shifts";
 import { groupOffers } from "@/lib/offers";
@@ -23,19 +22,13 @@ import {
   type StatusInfo,
 } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
-import { currentAgreement } from "@/server/agreements";
 import { getAllSettings } from "@/server/settings";
 import { loadTickets } from "@/server/tickets";
-import {
-  getMyWorker,
-  hasStartedOnboarding,
-  type WorkerRow,
-} from "@/server/workers";
+import { getMyWorker, type WorkerRow } from "@/server/workers";
 
 import { AvailableNow } from "./availability/available-now";
 import { CalloutOptIn } from "./availability/callout-opt-in";
 import { Checklist, type ChecklistItem } from "./checklist";
-import { StartButton } from "./start-button";
 
 export const metadata: Metadata = { title: "Home" };
 
@@ -45,93 +38,117 @@ const notAdded: StatusInfo = {
   next: "Add it from your profile.",
 };
 
-async function GetStarted() {
-  const notice = await currentAgreement("privacy_collection_notice");
+/** Before the quick sign-up is done (owner, 01/11/2026). */
+function FinishSigningUp() {
   return (
     <section
-      aria-labelledby="get-started"
+      aria-labelledby="finish-signing-up"
       className="space-y-4 rounded-xl border bg-card p-5"
     >
-      <h2 id="get-started" className="text-xl font-semibold">
-        Let&apos;s get you set up
+      <h2 id="finish-signing-up" className="text-xl font-semibold">
+        Finish signing up
       </h2>
-      <p>It takes about 5 minutes on your phone. Have these handy:</p>
-      <ul className="list-disc space-y-1 pl-5">
-        <li>your driver licence or passport</li>
-        <li>
-          proof of citizenship (Australian passport, birth or citizenship
-          certificate), or your passport and visa details
-        </li>
-        <li>photos or PDFs of your tickets, like your White Card</li>
-      </ul>
-      {notice ? (
-        <details className="rounded-md bg-muted/50">
-          <summary className="flex min-h-11 cursor-pointer items-center px-3 text-sm font-medium text-primary underline-offset-4 hover:underline">
-            How we handle your information
-          </summary>
-          <ScrollBox
-            label="How we handle your information"
-            className="max-h-96 border-t px-3 py-3"
-          >
-            <Markdown>{notice.body_md}</Markdown>
-          </ScrollBox>
-        </details>
-      ) : null}
-      <p className="text-sm text-muted-foreground">
-        By starting, you agree to us collecting and using your information as
-        described in our{" "}
-        <Link href="/privacy#collection-notice" className="underline">
-          collection notice
-        </Link>
-        .
+      <p>
+        Two quick things: your mobile, and your suburb and the work you want.
+        Then you&apos;ll see shifts near you and the pay.
       </p>
-      <StartButton />
+      <Button asChild size="lg" className="w-full sm:w-auto">
+        <Link href="/worker/onboarding/start">Continue</Link>
+      </Button>
     </section>
   );
 }
 
-function SetupProgress({ worker }: { worker: WorkerRow }) {
-  const steps = ONBOARDING_STEPS.filter((step) => step.key !== "submit");
-  const done = steps.filter((step) =>
-    worker.onboarding_steps.includes(step.key),
-  ).length;
+/** What's left before we can check a worker, in four short parts. */
+const GET_READY: {
+  title: string;
+  time: string;
+  steps: OnboardingStepKey[];
+}[] = [
+  {
+    title: "Photo and ID",
+    time: "About 2 minutes",
+    steps: ["about", "identity"],
+  },
+  { title: "Right to work", time: "About 1 minute", steps: ["right-to-work"] },
+  { title: "Tickets", time: "If your work needs them", steps: ["tickets"] },
+  {
+    title: "Employment paperwork",
+    time: "About 2 minutes",
+    steps: ["paperwork"],
+  },
+];
+
+/**
+ * "Get ready to work" (owner, 01/11/2026): the checks we need before a
+ * worker's first shift, done in their own time.
+ */
+function GetReady({ worker }: { worker: WorkerRow }) {
+  const isDone = (steps: OnboardingStepKey[]) =>
+    steps.every((step) => worker.onboarding_steps.includes(step));
+  const done = GET_READY.filter((part) => isDone(part.steps)).length;
+  const allDone = done === GET_READY.length;
   return (
     <section
-      aria-labelledby="setup"
+      aria-labelledby="get-ready"
       className="space-y-4 rounded-xl border bg-card p-5"
     >
       <div className="space-y-2">
-        <h2 id="setup" className="text-xl font-semibold">
-          Finish setting up
+        <h2 id="get-ready" className="text-xl font-semibold">
+          Get ready to work
         </h2>
         <p className="text-sm text-muted-foreground">
-          {done} of {steps.length} steps done
+          {allDone
+            ? "All done. Check your details and send them to us."
+            : "Add these in your own time. Once they're in, we check them and you can start taking shifts."}
         </p>
         <Progress
-          value={Math.round((done / steps.length) * 100)}
-          aria-label={`${done} of ${steps.length} steps done`}
+          value={Math.round((done / GET_READY.length) * 100)}
+          aria-label={`${done} of ${GET_READY.length} done`}
         />
       </div>
-      <ul className="space-y-2">
-        {steps.map((step) => {
-          const isDone = worker.onboarding_steps.includes(step.key);
+      <ul className="divide-y">
+        {GET_READY.map((part) => {
+          const partDone = isDone(part.steps);
+          const step =
+            part.steps.find((key) => !worker.onboarding_steps.includes(key)) ??
+            part.steps[0]!;
           return (
-            <li key={step.key} className="flex items-center gap-3 text-sm">
-              {isDone ? (
-                <Check className="size-4 text-success" aria-hidden />
-              ) : (
-                <Circle className="size-4 text-muted-foreground" aria-hidden />
-              )}
-              <span>
-                {step.title}
-                <span className="sr-only">{isDone ? ": done" : ": to do"}</span>
-              </span>
+            <li key={part.title}>
+              <Link
+                href={`/worker/onboarding/${step}`}
+                className="flex min-h-14 items-center gap-3 py-2"
+              >
+                {partDone ? (
+                  <Check className="size-5 shrink-0 text-success" aria-hidden />
+                ) : (
+                  <Circle
+                    className="size-5 shrink-0 text-muted-foreground"
+                    aria-hidden
+                  />
+                )}
+                <span className="flex-1">
+                  <span className="block font-medium">
+                    {part.title}
+                    <span className="sr-only">
+                      {partDone ? ": done" : ": to do"}
+                    </span>
+                  </span>
+                  <span className="block text-sm text-muted-foreground">
+                    {partDone ? "Done" : part.time}
+                  </span>
+                </span>
+              </Link>
             </li>
           );
         })}
       </ul>
       <Button asChild size="lg" className="w-full sm:w-auto">
-        <Link href="/worker/onboarding">Continue</Link>
+        <Link
+          href={allDone ? "/worker/onboarding/submit" : "/worker/onboarding"}
+        >
+          {allDone ? "Check and submit" : done === 0 ? "Start" : "Continue"}
+        </Link>
       </Button>
     </section>
   );
@@ -296,7 +313,7 @@ export default async function WorkerHomePage({
   searchParams,
 }: PageProps<"/worker">) {
   const { user, worker } = await getMyWorker();
-  const { submitted } = await searchParams;
+  const { submitted, welcome } = await searchParams;
   const name =
     worker.preferred_name ??
     worker.legal_first_name ??
@@ -305,7 +322,9 @@ export default async function WorkerHomePage({
   const isDraft = worker.status === "draft";
   const active = worker.status === "active";
   const availableNow = isAvailableNow(worker.available_now_until, new Date());
-  const started = isDraft ? await hasStartedOnboarding(user.id) : true;
+  const signedUp = quickStartDone(worker.onboarding_steps);
+  // Not checked yet: they see shifts near them, but can't apply.
+  const previewing = (isDraft && signedUp) || worker.status === "pending";
 
   return (
     <div className="space-y-6">
@@ -329,13 +348,24 @@ export default async function WorkerHomePage({
         </Alert>
       ) : null}
 
+      {welcome && isDraft && signedUp ? (
+        <Alert variant="success">
+          <AlertDescription>
+            You&apos;re signed up. Here are shifts near you. Add your details
+            below when you&apos;re ready, and we&apos;ll check them.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       {isDraft ? (
-        started ? (
-          <SetupProgress worker={worker} />
+        signedUp ? (
+          <GetReady worker={worker} />
         ) : (
-          <GetStarted />
+          <FinishSigningUp />
         )
       ) : null}
+
+      {previewing ? <PreviewList limit={3} /> : null}
 
       {/* Active workers see work first; everyone else sees their checks. */}
       {active ? (
@@ -384,7 +414,9 @@ export default async function WorkerHomePage({
         </>
       )}
 
-      {active ? null : <NextShift active={active} />}
+      {active || isDraft || worker.status === "pending" ? null : (
+        <NextShift active={active} />
+      )}
     </div>
   );
 }

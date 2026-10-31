@@ -1,20 +1,11 @@
 import "server-only";
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import type { AbnDetails } from "@/adapters/abn";
-import {
-  nextBusinessStep,
-  type BusinessStepKey,
-} from "@/domain/business-onboarding";
 import { requireRole, type SessionUser } from "@/lib/auth";
-import type { ActionState } from "@/lib/forms";
 import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
-
-import { saveFailed } from "./errors";
 
 export type BusinessRow = Tables<"businesses">;
 export type BusinessRole = Tables<"business_users">["role"];
@@ -102,23 +93,16 @@ export function registerColumns(details: AbnDetails) {
   };
 }
 
-/** Everything needed to know which steps are still missing. */
+/** Everything needed to know what's still missing before submitting. */
 export async function businessSnapshot(business: BusinessRow) {
   const supabase = await createClient();
-  const [{ count: siteCount }, { data: agreement }] = await Promise.all([
-    supabase
-      .from("sites")
-      .select("id", { count: "exact", head: true })
-      .eq("business_id", business.id)
-      .is("archived_at", null),
-    supabase
-      .from("agreements")
-      .select("id")
-      .eq("kind", "labour_hire_services")
-      .is("jurisdiction", null)
-      .eq("is_current", true)
-      .maybeSingle(),
-  ]);
+  const { data: agreement } = await supabase
+    .from("agreements")
+    .select("id")
+    .eq("kind", "labour_hire_services")
+    .is("jurisdiction", null)
+    .eq("is_current", true)
+    .maybeSingle();
   let agreementAccepted = !agreement;
   if (agreement) {
     const { count } = await supabase
@@ -132,24 +116,6 @@ export async function businessSnapshot(business: BusinessRow) {
     abnActive: business.abn_status === "active",
     billingContactName: business.billing_contact_name,
     accountsEmail: business.accounts_email,
-    siteCount: siteCount ?? 0,
     agreementAccepted,
   };
-}
-
-/** Records a finished step and goes to the next one. */
-export async function finishBusinessStep(
-  business: BusinessRow,
-  step: BusinessStepKey,
-): Promise<ActionState> {
-  if (!business.onboarding_steps.includes(step)) {
-    const supabase = await createClient();
-    const { error } = await supabase
-      .from("businesses")
-      .update({ onboarding_steps: [...business.onboarding_steps, step] })
-      .eq("id", business.id);
-    if (error) return saveFailed(error);
-  }
-  revalidatePath("/business", "layout");
-  redirect(`/business/onboarding/${nextBusinessStep(step)}`);
 }

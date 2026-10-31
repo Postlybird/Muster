@@ -38,10 +38,7 @@ export const metadata: Metadata = { title: "Business" };
 const SETUP_STEP_LABELS: Record<BusinessStepKey, string> = {
   abn: "ABN",
   details: "billing contact",
-  sites: "a site",
-  team: "team",
   agreement: "services agreement",
-  submit: "submit",
 };
 
 function Section({
@@ -155,10 +152,7 @@ export default async function AdminBusinessPage({
     days: business.payment_terms_days ?? settings.invoice_payment_terms_days,
   };
   const stepsLeft = BUSINESS_STEPS.filter(
-    (step) =>
-      step.key !== "submit" &&
-      !("optional" in step) &&
-      !business.onboarding_steps.includes(step.key),
+    (step) => !business.onboarding_steps.includes(step.key),
   );
 
   return (

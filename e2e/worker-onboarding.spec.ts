@@ -1,12 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import {
-  chooseWorkType,
   expectAccessible,
-  randomMobile,
-  readCodeFromOutbox,
+  postTestJob,
+  quickSignUp,
+  randomEmail,
+  registerAs,
+  releaseTestJob,
   signInAsDemo,
-  signInAsNewWorker,
 } from "./helpers";
 
 const ASSETS = "scripts/seed/assets";
@@ -25,24 +26,60 @@ async function next(page: Page, label = "Save and continue") {
   await page.getByRole("button", { name: label, exact: true }).click();
 }
 
-test("a new worker goes from sign-up to submitted", async ({ page }) => {
+test("a new worker signs up in two minutes, then gets ready to work", async ({
+  page,
+}) => {
   test.setTimeout(180_000);
-  await signInAsNewWorker(page);
+  // Restoration work near Parramatta, for the preview.
+  const { jobId } = await postTestJob({
+    business: "Harbour Restoration",
+    site: "Granville flood job",
+    category: "Restoration labourer",
+    fillMode: "pick",
+  });
+  try {
+    await signUpAndGetReady(page);
+  } finally {
+    await releaseTestJob(jobId);
+  }
+});
 
-  // Home: what to have ready, then start.
+async function signUpAndGetReady(page: Page) {
+  // Register: name and email, then the emailed code.
+  await page.goto("/register/worker");
+  await page.getByRole("button", { name: "Email me a code" }).click();
+  await expect(page.getByText("Enter your first name")).toBeVisible();
+  await expectAccessible(page);
+  const email = randomEmail("worker");
+  await registerAs(page, "worker", { first: "Casey", last: "Tester", email });
+
+  // The quick sign-up: a mobile, then where and what. No ID yet.
+  await expect(page).toHaveURL(/\/worker\/onboarding\/start$/);
   await expect(
-    page.getByRole("heading", { name: "Let's get you set up" }),
+    page.getByRole("heading", { name: "Two quick things" }),
   ).toBeVisible();
   await expectAccessible(page);
-  await page.getByRole("button", { name: "Start" }).click();
+  await quickSignUp(page);
 
-  // 1. About you
+  // Home: shifts near them, and what's left before we can check them.
+  await expect(page.getByText("You're signed up")).toBeVisible();
+  const ready = page.getByRole("region", { name: "Get ready to work" });
+  await expect(ready.getByRole("listitem")).toHaveCount(4);
+  const nearby = page.getByRole("region", { name: "Shifts near you" });
+  await expect(
+    nearby.getByText("You can apply once we've checked your details."),
+  ).toBeVisible();
+  // Seeded restoration work near Parramatta shows, without the business.
+  await expect(nearby.getByText("Restoration labourer").first()).toBeVisible();
+  await expect(nearby.getByText("Harbour Restoration")).toHaveCount(0);
+  await expect(nearby.getByRole("link")).toHaveCount(0);
+  await expectAccessible(page);
+  await ready.getByRole("link", { name: "Start" }).click();
+
+  // 1. About you: their name is already in.
   await expect(page).toHaveURL(/\/worker\/onboarding\/about$/);
   await expect(page.getByRole("heading", { name: "About you" })).toBeVisible();
-  await next(page);
-  await expect(page.getByText("Enter your first name")).toBeVisible();
-  await page.getByLabel("First name").fill("Casey");
-  await page.getByLabel("Last name").fill("Tester");
+  await expect(page.getByLabel("First name")).toHaveValue("Casey");
   await page.getByLabel("Day").fill("7");
   await page.getByLabel("Month").fill("3");
   await page.getByLabel("Year").fill(String(new Date().getFullYear() - 16));
@@ -53,46 +90,7 @@ test("a new worker goes from sign-up to submitted", async ({ page }) => {
   await expectAccessible(page);
   await next(page);
 
-  // 2. Contact details: signed up by email, so add a mobile with a code
-  // (it's how we text about call-outs and reminders).
-  await expect(page).toHaveURL(/\/contact$/);
-  const mobile = randomMobile();
-  await page.getByLabel("Mobile number").fill(mobile.local);
-  await next(page, "Send code");
-  await page
-    .getByLabel("6-digit code")
-    .fill(await readCodeFromOutbox(page, mobile.e164));
-  await expectAccessible(page);
-  await next(page, "Confirm");
-
-  // 3. Getting to work
-  await expect(page).toHaveURL(/\/travel$/);
-  await page.getByRole("combobox", { name: "Your suburb" }).fill("Parra");
-  await page.getByRole("option", { name: "Parramatta NSW 2150" }).click();
-  await page.getByLabel("How far will you travel?").selectOption("40");
-  await page
-    .getByRole("radiogroup", { name: "Do you have a car to get to work?" })
-    .getByLabel("No")
-    .check();
-  await page.getByLabel("Driver licence").selectOption("none");
-  await page
-    .getByRole("radiogroup", {
-      name: "Can you get to work by public transport?",
-    })
-    .getByLabel("Yes")
-    .check();
-  await expectAccessible(page);
-  await next(page);
-
-  // 4. Right to work
-  await expect(page).toHaveURL(/\/right-to-work$/);
-  await page.getByLabel("Australian citizen").check();
-  await page.getByLabel("Australian passport").check();
-  await upload(page, "evidence", "certificate.png");
-  await expectAccessible(page);
-  await next(page);
-
-  // 5. Photo ID
+  // 2. Photo ID
   await expect(page).toHaveURL(/\/identity$/);
   await page.getByLabel("Driver licence").check();
   await upload(page, "document", "photo-id.png");
@@ -100,21 +98,15 @@ test("a new worker goes from sign-up to submitted", async ({ page }) => {
   await expectAccessible(page);
   await next(page);
 
-  // 6. Work types
-  await expect(page).toHaveURL(/\/work-types$/);
-  await next(page);
-  await expect(
-    page.getByText("Choose at least one type of work"),
-  ).toBeVisible();
-  await chooseWorkType(page, "Restoration", "Restoration labourer");
-  await page.getByLabel("Experience in this work").selectOption("2");
-  await page
-    .getByLabel(/A little about you/)
-    .fill("Two years on water damage jobs.");
+  // 3. Right to work
+  await expect(page).toHaveURL(/\/right-to-work$/);
+  await page.getByLabel("Australian citizen").check();
+  await page.getByLabel("Australian passport").check();
+  await upload(page, "evidence", "certificate.png");
   await expectAccessible(page);
   await next(page);
 
-  // 7. Tickets: add the White Card the work type needs.
+  // 4. Tickets: add the White Card their work needs.
   await expect(page).toHaveURL(/\/tickets$/);
   await expectAccessible(page);
   await page.getByRole("link", { name: "Add: White Card" }).click();
@@ -128,14 +120,7 @@ test("a new worker goes from sign-up to submitted", async ({ page }) => {
   await expect(page.getByText("Being checked")).toBeVisible();
   await next(page, "Continue");
 
-  // 8. Availability: weekdays by default; add Saturday and urgent call-outs.
-  await expect(page).toHaveURL(/\/availability$/);
-  await page.getByLabel("Saturday").check();
-  await page.getByLabel("Urgent call-outs").check();
-  await expectAccessible(page);
-  await next(page);
-
-  // 9. Employment paperwork
+  // 5. Employment paperwork
   await expect(page).toHaveURL(/\/paperwork$/);
   await next(page);
   await expect(page.getByText("Tick the box to confirm").first()).toBeVisible();
@@ -143,7 +128,7 @@ test("a new worker goes from sign-up to submitted", async ({ page }) => {
   await expectAccessible(page);
   await next(page);
 
-  // 10. Check and submit
+  // 6. Check and submit
   await expect(page).toHaveURL(/\/submit$/);
   await expectAccessible(page);
   await next(page, "Submit for checking");
@@ -153,14 +138,16 @@ test("a new worker goes from sign-up to submitted", async ({ page }) => {
     page.getByRole("heading", { name: "Your checks" }),
   ).toBeVisible();
   await expectAccessible(page);
-});
+}
 
-test("onboarding needs the collection notice first", async ({ page }) => {
+test("the steps wait for the quick sign-up and the collection notice", async ({
+  page,
+}) => {
   await signInAsDemo(page, "Lucy Tran");
   await page.goto("/worker/onboarding/about");
   await expect(page).toHaveURL(/\/worker$/);
   await expect(
-    page.getByRole("heading", { name: "Let's get you set up" }),
+    page.getByRole("heading", { name: "Finish signing up" }),
   ).toBeVisible();
 });
 

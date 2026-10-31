@@ -3,9 +3,11 @@ import { expect, test } from "@playwright/test";
 import {
   acceptCurrentAgreement,
   expectAccessible,
+  quickSignUp,
+  randomEmail,
+  registerAs,
   serviceClient,
   signInAsDemo,
-  signInAsNewWorker,
 } from "./helpers";
 
 // Tickets issued state by state (the RSA, working with children checks and
@@ -15,31 +17,16 @@ import {
 test("a worker in Victoria is asked for Victoria's RSA, not the NSW card", async ({
   page,
 }) => {
-  const email = await signInAsNewWorker(page);
-  await page.getByRole("button", { name: "Start" }).click();
-  await expect(page).toHaveURL(/\/worker\/onboarding\/about$/);
-
-  const service = serviceClient();
-  const { data: profile } = await service
-    .from("profiles")
-    .select("id")
-    .eq("email", email)
-    .single();
-  const [{ data: worker }, { data: bartender }] = await Promise.all([
-    service.from("workers").select("id").eq("profile_id", profile!.id).single(),
-    service.from("categories").select("id").eq("code", "bartender").single(),
-  ]);
-  await service
-    .from("workers")
-    .update({
-      home_suburb: "Richmond",
-      home_postcode: "3121",
-      home_state: "VIC",
-    })
-    .eq("id", worker!.id);
-  await service
-    .from("worker_categories")
-    .insert({ worker_id: worker!.id, category_id: bartender!.id });
+  await registerAs(page, "worker", {
+    first: "Mia",
+    last: "Rossi",
+    email: randomEmail("worker"),
+  });
+  await quickSignUp(page, {
+    suburb: ["Richmond", "Richmond VIC 3121"],
+    industry: "Hospitality",
+    workType: "Bartender",
+  });
 
   await page.goto("/worker/onboarding/tickets");
   const needed = page.getByRole("region", {

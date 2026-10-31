@@ -1,14 +1,11 @@
 import { expect, type Page } from "@playwright/test";
 
 import {
-  chooseWorkType,
   pageLoaded,
+  quickSignUp,
   randomAbn,
   randomEmail,
-  randomMobile,
-  readCodeFromOutbox,
-  signInAsNewBusiness,
-  signInAsNewWorker,
+  registerAs,
   signInWithEmailCode,
 } from "../helpers";
 
@@ -40,26 +37,29 @@ export type Business = {
   ownerEmail: string;
 };
 
-/** An owner signs up, sets up their business and submits it (brief §4.2). */
+/**
+ * An owner registers their business, confirms it and accepts the agreement
+ * (brief §4.2; owner, 01/11/2026), then adds the site they'll post work at.
+ */
 export async function setUpBusiness(
   page: Page,
   site: { name: string; address: string; suburb: string },
 ): Promise<Business> {
-  const ownerEmail = await signInAsNewBusiness(page);
-  await page.getByRole("link", { name: "Start" }).click();
-
+  const ownerEmail = randomEmail("owner");
   const abn = randomAbn();
-  await page.getByLabel("ABN").fill(abn);
-  await page.getByRole("button", { name: "Look up" }).click();
-  await page.getByRole("button", { name: "This is my business" }).click();
+  await registerAs(page, "business", {
+    first: "Robin",
+    last: "Owner",
+    email: ownerEmail,
+    abn,
+  });
 
-  await expect(page).toHaveURL(/\/details$/);
-  await page.getByLabel("Billing contact").fill("Robin Accounts");
-  await page.getByLabel("Their phone").fill("02 5550 1234");
-  await page.getByLabel("Accounts email").fill(randomEmail("accounts"));
-  await next(page);
+  await expect(page).toHaveURL(/\/business\/onboarding$/);
+  await page.getByLabel(/I accept the Labour Hire Services Agreement/).check();
+  await page.getByRole("button", { name: "Create my account" }).click();
+  await expect(page).toHaveURL(/\/business\?submitted=1$/);
 
-  await expect(page).toHaveURL(/\/sites$/);
+  await page.goto("/business/sites/new");
   await page.getByLabel("Site name").fill(site.name);
   await page
     .getByRole("combobox", { name: "Street address" })
@@ -68,19 +68,7 @@ export async function setUpBusiness(
     .getByRole("option", { name: new RegExp(`^${site.address}`) })
     .click();
   await page.getByRole("button", { name: "Add site" }).click();
-  await expect(page.getByText(`${site.name} added`)).toBeVisible();
-  await page.getByRole("button", { name: "Continue" }).click();
-
-  await expect(page).toHaveURL(/\/team$/);
-  await page.getByRole("button", { name: "Continue" }).click();
-
-  await expect(page).toHaveURL(/\/agreement$/);
-  await page.getByLabel(/I accept this agreement/).check();
-  await page.getByRole("button", { name: "Accept and continue" }).click();
-
-  await expect(page).toHaveURL(/\/submit$/);
-  await page.getByRole("button", { name: "Submit for approval" }).click();
-  await expect(page).toHaveURL(/\/business\?submitted=1$/);
+  await expect(page).toHaveURL(/\/business\/sites\?saved=1$/);
   return {
     name: `Demo Business ${abn.slice(-4)}`,
     site: `${site.name} (${site.suburb})`,
@@ -112,8 +100,9 @@ export type Worker = {
 };
 
 /**
- * A worker signs up with their email, adds and confirms their mobile, and
- * submits their details (brief §4.1).
+ * A worker registers, does the quick sign-up (mobile, suburb and their
+ * work), then gets ready to work and submits (brief §4.1; owner,
+ * 01/11/2026).
  */
 export async function signUpWorker(
   page: Page,
@@ -125,49 +114,26 @@ export async function signUpWorker(
     ticket: string | null;
   },
 ): Promise<Worker> {
-  await page.context().clearCookies();
-  const email = await signInAsNewWorker(page);
-  await page.getByRole("button", { name: "Start" }).click();
+  const email = randomEmail("worker");
+  await registerAs(page, "worker", {
+    first: person.first,
+    last: person.last,
+    email,
+  });
+  const mobile = await quickSignUp(page, {
+    industry: person.industry,
+    workType: person.category,
+  });
+  await page
+    .getByRole("region", { name: "Get ready to work" })
+    .getByRole("link", { name: "Start" })
+    .click();
 
   await expect(page).toHaveURL(/\/worker\/onboarding\/about$/);
-  await page.getByLabel("First name").fill(person.first);
-  await page.getByLabel("Last name").fill(person.last);
   await page.getByLabel("Day").fill("7");
   await page.getByLabel("Month").fill("3");
   await page.getByLabel("Year").fill("1994");
   await upload(page, "photo", "photo-3.png");
-  await next(page);
-
-  await expect(page).toHaveURL(/\/contact$/);
-  const mobile = randomMobile();
-  await page.getByLabel("Mobile number").fill(mobile.local);
-  await next(page, "Send code");
-  await page
-    .getByLabel("6-digit code")
-    .fill(await readCodeFromOutbox(page, mobile.e164));
-  await next(page, "Confirm");
-
-  await expect(page).toHaveURL(/\/travel$/);
-  await page.getByRole("combobox", { name: "Your suburb" }).fill("Parra");
-  await page.getByRole("option", { name: "Parramatta NSW 2150" }).click();
-  await page.getByLabel("How far will you travel?").selectOption("40");
-  await page
-    .getByRole("radiogroup", { name: "Do you have a car to get to work?" })
-    .getByLabel("No")
-    .check();
-  await page.getByLabel("Driver licence").selectOption("none");
-  await page
-    .getByRole("radiogroup", {
-      name: "Can you get to work by public transport?",
-    })
-    .getByLabel("Yes")
-    .check();
-  await next(page);
-
-  await expect(page).toHaveURL(/\/right-to-work$/);
-  await page.getByLabel("Australian citizen").check();
-  await page.getByLabel("Australian passport").check();
-  await upload(page, "evidence", "certificate.png");
   await next(page);
 
   await expect(page).toHaveURL(/\/identity$/);
@@ -176,9 +142,10 @@ export async function signUpWorker(
   await upload(page, "selfie", "photo-3.png");
   await next(page);
 
-  await expect(page).toHaveURL(/\/work-types$/);
-  await chooseWorkType(page, person.industry, person.category);
-  await page.getByLabel("Experience in this work").selectOption("2");
+  await expect(page).toHaveURL(/\/right-to-work$/);
+  await page.getByLabel("Australian citizen").check();
+  await page.getByLabel("Australian passport").check();
+  await upload(page, "evidence", "certificate.png");
   await next(page);
 
   await expect(page).toHaveURL(/\/tickets$/);
@@ -193,9 +160,6 @@ export async function signUpWorker(
     await expect(page.getByText(`${person.ticket} saved`)).toBeVisible();
   }
   await next(page, "Continue");
-
-  await expect(page).toHaveURL(/\/availability$/);
-  await next(page);
 
   await expect(page).toHaveURL(/\/paperwork$/);
   await pageLoaded(page);

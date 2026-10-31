@@ -62,13 +62,13 @@ export default async function IndustryPage({
             ) : null}
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
-                <Link href="/login?as=business">
+                <Link href="/register/business">
                   Hire {lower} staff
                   <ArrowRight aria-hidden />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href="/login?as=worker">Find {lower} work</Link>
+                <Link href="/register/worker">Find {lower} work</Link>
               </Button>
             </div>
           </div>

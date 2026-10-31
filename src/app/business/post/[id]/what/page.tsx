@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
 import { groupByIndustry } from "@/lib/industries";
 import { loadDraft } from "@/server/jobs";
+import { getAllSettings } from "@/server/settings";
+
+import { emptySite, SiteForm } from "../../../sites/site-form";
 
 import { PostStepFrame } from "../frame";
 import { WhatForm } from "./what-form";
@@ -39,11 +40,22 @@ export default async function WhatStepPage({
       title="What and where"
     >
       {(sites ?? []).length === 0 ? (
-        <div className="max-w-xl space-y-4">
-          <p>Add the site where you need workers first.</p>
-          <Button asChild>
-            <Link href="/business/sites/new">Add a site</Link>
-          </Button>
+        // A new business adds its first site here (owner, 01/11/2026).
+        <div className="max-w-2xl space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">
+              Where do you need workers?
+            </h2>
+            <p className="text-muted-foreground">
+              Add your site first. Workers see the suburb, and the full address
+              once they&apos;re booked.
+            </p>
+          </div>
+          <SiteForm
+            values={emptySite}
+            context="inline"
+            defaultRadiusM={(await getAllSettings()).geofence_radius_m}
+          />
         </div>
       ) : (
         <WhatForm

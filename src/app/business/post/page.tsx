@@ -16,6 +16,7 @@ import { formatDate, zoneOf } from "@/lib/format";
 import { jobTitle, shiftSummary, workersLabel } from "@/lib/job-format";
 import { createClient } from "@/lib/supabase/server";
 import { canManage, getMyBusiness } from "@/server/businesses";
+import { draftingBlocker } from "@/domain/jobs";
 import { postingProblem } from "@/server/jobs";
 
 import {
@@ -45,7 +46,9 @@ export default async function PostWorkPage() {
     );
   }
   const problem = await postingProblem(business);
-  if (problem) {
+  // While we check a business, it can still set up shifts to post later.
+  const canDraft = !draftingBlocker(business);
+  if (problem && !canDraft) {
     return (
       <div className="space-y-6">
         <PageHeader title="Post work" />
@@ -78,8 +81,17 @@ export default async function PostWorkPage() {
     <div className="max-w-3xl space-y-8">
       <PageHeader
         title="Post work"
-        description="Post something you've posted before in a few taps, or start a new job."
+        description={
+          problem
+            ? "Set up your shift now, ready to post."
+            : "Post something you've posted before in a few taps, or start a new job."
+        }
       />
+      {problem ? (
+        <Alert variant="info" className="max-w-2xl">
+          <AlertDescription>{problem}</AlertDescription>
+        </Alert>
+      ) : null}
 
       {(drafts ?? []).length > 0 ? (
         <section aria-labelledby="drafts" className="space-y-3">
@@ -135,7 +147,7 @@ export default async function PostWorkPage() {
         <h2 id="start" className="text-lg font-semibold">
           Start a job
         </h2>
-        {recent.length > 0 ? (
+        {recent.length > 0 && !problem ? (
           <div className="space-y-2">
             <h3 className="font-semibold">Post again</h3>
             <p className="text-sm text-muted-foreground">
@@ -155,14 +167,14 @@ export default async function PostWorkPage() {
           </p>
           <ActionButton
             action={startJob}
-            variant={recent.length > 0 ? "outline" : "default"}
+            variant={recent.length > 0 && !problem ? "outline" : "default"}
           >
             Start
           </ActionButton>
         </div>
       </section>
 
-      {(templates ?? []).length > 0 ? (
+      {(templates ?? []).length > 0 && !problem ? (
         <section aria-labelledby="templates" className="space-y-3">
           <h2 id="templates" className="text-lg font-semibold">
             Your templates

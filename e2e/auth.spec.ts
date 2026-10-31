@@ -8,7 +8,7 @@ import {
 } from "./helpers";
 
 test.describe("sign-in", () => {
-  test("a new worker signs up with an email code and lands in the worker area", async ({
+  test("a new worker registers from the home page with an email code", async ({
     page,
   }) => {
     const email = randomEmail("worker");
@@ -19,20 +19,31 @@ test.describe("sign-in", () => {
       .first()
       .click();
     await expect(
-      page.getByRole("heading", { level: 1, name: "Find work" }),
+      page.getByRole("heading", { level: 1, name: "Start finding work" }),
     ).toBeVisible();
     // Email only: there's no mobile sign-in (owner, 31/10/2026).
     await expect(page.getByLabel("Mobile number")).toHaveCount(0);
 
+    await page.getByLabel("First name").fill("Ava");
+    await page.getByLabel("Last name").fill("Chen");
     await page.getByLabel("Email address").fill(email);
     const sentAfter = new Date();
     await page.getByRole("button", { name: "Email me a code" }).click();
-    await enterEmailedCode(page, email, sentAfter);
+    await enterEmailedCode(page, email, sentAfter, "Continue");
 
-    await expect(page).toHaveURL(/\/worker$/);
-    await expect(page.getByRole("heading", { name: "Welcome" })).toBeVisible();
+    // Straight on to the quick sign-up.
+    await expect(page).toHaveURL(/\/worker\/onboarding\/start$/);
     await expect(
-      page.getByRole("heading", { name: "Let's get you set up" }),
+      page.getByRole("heading", { name: "Two quick things" }),
+    ).toBeVisible();
+  });
+
+  test("someone new who signs in instead is asked to finish signing up", async ({
+    page,
+  }) => {
+    await signInAsNewWorker(page);
+    await expect(
+      page.getByRole("heading", { name: "Finish signing up" }),
     ).toBeVisible();
   });
 

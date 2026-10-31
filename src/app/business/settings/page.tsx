@@ -20,8 +20,8 @@ import { currentAgreement } from "@/server/agreements";
 import { getMyBusiness } from "@/server/businesses";
 import { choosableCategories } from "@/server/notification-settings";
 
-import { AgreementForm } from "../onboarding/agreement/agreement-form";
-import { DetailsForm } from "../onboarding/details/details-form";
+import { AgreementForm } from "./agreement-form";
+import { DetailsForm } from "./details-form";
 import { savePreferences } from "./actions";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -119,7 +119,6 @@ export default async function BusinessSettingsPage() {
         </h2>
         {role === "owner" ? (
           <DetailsForm
-            context="page"
             values={{
               tradingName: business.trading_name ?? "",
               contactName: business.billing_contact_name ?? "",
@@ -210,7 +209,6 @@ export default async function BusinessSettingsPage() {
                 <AgreementForm
                   agreementId={agreement.id}
                   legalName={business.legal_name}
-                  context="page"
                 />
               ) : null}
             </>

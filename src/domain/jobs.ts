@@ -229,8 +229,14 @@ export function postingBlocker(business: {
   accountTermsApproved: boolean;
   agreementAccepted: boolean;
 }): string | null {
+  if (business.status === "pending") {
+    return "We're checking your business. You can set up shifts now and post them as soon as we've approved you. We'll email you.";
+  }
+  if (business.status === "draft") {
+    return "Confirm your business first, then you can set up a shift.";
+  }
   if (business.status !== "approved") {
-    return "You can post work once your business is approved.";
+    return "Your account is on hold, so you can't post work. Contact us to sort it out.";
   }
   if (!business.accountTermsApproved) {
     return "We're still setting up your account terms. You can post work once that's done.";
@@ -239,6 +245,21 @@ export function postingBlocker(business: {
     return "Accept the updated Labour Hire Services Agreement in Settings first.";
   }
   return null;
+}
+
+/**
+ * Whether a business can set up shifts to post later (owner, 01/11/2026):
+ * from the moment it's signed up, while we check it, so the first shift is
+ * ready to go once we approve. Posting still needs postingBlocker() clear.
+ */
+export function draftingBlocker(business: { status: string }): string | null {
+  if (business.status === "pending" || business.status === "approved") {
+    return null;
+  }
+  if (business.status === "draft") {
+    return "Confirm your business first, then you can set up a shift.";
+  }
+  return "You can't set up new work while your account is on hold.";
 }
 
 /**

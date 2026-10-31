@@ -66,7 +66,7 @@ test("the home page leads with general and skilled labour, and call-outs come la
   await expect(steps).toContainText("photo ID with a selfie");
   await expectAccessible(page);
   await steps.getByRole("link", { name: "Start your sign-up" }).click();
-  await expect(page).toHaveURL(/\/login\?as=worker$/);
+  await expect(page).toHaveURL(/\/register\/worker$/);
 
   // The footer's link for workers opens their side, from another page or
   // from this one.
@@ -81,6 +81,39 @@ test("the home page leads with general and skilled labour, and call-outs come la
   await expect(forBusinesses).toHaveAttribute("aria-selected", "true");
   await footer.getByRole("link", { name: "How it works for workers" }).click();
   await expect(forWorkers).toHaveAttribute("aria-selected", "true");
+});
+
+test("every page offers sign in, and register as a business or worker", async ({
+  page,
+}) => {
+  await page.goto("/faq");
+  const menu = page.getByRole("button", { name: "Menu" });
+  if (await menu.isVisible()) {
+    // Phones and tablets: everything is in the menu (owner, 01/11/2026).
+    await menu.click();
+    const dialog = page.getByRole("dialog", { name: "Menu" });
+    await expect(dialog.getByRole("link", { name: "Sign in" })).toBeVisible();
+    await dialog.getByRole("button", { name: "Register" }).click();
+    await expect(
+      dialog.getByRole("link", { name: /Sign up as a worker/ }),
+    ).toBeVisible();
+    await expectAccessible(page);
+    await dialog.getByRole("link", { name: /Sign up as a business/ }).click();
+  } else {
+    await page
+      .getByRole("banner")
+      .getByRole("link", { name: "Register" })
+      .click();
+    await expect(page).toHaveURL(/\/register$/);
+    await page.getByRole("link", { name: /Sign up as a business/ }).click();
+  }
+  await expect(page).toHaveURL(/\/register\/business$/);
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Create your business account",
+    }),
+  ).toBeVisible();
 });
 
 test("we're in Sydney for now, with no state-by-state pages", async ({

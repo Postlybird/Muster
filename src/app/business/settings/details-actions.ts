@@ -6,7 +6,7 @@ import { z } from "zod";
 import { failure, success, type ActionState } from "@/lib/forms";
 import { normaliseAuPhone } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
-import { finishBusinessStep, getMyBusiness } from "@/server/businesses";
+import { getMyBusiness } from "@/server/businesses";
 import { saveFailed } from "@/server/errors";
 
 const schema = z.object({
@@ -22,7 +22,6 @@ const schema = z.object({
 
 /** Billing contact and accounts email (brief §4.2 step 3). */
 export async function saveBusinessDetails(
-  context: "onboarding" | "page",
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
@@ -62,7 +61,6 @@ export async function saveBusinessDetails(
     })
     .eq("id", business.id);
   if (error) return saveFailed(error);
-  if (context === "onboarding") return finishBusinessStep(business, "details");
   revalidatePath("/business", "layout");
   return success("Details saved");
 }

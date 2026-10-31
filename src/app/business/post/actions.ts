@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { draftingBlocker } from "@/domain/jobs";
 import { failure, success, type ActionState } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -31,8 +32,25 @@ async function poster(): Promise<Poster> {
   return { ok: true, business: mine.business };
 }
 
+/**
+ * An owner or manager who can set up shifts: approved, or waiting for our
+ * approval (owner, 01/11/2026), so the first shift is ready to post.
+ */
+async function drafter(): Promise<Poster> {
+  const mine = await getMyBusiness();
+  if (!mine.business || !canManage(mine.role)) {
+    return {
+      ok: false,
+      error: failure("Only owners and managers can post work."),
+    };
+  }
+  const problem = draftingBlocker(mine.business);
+  if (problem) return { ok: false, error: failure(problem) };
+  return { ok: true, business: mine.business };
+}
+
 export async function startJob(): Promise<ActionState> {
-  const mine = await poster();
+  const mine = await drafter();
   if (!mine.ok) return mine.error;
   const supabase = await createClient();
   const { data, error } = await supabase

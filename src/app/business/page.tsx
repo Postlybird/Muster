@@ -1,4 +1,4 @@
-import { Briefcase, Check, Circle, Plus, Siren } from "lucide-react";
+import { Briefcase, Plus, Siren } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -13,8 +13,6 @@ import { PageHeader } from "@/components/page-header";
 import { WhatsNext } from "@/components/status/whats-next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { BUSINESS_STEPS } from "@/domain/business-onboarding";
 import { formatDayShort, zoneOf } from "@/lib/format";
 import { jobTitle, shiftHours } from "@/lib/job-format";
 import { businessStatuses } from "@/lib/statuses";
@@ -27,75 +25,85 @@ import {
   type BusinessRow,
 } from "@/server/businesses";
 
-import { startCallout } from "./post/actions";
+import { startCallout, startJob } from "./post/actions";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-function GetStarted() {
+/** Business sign-up is one screen (owner, 01/11/2026). */
+function GetStarted({ business }: { business: BusinessRow | null }) {
   return (
     <section
       aria-labelledby="get-started"
       className="max-w-2xl space-y-4 rounded-xl border bg-card p-5"
     >
       <h2 id="get-started" className="text-xl font-semibold">
-        Set up your business
+        {business
+          ? `Finish setting up ${businessName(business)}`
+          : "Set up your business"}
       </h2>
       <p>
-        It takes a few minutes. You&apos;ll need your ABN, the address of a site
-        you&apos;ll need workers at, and who should get invoices.
+        Confirm your business from its ABN and accept our services agreement. It
+        takes about a minute.
       </p>
-      <p className="text-sm text-muted-foreground">
-        Were you invited by your workplace? Sign in with the email address the
-        invite was sent to, and you&apos;ll join their account.
-      </p>
+      {business ? null : (
+        <p className="text-sm text-muted-foreground">
+          Were you invited by your workplace? Sign in with the email address the
+          invite was sent to, and you&apos;ll join their account.
+        </p>
+      )}
       <Button asChild size="lg">
-        <Link href="/business/onboarding/abn">Start</Link>
+        <Link href="/business/onboarding">
+          {business ? "Continue" : "Set up your business"}
+        </Link>
       </Button>
     </section>
   );
 }
 
-function SetupProgress({ business }: { business: BusinessRow }) {
-  const steps = BUSINESS_STEPS.filter((step) => step.key !== "submit");
-  const done = steps.filter((step) =>
-    business.onboarding_steps.includes(step.key),
-  ).length;
+/**
+ * While we check a business (or set up its account terms), it sets up its
+ * first shift, ready to post the moment we're done (owner, 01/11/2026).
+ */
+async function FirstShift({ businessId }: { businessId: string }) {
+  const supabase = await createClient();
+  const { data: drafts } = await supabase
+    .from("jobs")
+    .select("id, categories(name), sites(name)")
+    .eq("business_id", businessId)
+    .eq("status", "draft")
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(3);
   return (
     <section
-      aria-labelledby="setup"
-      className="max-w-2xl space-y-4 rounded-xl border bg-card p-5"
+      aria-labelledby="first-shift"
+      className="max-w-2xl space-y-3 rounded-xl border bg-card p-5"
     >
-      <div className="space-y-2">
-        <h2 id="setup" className="text-xl font-semibold">
-          Finish setting up {businessName(business)}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {done} of {steps.length} steps done
-        </p>
-        <Progress
-          value={Math.round((done / steps.length) * 100)}
-          aria-label={`${done} of ${steps.length} steps done`}
-        />
-      </div>
-      <ul className="space-y-2">
-        {steps.map((step) => {
-          const isDone = business.onboarding_steps.includes(step.key);
-          return (
-            <li key={step.key} className="flex items-center gap-3 text-sm">
-              {isDone ? (
-                <Check className="size-4 text-success" aria-hidden />
-              ) : (
-                <Circle className="size-4 text-muted-foreground" aria-hidden />
-              )}
-              {step.title}
-              <span className="sr-only">{isDone ? ": done" : ": to do"}</span>
+      <h2 id="first-shift" className="text-xl font-semibold">
+        Set up your first shift while you wait
+      </h2>
+      <p className="text-muted-foreground">
+        Add your site, the work and the times now. You can post it as soon as
+        your account is ready, and we&apos;ll email you when it is.
+      </p>
+      {(drafts ?? []).length > 0 ? (
+        <ul className="space-y-2">
+          {(drafts ?? []).map((draft) => (
+            <li key={draft.id}>
+              <Link
+                href={`/business/post/${draft.id}`}
+                className="font-medium text-primary underline underline-offset-4"
+              >
+                {jobTitle(draft.categories?.name, draft.sites?.name)}
+              </Link>
             </li>
-          );
-        })}
-      </ul>
-      <Button asChild size="lg">
-        <Link href="/business/onboarding">Continue</Link>
-      </Button>
+          ))}
+        </ul>
+      ) : null}
+      <ActionButton action={startJob} size="lg" pendingText="Starting…">
+        <Plus aria-hidden />
+        {(drafts ?? []).length > 0 ? "Set up another shift" : "Set up a shift"}
+      </ActionButton>
     </section>
   );
 }
@@ -259,17 +267,17 @@ export default async function BusinessDashboardPage({
       {submitted && business?.status === "pending" ? (
         <Alert variant="success" className="max-w-2xl">
           <AlertDescription>
-            Thanks, we&apos;ve got your details. We&apos;ll email you when your
-            account is approved.
+            You&apos;re all signed up. Our team is checking your business now,
+            and we&apos;ll email you as soon as you can post work.
           </AlertDescription>
         </Alert>
       ) : null}
 
       {!business ? (
-        <GetStarted />
+        <GetStarted business={null} />
       ) : business.status === "draft" ? (
         role === "owner" ? (
-          <SetupProgress business={business} />
+          <GetStarted business={business} />
         ) : (
           <WhatsNext
             className="max-w-2xl"
@@ -296,12 +304,15 @@ export default async function BusinessDashboardPage({
             </Alert>
           ) : null}
           {!business.account_terms_approved ? (
-            <Alert variant="info" className="max-w-2xl">
-              <AlertDescription>
-                We&apos;re still setting up your account terms. You can post
-                work once that&apos;s done.
-              </AlertDescription>
-            </Alert>
+            <>
+              <Alert variant="info" className="max-w-2xl">
+                <AlertDescription>
+                  We&apos;re still setting up your account terms. You can post
+                  work once that&apos;s done.
+                </AlertDescription>
+              </Alert>
+              {canManage(role) ? <FirstShift businessId={business.id} /> : null}
+            </>
           ) : null}
           <TimesheetsToApprove />
           {canPost && canManage(role) ? (
@@ -310,14 +321,19 @@ export default async function BusinessDashboardPage({
           <UpcomingShifts businessId={business.id} />
         </>
       ) : (
-        <WhatsNext
-          className="max-w-2xl"
-          title="Your business account"
-          status={businessStatuses[business.status]}
-          detail={
-            business.status === "suspended" ? business.status_reason : null
-          }
-        />
+        <>
+          <WhatsNext
+            className="max-w-2xl"
+            title="Your business account"
+            status={businessStatuses[business.status]}
+            detail={
+              business.status === "suspended" ? business.status_reason : null
+            }
+          />
+          {business.status === "pending" && canManage(role) ? (
+            <FirstShift businessId={business.id} />
+          ) : null}
+        </>
       )}
     </div>
   );

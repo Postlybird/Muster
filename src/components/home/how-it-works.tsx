@@ -225,7 +225,7 @@ export function HowItWorks({ autoApproveHours }: { autoApproveHours: number }) {
         />
         <div className="flex justify-center">
           <Button asChild size="lg">
-            <Link href="/login?as=business">Post your first shift</Link>
+            <Link href="/register/business">Post your first shift</Link>
           </Button>
         </div>
       </TabsContent>
@@ -233,7 +233,7 @@ export function HowItWorks({ autoApproveHours }: { autoApproveHours: number }) {
         <StepTabs steps={WORKER_STEPS} label="Steps for workers" />
         <div className="flex justify-center">
           <Button asChild size="lg">
-            <Link href="/login?as=worker">Start your sign-up</Link>
+            <Link href="/register/worker">Start your sign-up</Link>
           </Button>
         </div>
       </TabsContent>

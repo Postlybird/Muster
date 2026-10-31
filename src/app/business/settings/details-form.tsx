@@ -5,9 +5,8 @@ import { FormField } from "@/components/forms/form-field";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { useServerForm } from "@/components/forms/use-server-form";
 import { Input } from "@/components/ui/input";
-import { WizardActions } from "@/components/wizard/wizard-actions";
 
-import { saveBusinessDetails } from "./actions";
+import { saveBusinessDetails } from "./details-actions";
 
 export type DetailsValues = {
   tradingName: string;
@@ -16,19 +15,13 @@ export type DetailsValues = {
   accountsEmail: string;
 };
 
-export function DetailsForm({
-  context,
-  values,
-}: {
-  context: "onboarding" | "page";
-  values: DetailsValues;
-}) {
+export function DetailsForm({ values }: { values: DetailsValues }) {
   const {
     state,
     onSubmit,
     pending,
     fieldErrors: errors,
-  } = useServerForm(saveBusinessDetails.bind(null, context));
+  } = useServerForm(saveBusinessDetails);
 
   return (
     <form onSubmit={onSubmit} noValidate className="max-w-xl space-y-5">
@@ -96,11 +89,7 @@ export function DetailsForm({
         )}
       </FormField>
       <ActionFeedback state={state} />
-      {context === "onboarding" ? (
-        <WizardActions pending={pending} backHref="/business/onboarding/abn" />
-      ) : (
-        <SubmitButton pending={pending}>Save details</SubmitButton>
-      )}
+      <SubmitButton pending={pending}>Save details</SubmitButton>
     </form>
   );
 }

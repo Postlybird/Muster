@@ -688,6 +688,19 @@ export const TEMPLATES = {
     title: "Safety issue at {{site}} ({{business}})",
     body: "{{worker}} reported a safety issue on {{work}} at {{site}}:\n\n{{description}}\n\nIt's flagged for admins in the app.",
   }),
+  admin_business_submitted: define({
+    audience: "admin",
+    category: "checks",
+    label: "Business waiting for approval",
+    when: "A business finishes signing up (to every admin).",
+    values: {
+      business: "Harbour Restoration",
+      abn: "51 824 753 556",
+      owner: "Jordan Lee",
+    },
+    title: "New business to approve: {{business}}",
+    body: "{{owner}} has signed up {{business}} (ABN {{abn}}). They can set up their first shift while they wait. Check and approve them: {{link}}",
+  }),
   admin_callout_unfilled: define({
     audience: "admin",
     category: "bookings",

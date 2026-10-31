@@ -87,11 +87,12 @@ export async function signInWithEmailCode(
   await expect(page).toHaveURL(home);
 }
 
-/** On the code step: types the code just emailed to `email`, then signs in. */
+/** On the code step: types the code just emailed to `email`, then goes on. */
 export async function enterEmailedCode(
   page: Page,
   email: string,
   sentAfter: Date,
+  submitLabel = "Sign in",
 ) {
   // The code step, or the reason there isn't one.
   const codeStep = page.getByRole("heading", { name: "Check your email" });
@@ -103,7 +104,71 @@ export async function enterEmailedCode(
   await page
     .getByLabel("6-digit code")
     .fill(await readCodeFromOutbox(page, email, { sentAfter }));
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: submitLabel }).click();
+}
+
+/**
+ * Registers through the register form (owner, 01/11/2026): name and email,
+ * plus a mobile and ABN for a business, then the emailed code.
+ */
+export async function registerAs(
+  page: Page,
+  kind: "worker" | "business",
+  fields: {
+    first: string;
+    last: string;
+    email: string;
+    mobile?: string;
+    abn?: string;
+  },
+) {
+  await page.context().clearCookies();
+  await page.goto(`/register/${kind}`);
+  await page.getByLabel("First name").fill(fields.first);
+  await page.getByLabel("Last name").fill(fields.last);
+  await page
+    .getByLabel(kind === "business" ? "Work email" : "Email address")
+    .fill(fields.email);
+  if (kind === "business") {
+    await page
+      .getByLabel("Mobile number")
+      .fill(fields.mobile ?? "0491 570 110");
+    await page.getByLabel("ABN").fill(fields.abn ?? randomAbn());
+  }
+  const sentAfter = new Date();
+  await page.getByRole("button", { name: "Email me a code" }).click();
+  await enterEmailedCode(page, fields.email, sentAfter, "Continue");
+}
+
+/**
+ * A worker's quick sign-up after the emailed code: confirms a new mobile,
+ * then the suburb and one type of work. Lands on their home screen.
+ */
+export async function quickSignUp(
+  page: Page,
+  {
+    suburb = ["Parra", "Parramatta NSW 2150"],
+    industry = "Restoration",
+    workType = "Restoration labourer",
+  }: { suburb?: [string, string]; industry?: string; workType?: string } = {},
+) {
+  await expect(page).toHaveURL(/\/worker\/onboarding\/start$/);
+  const mobile = randomMobile();
+  await page.getByLabel("Mobile number").fill(mobile.local);
+  const sentAfter = new Date();
+  await page.getByRole("button", { name: "Text me a code" }).click();
+  await page
+    .getByLabel("6-digit code")
+    .fill(await readCodeFromOutbox(page, mobile.e164, { sentAfter }));
+  await page.getByRole("button", { name: "Confirm" }).click();
+  await expect(page.getByText(/^Mobile confirmed/)).toBeVisible();
+  await page.getByRole("combobox", { name: "Your suburb" }).fill(suburb[0]);
+  await page.getByRole("option", { name: suburb[1] }).click();
+  await page.getByRole("button", { name: new RegExp(`^${industry}`) }).click();
+  await page.getByLabel(workType, { exact: true }).check();
+  await page.getByRole("button", { name: "Show me shifts near me" }).click();
+  await expect(page).toHaveURL(/\/worker\?welcome=1$/);
+  return mobile;
 }
 
 /** Signs up a brand-new worker with an email code. Returns their email. */

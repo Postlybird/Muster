@@ -139,13 +139,20 @@ export async function approveBusiness(
   const name = businessName(business);
   // Declined businesses are on hold too, but have never been approved.
   const wasOnHold = business.status === "suspended" && !!business.approved_at;
+  // A shift set up while we checked them is waiting to be posted.
+  const { count: drafts } = await supabase
+    .from("jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("business_id", businessId)
+    .eq("status", "draft")
+    .is("archived_at", null);
   await notifyBusinessOwners(
     wasOnHold ? "business_off_hold" : "business_approved",
     businessId,
     {
       business: name,
       next: terms.account_terms_approved
-        ? `You can post work now: ${await postWorkLink()}\n\nWe invoice weekly. Invoices are due ${terms.payment_terms_days} days after issue.`
+        ? `${drafts ? "Your shift is ready to post" : "You can post work now"}: ${await postWorkLink()}\n\nWe invoice weekly. Invoices are due ${terms.payment_terms_days} days after issue.`
         : "Before you can post work we need to set up your account terms. We'll be in touch.",
     },
   );

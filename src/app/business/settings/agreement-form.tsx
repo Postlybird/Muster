@@ -7,23 +7,20 @@ import { SubmitButton } from "@/components/forms/submit-button";
 import { useServerForm } from "@/components/forms/use-server-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { WizardActions } from "@/components/wizard/wizard-actions";
 import type { ActionState } from "@/lib/forms";
 
-import { acceptServicesAgreement } from "./actions";
+import { acceptServicesAgreement } from "./agreement-actions";
 
 export function AgreementForm({
   agreementId,
   legalName,
-  context = "onboarding",
 }: {
   agreementId: string;
   legalName: string;
-  context?: "onboarding" | "page";
 }) {
   // Toast as soon as the save returns: on Settings the form disappears once
   // the agreement is accepted, so it can't show the message itself.
-  const accept = acceptServicesAgreement.bind(null, agreementId, context);
+  const accept = acceptServicesAgreement.bind(null, agreementId);
   const {
     state,
     onSubmit,
@@ -57,15 +54,7 @@ export function AgreementForm({
         ) : null}
       </div>
       <ActionFeedback state={state} successToast={false} />
-      {context === "onboarding" ? (
-        <WizardActions
-          pending={pending}
-          primaryLabel="Accept and continue"
-          backHref="/business/onboarding/team"
-        />
-      ) : (
-        <SubmitButton pending={pending}>Accept</SubmitButton>
-      )}
+      <SubmitButton pending={pending}>Accept</SubmitButton>
     </form>
   );
 }

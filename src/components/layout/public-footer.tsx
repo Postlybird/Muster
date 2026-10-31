@@ -10,7 +10,7 @@ const columns = [
   {
     title: "Businesses",
     links: [
-      { href: "/login?as=business", label: "Hire staff" },
+      { href: "/register/business", label: "Hire staff" },
       { href: "/#how-it-works", label: "How it works for businesses" },
       { href: "/#call-outs", label: "Call-outs" },
     ],
@@ -18,7 +18,7 @@ const columns = [
   {
     title: "Workers",
     links: [
-      { href: "/login?as=worker", label: "Find work" },
+      { href: "/register/worker", label: "Find work" },
       { href: "/#how-it-works-workers", label: "How it works for workers" },
     ],
   },

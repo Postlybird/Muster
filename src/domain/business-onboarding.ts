@@ -1,45 +1,26 @@
 /**
- * Business onboarding (brief §4.2): the wizard steps and what's missing
- * before a business can be submitted for approval.
+ * Business sign-up (brief §4.2; owner, 01/11/2026): the owner confirms the
+ * business from its ABN, we fill in the billing contact from their details,
+ * and they accept the services agreement. Then it's submitted for our
+ * approval. Sites are added while setting up the first shift.
  */
 
 export const BUSINESS_STEPS = [
-  { key: "abn", title: "Your ABN" },
+  { key: "abn", title: "Your business" },
   { key: "details", title: "Billing contact" },
-  { key: "sites", title: "Sites" },
-  { key: "team", title: "Your team", optional: true },
   { key: "agreement", title: "Services agreement" },
-  { key: "submit", title: "Check and submit" },
 ] as const;
 
 export type BusinessStepKey = (typeof BUSINESS_STEPS)[number]["key"];
-
-const KEYS: BusinessStepKey[] = BUSINESS_STEPS.map((step) => step.key);
-
-export function nextBusinessStep(key: BusinessStepKey): BusinessStepKey {
-  return KEYS[KEYS.indexOf(key) + 1] ?? "submit";
-}
-
-export function previousBusinessStep(
-  key: BusinessStepKey,
-): BusinessStepKey | null {
-  return KEYS[KEYS.indexOf(key) - 1] ?? null;
-}
-
-export function resumeBusinessStep(done: readonly string[]): BusinessStepKey {
-  return (
-    KEYS.find((key) => key !== "submit" && !done.includes(key)) ?? "submit"
-  );
-}
 
 export type BusinessSnapshot = {
   abnActive: boolean;
   billingContactName: string | null;
   accountsEmail: string | null;
-  siteCount: number;
   agreementAccepted: boolean;
 };
 
+/** What's still missing before a business can be submitted. */
 export function missingBusinessSteps(
   snapshot: BusinessSnapshot,
 ): BusinessStepKey[] {
@@ -48,7 +29,6 @@ export function missingBusinessSteps(
   if (!snapshot.billingContactName || !snapshot.accountsEmail) {
     missing.push("details");
   }
-  if (snapshot.siteCount === 0) missing.push("sites");
   if (!snapshot.agreementAccepted) missing.push("agreement");
   return missing;
 }
