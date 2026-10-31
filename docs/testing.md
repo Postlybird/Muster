@@ -18,9 +18,9 @@ Every push to GitHub runs the checks in `.github/workflows/ci.yml`:
 | Flow                        | Browser tests                                                                                                                                                                        |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Moving between pages        | `navigation` (the loading bar while the next page loads)                                                                                                                 |
-| Signing in                  | `auth` (emailed codes only, the email link, wrong codes, who can open what), `demo`, `admin-mfa`                                                                                     |
-| 4.1 Worker onboarding       | `worker-onboarding` (sign-up to submitted, the collection notice, rejected checks, profile and availability), `admin-verification` (checks, activation, rejections, VEVO)            |
-| 4.2 Business onboarding     | `business-onboarding` (ABN lookup to submitted, duplicate ABNs), `admin-businesses` (approval, account terms, cancelled ABNs), `business-account` (sites, team and roles, agreement) |
+| Signing in and registering  | `auth` (registering from the home page, emailed codes only, the email link, wrong codes, who can open what), `public` (the phone menu's Sign in and Register), `demo`, `admin-mfa` |
+| 4.1 Worker onboarding       | `worker-onboarding` (registering, the quick sign-up, shifts near them before they're checked, getting ready to work through to submitted, rejected checks, profile and availability), `admin-verification` (checks, activation, rejections, VEVO) |
+| 4.2 Business onboarding     | `business-onboarding` (registering to submitted on one screen, the alert to our team, the first shift and site while we check them, ABNs we can't use), `admin-businesses` (approval, account terms, cancelled ABNs), `business-account` (sites, team and roles, agreement) |
 | 4.3 Posting work            | `post-work` (cost before posting, posting again from the dashboard, templates, favourites' head start, urgent call-outs, who can post), `callouts` (making open work a call-out, accepting from the text, the 20-minute alert), `state-tickets` (each state's own RSA for workers and for work)                                               |
 | 4.4 Filling work            | `find-shifts` (what workers see, without the address), `bookings` (picking applicants, notes with applications, first in), `reminders`                                                                        |
 | 4.5 Cancellations, no-shows | `cancellations` (worker and business cancellations, holds after no-shows)                                                                                                            |
@@ -39,11 +39,13 @@ businesses, fill 20 shifts end to end, and produce the payroll export and
 invoices without editing the database by hand". `e2e/acceptance/` does
 exactly that, the way people would in the app:
 
-1. Three business owners sign up, look up their ABN, add a site, accept the
-   agreement and submit. An admin approves each one.
-2. Ten workers sign up with their email, confirm their mobile number and go
-   through the whole wizard. An admin checks each one's photo, right to work, ID and tickets,
-   records their payroll setup and activates them.
+1. Three business owners register with their ABN, confirm the business and
+   accept the agreement on one screen, then add their site. An admin approves
+   each one.
+2. Ten workers register with their email, do the quick sign-up (mobile,
+   suburb and work), then get ready to work: photo, ID, right to work,
+   tickets and paperwork. An admin checks each one's photo, right to work, ID
+   and tickets, records their payroll setup and activates them.
 3. The businesses post 20 shifts over six jobs for the week after next,
    some "first in" and some "I'll choose".
 4. Workers accept or apply; the owners choose from the applicants. Every
