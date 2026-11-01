@@ -1,6 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { formatDayShort, formatTime } from "../src/lib/format";
+import {
+  formatDayShort,
+  formatTime,
+  fromSydneyTime,
+  sydneyDateKey,
+} from "../src/lib/format";
 import {
   bookTestWorker,
   expectAccessible,
@@ -90,6 +95,86 @@ async function timesheetFor(assignmentId: string) {
     .maybeSingle();
   return data;
 }
+
+/** A Wednesday (yyyy-mm-dd, Sydney) two to three weeks ago, before any recent pay run. */
+function aWednesdayAgo(): string {
+  const date = new Date(`${sydneyDateKey(new Date())}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - 14);
+  while (date.getUTCDay() !== 3) date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
+}
+
+test("a worker sees how their pay adds up, overtime included", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  // A long Wednesday for a commercial cleaner: 7 am to 5:30 pm with a
+  // 30-minute break is 10 hours, so under the cleaning award 7.6 are at the
+  // ordinary rate, 2 at the overtime rate and 0.4 at the later one.
+  const job = await postTestJob({
+    business: "Westside Cleaning",
+    site: "Blacktown office tower",
+    category: "Commercial cleaner",
+    fillMode: "auto",
+  });
+  posted.push(job.jobId);
+  const { workerId } = await bookTestWorker(job.shiftId, "Hannah Schmidt");
+  const day = aWednesdayAgo();
+  const start = fromSydneyTime(day, "07:00").toISOString();
+  const end = fromSydneyTime(day, "17:30").toISOString();
+  const service = serviceClient();
+  await service
+    .from("shifts")
+    .update({ starts_at: start, ends_at: end, break_minutes: 30 })
+    .eq("id", job.shiftId);
+  const { data: booking } = await service
+    .from("assignments")
+    .select("id")
+    .eq("shift_id", job.shiftId)
+    .eq("worker_id", workerId)
+    .single();
+  const { error } = await service.from("attendance_events").insert(
+    [
+      { kind: "clock_in", occurred_at: start },
+      { kind: "clock_out", occurred_at: end },
+    ].map((event) => ({
+      ...event,
+      assignment_id: booking!.id,
+      inside_geofence: true,
+      distance_m: 0,
+    })),
+  );
+  expect(error).toBeNull();
+  const sheet = await timesheetFor(booking!.id);
+
+  // The business approves the hours, which works out the pay.
+  await signInAsDemo(page, "Sofia Rossi");
+  await page.goto(`/business/timesheets/${sheet!.id}`);
+  await page.getByRole("button", { name: "Approve these hours" }).click();
+  await expect(page.getByText("Hours approved")).toBeVisible();
+
+  // The worker sees the hours at each rate, with the overtime.
+  await page.context().clearCookies();
+  await signInAsDemo(page, "Hannah Schmidt");
+  await page.goto(`/worker/timesheets/${sheet!.id}`);
+  const items = page
+    .getByRole("list")
+    .filter({ hasText: "Ordinary hours" })
+    .getByRole("listitem");
+  await expect(items).toHaveCount(3);
+  for (const [index, name, hours, pay] of [
+    [0, "Ordinary hours", "7.6 h at $34.35 an hour", "$261.06"],
+    [1, "Overtime", "2 h at $48.09 an hour", "$96.18"],
+    [2, "Overtime, later hours", "0.4 h at $61.83 an hour", "$24.73"],
+  ] as const) {
+    await expect(
+      items.nth(index).getByText(name, { exact: true }),
+    ).toBeVisible();
+    await expect(items.nth(index)).toContainText(hours);
+    await expect(items.nth(index)).toContainText(pay);
+  }
+  await expectAccessible(page);
+});
 
 test("the business approves workers' hours in one go", async ({ page }) => {
   test.setTimeout(90_000);

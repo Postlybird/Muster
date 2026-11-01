@@ -6,6 +6,10 @@ import { notFound } from "next/navigation";
 import { RatingForm } from "@/components/ratings/rating-form";
 import { WhatsNext } from "@/components/status/whats-next";
 import { NoteForm } from "@/components/timesheets/note-form";
+import {
+  PayBreakdown,
+  type PayLine,
+} from "@/components/timesheets/pay-breakdown";
 import { TimesheetDetails } from "@/components/timesheets/timesheet-details";
 import { SITE_TAGS } from "@/domain/ratings";
 import { isPayable } from "@/domain/timesheets";
@@ -52,6 +56,11 @@ export default async function WorkerTimesheetPage({
         .eq("direction", "site")
         .maybeSingle()
     : { data: null };
+  // How the pay adds up, overtime included, once it's worked out.
+  const { data: payLines } =
+    sheet.pay_cents === null
+      ? { data: null }
+      : await supabase.rpc("my_timesheet_pay", { p_id: id });
   const status = workerTimesheetStatuses[sheet.status];
   const siteZone = zoneOf(sheet.state);
   const canQuery =
@@ -99,6 +108,9 @@ export default async function WorkerTimesheetPage({
           audience="worker"
           money={{ label: "Your pay (before tax)", cents: sheet.pay_cents }}
         />
+        {payLines && payLines.length > 0 ? (
+          <PayBreakdown lines={payLines as PayLine[]} />
+        ) : null}
       </section>
 
       {sheet.status === "submitted" || sheet.status === "disputed" ? (

@@ -3970,6 +3970,16 @@ export type Database = {
           suburb: string;
         }[];
       };
+      my_timesheet_pay: {
+        Args: { p_id: string };
+        Returns: {
+          kind: string;
+          minutes: number;
+          pay_cents: number;
+          rate_cents: number;
+          rate_type: string;
+        }[];
+      };
       my_timesheets: {
         Args: { p_id?: string };
         Returns: {
