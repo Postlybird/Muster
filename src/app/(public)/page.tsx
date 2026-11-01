@@ -12,6 +12,7 @@ import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { brand } from "@/config/brand";
 import { listIndustries } from "@/server/industries";
+import { standardWeekdayPay } from "@/server/pricing";
 import { getAllSettings } from "@/server/settings";
 
 const HERO_POINTS = [
@@ -86,9 +87,10 @@ function SectionHeading({
 }
 
 export default async function HomePage() {
-  const [industries, settings] = await Promise.all([
+  const [industries, settings, labourerPay] = await Promise.all([
     listIndustries(),
     getAllSettings(),
+    standardWeekdayPay("restoration_labourer"),
   ]);
   const payPct = settings.urgent_loading_pct.pay;
 
@@ -252,7 +254,7 @@ export default async function HomePage() {
               )}
             </ol>
           </div>
-          <CalloutPhone payPct={payPct} />
+          <CalloutPhone payPct={payPct} hourlyCents={labourerPay} />
         </Container>
       </section>
 

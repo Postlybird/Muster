@@ -7,18 +7,23 @@ test.describe("admin rates", () => {
     await signInAsDemo(page, "Alex Morgan");
   });
 
-  test("lists the placeholder rate cards with hourly pay for each day type", async ({
+  test("lists the rate cards with hourly pay and the award's rules", async ({
     page,
   }) => {
     await page.goto("/admin/rates");
     await expect(page).toHaveURL(/\/admin\/rates\/rate-cards$/);
+    // Other work types still have placeholder rates.
     await expect(
       page.getByText(/haven't been checked by a payroll professional/),
     ).toBeVisible();
-    // Restoration labourer placeholder: $26.50 base × 1.25 = $33.13 ordinary.
-    const row = page.getByRole("row", { name: /Restoration labourer/ });
-    await expect(row).toContainText("$26.50");
-    await expect(row).toContainText("$33.13");
+    const rows = page.getByRole("row", { name: /Restoration labourer/ });
+    // The accountant-checked card: $27.48 base × 1.25 = $34.35 ordinary.
+    const current = rows.filter({ hasText: "$27.48" });
+    await expect(current).toContainText("$34.35");
+    await expect(current).toContainText("Overtime after 7.6 h a day");
+    await expect(current).toContainText("Owner's accountant");
+    // The placeholder card it replaced.
+    await expect(rows.filter({ hasText: "$26.50" })).toContainText("Replaced");
     await expectAccessible(page);
   });
 
@@ -49,6 +54,39 @@ test.describe("admin rates", () => {
     await page.getByRole("button", { name: "Add rate card" }).click();
     await expect(
       page.getByText("There's already a rate card for this category and level"),
+    ).toBeVisible();
+  });
+
+  test("shows a card's award rules and checks each rule is complete", async ({
+    page,
+  }) => {
+    await page.goto("/admin/rates/rate-cards");
+    await page
+      .getByRole("row", { name: /General labourer/ })
+      .filter({ hasText: "$28.84" })
+      .getByRole("link", { name: "General labourer" })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "General labourer, level 1" }),
+    ).toBeVisible();
+    // The building award: overtime after 8 hours, ordinary hours 7 am to
+    // 6 pm, and Saturday's later rate from noon.
+    await expect(
+      page.getByLabel("Overtime starts after (hours a day)"),
+    ).toHaveValue("8");
+    await expect(page.getByLabel("Ordinary hours from")).toHaveValue("07:00");
+    await expect(page.getByLabel("Ordinary hours to")).toHaveValue("18:00");
+    await expect(page.getByLabel("Later Saturday rate from")).toHaveValue(
+      "12:00",
+    );
+    await expect(page.getByText("$64.89 an hour").first()).toBeVisible();
+    await expectAccessible(page);
+
+    // A shift loading needs the times it applies to; nothing is saved.
+    await page.getByLabel("Early or late shift multiplier").fill("1.5");
+    await page.getByRole("button", { name: "Save changes" }).click();
+    await expect(
+      page.getByText("Enter when a shift counts as early or late"),
     ).toBeVisible();
   });
 

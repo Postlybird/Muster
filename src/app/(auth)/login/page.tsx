@@ -8,9 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { brand } from "@/config/brand";
 import { getSessionUser } from "@/lib/auth";
 import { isDemoMode } from "@/lib/env";
+import { formatCents } from "@/lib/format";
 import { safeNextPath } from "@/lib/redirects";
 import { roleHome } from "@/lib/roles";
 import { listDemoUsers } from "@/server/demo";
+import { standardWeekdayPay } from "@/server/pricing";
 
 import { DemoSignIn } from "./demo-sign-in";
 import { LoginForm } from "./login-form";
@@ -35,8 +37,11 @@ const copy = {
   },
 };
 
-/** What a worker sees: a shift offered to them. The details are illustrative. */
-function ShiftOffer() {
+/**
+ * What a worker sees: a shift offered to them. The details are illustrative;
+ * the pay is a restoration labourer's current rate (`hourlyCents`).
+ */
+function ShiftOffer({ hourlyCents }: { hourlyCents: number | null }) {
   return (
     <figure
       aria-labelledby="shift-offer-caption"
@@ -52,13 +57,15 @@ function ShiftOffer() {
         <p className="mt-1 text-muted-foreground">
           Granville · Tue 7:00 am to 3:30 pm
         </p>
-        <p className="mt-4 text-3xl font-extrabold text-deep">
-          $33.13
-          <span className="text-base font-medium text-muted-foreground">
-            {" "}
-            an hour, paid weekly
-          </span>
-        </p>
+        {hourlyCents === null ? null : (
+          <p className="mt-4 text-3xl font-extrabold text-deep">
+            {formatCents(hourlyCents)}
+            <span className="text-base font-medium text-muted-foreground">
+              {" "}
+              an hour, paid weekly
+            </span>
+          </p>
+        )}
         <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="What you need">
           <li>
             <Badge variant="neutral">White Card</Badge>
@@ -95,7 +102,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     redirect(safeNextPath(next, roleHome[user.role]));
   }
 
-  const demoUsers = isDemoMode() ? await listDemoUsers() : null;
+  const [demoUsers, labourerPay] = await Promise.all([
+    isDemoMode() ? listDemoUsers() : null,
+    as === "worker" ? standardWeekdayPay("restoration_labourer") : null,
+  ]);
   const text = copy[as ?? "default"];
   const withNext = (role: "worker" | "business") =>
     `/login?as=${role}${next ? `&next=${encodeURIComponent(next)}` : ""}`;
@@ -195,7 +205,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       {/* Stays beside the form, even when demo accounts make it long. */}
       {as === "worker" ? (
         <div className="hidden rounded-[2rem] bg-primary-soft p-10 lg:sticky lg:top-[calc(var(--banner-h)+3rem)] lg:block xl:p-14">
-          <ShiftOffer />
+          <ShiftOffer hourlyCents={labourerPay} />
         </div>
       ) : (
         <HeroVisual className="hidden lg:sticky lg:top-[calc(var(--banner-h)+3rem)] lg:block" />

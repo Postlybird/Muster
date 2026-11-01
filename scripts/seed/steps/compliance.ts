@@ -2,12 +2,18 @@ import { check, type SeedClient } from "../client";
 import { AGREEMENT_VERSION, AGREEMENTS } from "../data/agreements";
 import { JURISDICTIONS } from "../data/compliance";
 import {
+  AWARD_RATE_CARDS,
+  AWARD_RATE_CARDS_CHECKED,
+  AWARD_RATE_CARDS_EFFECTIVE_FROM,
   DEFAULT_BASE_RATES_CENTS,
   NSW_PUBLIC_HOLIDAYS,
   RATE_CARDS_EFFECTIVE_FROM,
 } from "../data/rates";
 
-/** Jurisdictions, public holidays, draft agreements and default rate cards. */
+/**
+ * Jurisdictions, public holidays, draft agreements, default rate cards and
+ * the launch work types' award rate cards.
+ */
 export async function seedCompliance(client: SeedClient) {
   const jurisdictions = check(
     await client
@@ -109,10 +115,52 @@ export async function seedCompliance(client: SeedClient) {
     check(await client.from("rate_cards").insert(newCards), "rate cards");
   }
 
+  // The launch work types' award rate cards (owner, 01/11/2026), once each.
+  // A standard card already starting that day, even an archived one, is an
+  // admin's to keep, so it's never replaced or added again.
+  const starting = check(
+    await client
+      .from("rate_cards")
+      .select("category_id, level")
+      .is("business_id", null)
+      .eq("effective_from", AWARD_RATE_CARDS_EFFECTIVE_FROM),
+    "award rate cards",
+  );
+  const startingKeys = new Set(
+    (starting ?? []).map((card) => `${card.category_id}|${card.level}`),
+  );
+  const categoryIds = new Map(categories.map((c) => [c.code, c.id]));
+  const awardCards = AWARD_RATE_CARDS.flatMap((card) =>
+    card.codes.flatMap((code) => {
+      const categoryId = categoryIds.get(code);
+      if (!categoryId || startingKeys.has(`${categoryId}|${card.level}`)) {
+        return [];
+      }
+      return [
+        {
+          category_id: categoryId,
+          level: card.level,
+          base_rate_cents: card.baseRateCents,
+          ...card.columns,
+          effective_from: AWARD_RATE_CARDS_EFFECTIVE_FROM,
+          checked_by: AWARD_RATE_CARDS_CHECKED.by,
+          checked_on: AWARD_RATE_CARDS_CHECKED.on,
+          notes: card.notes,
+        },
+      ];
+    }),
+  );
+  if (awardCards.length > 0) {
+    check(
+      await client.from("rate_cards").insert(awardCards),
+      "award rate cards",
+    );
+  }
+
   return {
     jurisdictions: jurisdictions?.length ?? 0,
     publicHolidays: holidays?.length ?? 0,
     agreements: missingAgreements.length,
-    rateCards: newCards.length,
+    rateCards: newCards.length + awardCards.length,
   };
 }

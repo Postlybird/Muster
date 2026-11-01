@@ -17,7 +17,9 @@ import {
   PPE_ITEMS,
 } from "./catalogues";
 import { ADMINS, BUSINESSES, WORKERS } from "./people";
-import { DEFAULT_BASE_RATES_CENTS } from "./rates";
+import { hourlyPayTable, rateCardFromRow } from "@/domain/rates";
+
+import { AWARD_RATE_CARDS, DEFAULT_BASE_RATES_CENTS } from "./rates";
 
 const credentialCodes = new Set(CREDENTIAL_TYPES.map((c) => c.code));
 const categoryCodes = new Set(CATEGORIES.map((c) => c.code));
@@ -168,6 +170,90 @@ describe("seed people", () => {
       expect(new Date(worker.dateOfBirth).getTime()).toBeLessThan(
         new Date("2008-01-01").getTime(),
       );
+    }
+  });
+});
+
+describe("launch award rate cards", () => {
+  /** The rates the owner's accountant checked (01/11/2026), in cents an hour. */
+  const approved: Record<string, Record<string, number>> = {
+    restoration_labourer: {
+      ordinary: 3435,
+      saturday: 4809,
+      sunday: 6183,
+      public_holiday: 7557,
+      overtime: 4809,
+      overtime_after: 6183,
+      early_late: 3847,
+      night_shift: 4259,
+    },
+    restoration_technician: {
+      ordinary: 3546,
+      saturday: 4965,
+      sunday: 6383,
+      public_holiday: 7802,
+      overtime: 4965,
+      overtime_after: 6383,
+      early_late: 3972,
+      night_shift: 4397,
+    },
+    general_labourer: {
+      ordinary: 3605,
+      saturday: 5047,
+      saturday_after: 6489,
+      sunday: 6489,
+      public_holiday: 7931,
+      overtime: 5047,
+      overtime_after: 6489,
+    },
+    removalist_offsider: {
+      ordinary: 3409,
+      saturday: 4772,
+      sunday: 6136,
+      public_holiday: 7499,
+      overtime: 4363,
+      overtime_after: 5727,
+    },
+  };
+
+  it("cover the nine launch work types once each", () => {
+    const codes = AWARD_RATE_CARDS.flatMap((card) => card.codes);
+    expect(new Set(codes).size).toBe(codes.length);
+    expect(codes).toHaveLength(9);
+    for (const code of codes) expect(categoryCodes).toContain(code);
+  });
+
+  it("pay the rates the accountant checked", () => {
+    for (const [code, rates] of Object.entries(approved)) {
+      const card = AWARD_RATE_CARDS.find((c) => c.codes.includes(code))!;
+      const table = hourlyPayTable(
+        rateCardFromRow({
+          base_rate_cents: card.baseRateCents,
+          ...card.columns,
+        }),
+      );
+      for (const [type, cents] of Object.entries(rates)) {
+        expect([code, type, table[type as keyof typeof table]]).toEqual([
+          code,
+          type,
+          cents,
+        ]);
+      }
+    }
+  });
+
+  it("give every rule the settings it needs", () => {
+    for (const { columns } of AWARD_RATE_CARDS) {
+      expect(columns.ordinary_from === null).toBe(columns.ordinary_to === null);
+      expect(columns.early_late_multiplier === null).toBe(
+        columns.early_late_starts_before === null &&
+          columns.early_late_finishes_after === null,
+      );
+      expect(columns.night_shift_multiplier === null).toBe(
+        columns.night_shift_finishes_by === null,
+      );
+      // The night hours setting adds nothing to an award card.
+      expect(columns.night_multiplier).toBe(columns.ordinary_multiplier);
     }
   });
 });

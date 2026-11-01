@@ -35,17 +35,26 @@ export function calloutSteps(alertMinutes: number): Step[] {
   ];
 }
 
-/** Four weekday hours at the demo rate for a restoration labourer ($33.13). */
-const EXAMPLE_HOURS_PAY_CENTS = 13_252;
+/** The call-out in the picture: four weekday hours. */
+const EXAMPLE_HOURS = 4;
 
 /**
  * A phone showing a call-out text, worded as the real message is, and the
- * booking that follows. The details are illustrative (the footer says so).
+ * booking that follows. The details are illustrative (the footer says so);
+ * the pay follows a restoration labourer's current rate (`hourlyCents`) and
+ * the call-out loading.
  */
-export function CalloutPhone({ payPct }: { payPct: number }) {
-  const dollars = Math.round(
-    (EXAMPLE_HOURS_PAY_CENTS * (100 + payPct)) / 10_000,
-  );
+export function CalloutPhone({
+  payPct,
+  hourlyCents,
+}: {
+  payPct: number;
+  hourlyCents: number | null;
+}) {
+  const dollars =
+    hourlyCents === null
+      ? null
+      : Math.round((hourlyCents * EXAMPLE_HOURS * (100 + payPct)) / 10_000);
   return (
     <figure
       aria-labelledby="callout-phone-caption"
@@ -58,7 +67,10 @@ export function CalloutPhone({ payPct }: { payPct: number }) {
         </p>
         <p className="mt-2 rounded-2xl rounded-tl-sm bg-card p-3 text-sm shadow-xs">
           Urgent work: Restoration labourer in Granville, today from 2:00 pm.
-          About ${dollars} with the call-out rate. First in gets it:{" "}
+          {dollars === null
+            ? ""
+            : ` About $${dollars} with the call-out rate.`}{" "}
+          First in gets it:{" "}
           <span className="text-primary underline">open the shift</span>
         </p>
         <div className="mt-4 rounded-2xl bg-card p-3 shadow-xs">
