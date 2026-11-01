@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 import { brand } from "@/config/brand";
-import { logo } from "@/config/logo";
+import { wordmark } from "@/config/logo";
 
 /** The picture shown when someone shares a link to the site. */
 export const alt = `${brand.name}: ${brand.tagline}`;
@@ -18,6 +18,11 @@ const fonts = Promise.all(
     readFile(join(process.cwd(), "src/app/fonts", file)),
   ),
 );
+
+/** The logo, as on the site: the wordmark (owner, 01/11/2026). */
+const WORDMARK_HEIGHT = 88;
+const [, , viewWidth, viewHeight] = wordmark.viewBox.split(" ").map(Number);
+const wordmarkWidth = Math.round((WORDMARK_HEIGHT * viewWidth!) / viewHeight!);
 
 export default async function OpenGraphImage() {
   const [medium, extraBold] = await fonts;
@@ -35,31 +40,19 @@ export default async function OpenGraphImage() {
         fontFamily: "Figtree",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-        <svg width={96} height={96} viewBox={logo.viewBox}>
-          <rect
-            width="32"
-            height="32"
-            rx={logo.radius}
-            fill={brand.colours.primary}
-          />
-          <path
-            d={logo.letter}
-            fill="none"
-            stroke={brand.colours.primaryForeground}
-            strokeWidth={logo.strokeWidth}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle
-            cx={logo.dot.cx}
-            cy={logo.dot.cy}
-            r={logo.dot.r}
-            fill={brand.colours.accent}
-          />
-        </svg>
-        <div style={{ fontSize: 60, fontWeight: 800 }}>{brand.name}</div>
-      </div>
+      <svg
+        width={wordmarkWidth}
+        height={WORDMARK_HEIGHT}
+        viewBox={wordmark.viewBox}
+      >
+        <path d={wordmark.letters} fill="#123a6e" />
+        <circle
+          cx={wordmark.dot.cx}
+          cy={wordmark.dot.cy}
+          r={wordmark.dot.r}
+          fill={brand.colours.accent}
+        />
+      </svg>
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         <div
           style={{

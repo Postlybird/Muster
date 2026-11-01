@@ -1,28 +1,25 @@
 import Link from "next/link";
 
 import { brand } from "@/config/brand";
-import { logo } from "@/config/logo";
+import { wordmark } from "@/config/logo";
 import { cn } from "@/lib/utils";
 
-/** The logo mark on its own (decorative: the name sits next to it). */
-export function LogoMark({ className }: { className?: string }) {
+/**
+ * The logo: the name in lower case with a hi-vis dot on the i (owner,
+ * 01/11/2026). It takes the text colour, so it's deep blue on light pages
+ * and white on dark ones. The S icon is only for app and browser-tab icons.
+ */
+export function Wordmark({ className }: { className?: string }) {
   return (
     <svg
-      viewBox={logo.viewBox}
-      aria-hidden
+      viewBox={wordmark.viewBox}
+      role="img"
+      aria-label={brand.name}
       focusable="false"
-      className={cn("size-7 shrink-0", className)}
+      className={cn("h-6 w-auto shrink-0", className)}
     >
-      <rect width="32" height="32" rx={logo.radius} className="fill-primary" />
-      <path
-        d={logo.letter}
-        fill="none"
-        strokeWidth={logo.strokeWidth}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="stroke-primary-foreground"
-      />
-      <circle {...logo.dot} className="fill-highlight" />
+      <path d={wordmark.letters} className="fill-current" />
+      <circle {...wordmark.dot} className="fill-highlight" />
     </svg>
   );
 }
@@ -34,7 +31,7 @@ export function BrandMark({
   className,
 }: {
   href?: string;
-  /** "light" for the name on a dark background. */
+  /** "light" for the logo on a dark background. */
   tone?: "brand" | "light";
   /** "lg" for the website's header and footer. */
   size?: "md" | "lg";
@@ -44,14 +41,12 @@ export function BrandMark({
     <Link
       href={href}
       className={cn(
-        "flex items-center font-extrabold tracking-tight",
-        size === "lg" ? "gap-2.5 text-2xl sm:text-3xl" : "gap-2 text-lg",
+        "flex shrink-0 items-center",
         tone === "light" ? "text-deep-foreground" : "text-deep",
         className,
       )}
     >
-      <LogoMark className={size === "lg" ? "size-9 sm:size-11" : undefined} />
-      {brand.name}
+      <Wordmark className={size === "lg" ? "h-8 sm:h-9" : "h-6"} />
     </Link>
   );
 }
