@@ -14,13 +14,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  DAY_TYPES,
+  awardRulesSummary,
+  CORE_DAY_TYPES,
   dayTypeLabels,
   hourlyPayTable,
   rateCardFromRow,
 } from "@/domain/rates";
 import { requireAdmin } from "@/lib/auth";
-import { formatCalendarDate, formatCents } from "@/lib/format";
+import { formatCalendarDate, formatCents, sydneyDateKey } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { businessName } from "@/server/businesses";
 
@@ -46,7 +47,26 @@ export default async function RateCardsPage() {
       a.level - b.level ||
       b.effective_from.localeCompare(a.effective_from),
   );
-  const unchecked = sorted.filter((card) => !card.checked_by).length;
+  // A card stops applying once a later one for the same business, work type
+  // and level has started, or on its end date.
+  const today = sydneyDateKey(new Date());
+  const replacedFrom = (card: (typeof sorted)[number]) =>
+    sorted
+      .filter(
+        (other) =>
+          other.business_id === card.business_id &&
+          other.category_id === card.category_id &&
+          other.level === card.level &&
+          other.effective_from > card.effective_from &&
+          other.effective_from <= today,
+      )
+      .map((other) => other.effective_from)
+      .sort()[0] ?? null;
+  const inUse = (card: (typeof sorted)[number]) =>
+    !replacedFrom(card) && !(card.effective_to && card.effective_to < today);
+  const unchecked = sorted.filter(
+    (card) => !card.checked_by && inUse(card),
+  ).length;
 
   return (
     <div className="space-y-4">
@@ -55,7 +75,9 @@ export default async function RateCardsPage() {
           Hourly pay by work category and level. The base rate excludes casual
           loading; each multiplier includes it. For a shift, the card with the
           latest start date on or before the shift date applies, and a
-          business&apos;s own card wins over the standard one.
+          business&apos;s own card wins over the standard one. A card&apos;s
+          award rules (overtime, later Saturday hours, early, late and night
+          shifts) are paid at the highest rate that applies.
         </p>
         <Button asChild>
           <Link href="/admin/rates/rate-cards/new">
@@ -80,18 +102,26 @@ export default async function RateCardsPage() {
             <TableHead>Category</TableHead>
             <TableHead>Level</TableHead>
             <TableHead className="text-right">Base</TableHead>
-            {DAY_TYPES.map((day) => (
+            {CORE_DAY_TYPES.map((day) => (
               <TableHead key={day} className="text-right">
                 {dayTypeLabels[day]}
               </TableHead>
             ))}
+            <TableHead>Award rules</TableHead>
             <TableHead>From</TableHead>
             <TableHead>Checked</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {sorted.map((card) => {
-            const rates = hourlyPayTable(rateCardFromRow(card));
+            const rateCard = rateCardFromRow(card);
+            const rates = hourlyPayTable(rateCard);
+            const rules = awardRulesSummary(rateCard, formatCents);
+            const replaced = replacedFrom(card);
+            const ended =
+              !replaced && card.effective_to && card.effective_to < today
+                ? card.effective_to
+                : null;
             return (
               <TableRow key={card.id}>
                 <TableCell>
@@ -111,12 +141,34 @@ export default async function RateCardsPage() {
                 <TableCell className="text-right">
                   {formatCents(card.base_rate_cents)}
                 </TableCell>
-                {DAY_TYPES.map((day) => (
+                {CORE_DAY_TYPES.map((day) => (
                   <TableCell key={day} className="text-right">
                     {formatCents(rates[day])}
                   </TableCell>
                 ))}
-                <TableCell>{formatCalendarDate(card.effective_from)}</TableCell>
+                <TableCell className="min-w-64 text-sm whitespace-normal">
+                  {rules.length > 0 ? (
+                    <ul className="space-y-1">
+                      {rules.map((rule) => (
+                        <li key={rule}>{rule}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="text-muted-foreground">None</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {formatCalendarDate(card.effective_from)}
+                  {replaced ? (
+                    <Badge variant="neutral" className="mt-1 block w-fit">
+                      Replaced {formatCalendarDate(replaced)}
+                    </Badge>
+                  ) : ended ? (
+                    <Badge variant="neutral" className="mt-1 block w-fit">
+                      Ended {formatCalendarDate(ended)}
+                    </Badge>
+                  ) : null}
+                </TableCell>
                 <TableCell>
                   {card.checked_by ? (
                     <span className="text-sm">{card.checked_by}</span>

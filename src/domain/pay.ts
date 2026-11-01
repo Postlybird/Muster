@@ -1,6 +1,9 @@
 import {
   DAY_TYPES,
   hourlyPayCents,
+  multiplierFor,
+  type AwardDayType,
+  type CoreDayType,
   type DayType,
   type RateCard,
 } from "./rates";
@@ -25,12 +28,19 @@ export const STATE_TIME_ZONES = {
 
 export type StateCode = keyof typeof STATE_TIME_ZONES;
 
-/** Rate types from highest to lowest priority: each minute takes the first that applies. */
+/**
+ * Rate types from highest to lowest priority. Without award rules each
+ * minute takes the first that applies; with them, ties go to the first.
+ */
 export const RATE_PRECEDENCE: readonly DayType[] = [
   "public_holiday",
   "sunday",
+  "saturday_after",
   "saturday",
+  "overtime_after",
   "overtime",
+  "night_shift",
+  "early_late",
   "night",
   "ordinary",
 ];
@@ -58,14 +68,9 @@ export type ShiftTimes = {
 const MINUTE = 60_000;
 
 export function emptyMinutes(): MinutesByType {
-  return {
-    ordinary: 0,
-    saturday: 0,
-    sunday: 0,
-    public_holiday: 0,
-    overtime: 0,
-    night: 0,
-  };
+  return Object.fromEntries(
+    DAY_TYPES.map((type) => [type, 0]),
+  ) as MinutesByType;
 }
 
 /** "19:30" → 1170 minutes after midnight. */
@@ -114,16 +119,23 @@ function zoneOffset(timeZone: string, minute: number): number {
 }
 
 /**
- * Splits a shift's worked minutes by rate type. Each minute takes the first
- * that applies: public holiday, Sunday, Saturday, overtime, night, ordinary.
- * Days and night hours follow the site's local time, so a shift over
- * midnight or a daylight-saving change is split correctly. Overtime counts
- * worked minutes from the start of the shift (daily overtime only, plan
- * question 5).
+ * Splits a shift's worked minutes by rate type. Days and night hours follow
+ * the site's local time, so a shift over midnight or a daylight-saving
+ * change is split correctly. Overtime is daily (plan question 5).
+ *
+ * With a rate card that has award rules (owner, 01/11/2026), each minute is
+ * paid at the highest rate that applies: the day's rate (public holiday,
+ * Sunday, Saturday and its later hours, or a weekday shift's early, late or
+ * night shift loading), overtime and its later hours once the day's
+ * ordinary hours are used up or outside the award's ordinary hours, and the
+ * night rate. Without them (rates kept with older bookings) each minute
+ * takes the first that applies: public holiday, Sunday, Saturday, overtime,
+ * night, ordinary.
  */
 export function splitShift(
   shift: ShiftTimes,
   rules: HoursRules,
+  card?: RateCard,
 ): MinutesByType {
   const start = Math.round(shift.start.getTime() / MINUTE);
   const end = Math.round(shift.end.getTime() / MINUTE);
@@ -156,12 +168,26 @@ export function splitShift(
     return offset;
   };
 
+  const localAt = (minute: number) =>
+    new Date((minute + offsetAt(minute)) * MINUTE);
+  const isBreak = (minute: number) =>
+    breaks.some(([from, to]) => minute >= from && minute < to);
+
+  if (card?.award) {
+    return splitWithAward(
+      { start, end, localAt, isBreak },
+      rules,
+      card as RateCard & { award: NonNullable<RateCard["award"]> },
+      [nightStart, nightEnd],
+    );
+  }
+
   const minutes = emptyMinutes();
   let worked = 0;
   for (let minute = start; minute < end; minute++) {
-    if (breaks.some(([from, to]) => minute >= from && minute < to)) continue;
+    if (isBreak(minute)) continue;
     // Local wall-clock time, read through the UTC getters.
-    const local = new Date((minute + offsetAt(minute)) * MINUTE);
+    const local = localAt(minute);
     const weekday = local.getUTCDay();
     let type: DayType;
     if (rules.publicHolidays.has(local.toISOString().slice(0, 10))) {
@@ -189,6 +215,134 @@ export function splitShift(
   return minutes;
 }
 
+function minuteOfDay(local: Date): number {
+  return local.getUTCHours() * 60 + local.getUTCMinutes();
+}
+
+/** The shift's award rate for its weekday minutes: a whole-shift loading, or ordinary. */
+function weekdayShiftType(
+  card: RateCard & { award: NonNullable<RateCard["award"]> },
+  startLocal: Date,
+  endLocal: Date,
+): DayType {
+  const { award } = card;
+  const startMinute = minuteOfDay(startLocal);
+  const endMinute = minuteOfDay(endLocal);
+  const crossesMidnight =
+    endLocal.toISOString().slice(0, 10) !==
+    startLocal.toISOString().slice(0, 10);
+  let type: DayType = "ordinary";
+  const takeIfHigher = (candidate: DayType) => {
+    if (multiplierFor(card, candidate) > multiplierFor(card, type)) {
+      type = candidate;
+    }
+  };
+  if (
+    award.nightShiftFinishesBy &&
+    crossesMidnight &&
+    endMinute > 0 &&
+    endMinute <= minutesAfterMidnight(award.nightShiftFinishesBy)
+  ) {
+    takeIfHigher("night_shift");
+  }
+  if (award.earlyLate) {
+    const { startsBefore, finishesAfter } = award.earlyLate;
+    const early =
+      startsBefore !== null && startMinute < minutesAfterMidnight(startsBefore);
+    const late =
+      finishesAfter !== null &&
+      (crossesMidnight || endMinute > minutesAfterMidnight(finishesAfter));
+    if (early || late) takeIfHigher("early_late");
+  }
+  return type;
+}
+
+/** splitShift with a card's award rules: each minute at the highest rate that applies. */
+function splitWithAward(
+  shift: {
+    start: number;
+    end: number;
+    localAt: (minute: number) => Date;
+    isBreak: (minute: number) => boolean;
+  },
+  rules: HoursRules,
+  card: RateCard & { award: NonNullable<RateCard["award"]> },
+  [nightStart, nightEnd]: [number, number],
+): MinutesByType {
+  const { award } = card;
+  const rate = (type: DayType) => multiplierFor(card, type);
+  const overtimeAfter =
+    award.overtimeAfterMinutes ?? rules.overtimeAfterMinutes;
+  const laterFrom = award.saturdayLaterFrom
+    ? minutesAfterMidnight(award.saturdayLaterFrom)
+    : null;
+  const spread = award.ordinaryHours
+    ? [
+        minutesAfterMidnight(award.ordinaryHours.from),
+        minutesAfterMidnight(award.ordinaryHours.to),
+      ]
+    : null;
+  const weekdayType = weekdayShiftType(
+    card,
+    shift.localAt(shift.start),
+    shift.localAt(shift.end),
+  );
+
+  const minutes = emptyMinutes();
+  let ordinarySoFar = 0;
+  let overtimeSoFar = 0;
+  let saturdaySoFar = 0;
+  for (let minute = shift.start; minute < shift.end; minute++) {
+    if (shift.isBreak(minute)) continue;
+    const local = shift.localAt(minute);
+    const weekday = local.getUTCDay();
+    const time = minuteOfDay(local);
+    const holiday = rules.publicHolidays.has(local.toISOString().slice(0, 10));
+
+    let type: DayType;
+    if (holiday) {
+      type = "public_holiday";
+    } else if (weekday === 0) {
+      type = "sunday";
+    } else if (weekday === 6) {
+      const later =
+        saturdaySoFar >= award.tierMinutes ||
+        (laterFrom !== null && time >= laterFrom);
+      type =
+        later && rate("saturday_after") > rate("saturday")
+          ? "saturday_after"
+          : "saturday";
+      saturdaySoFar++;
+    } else {
+      type = weekdayType;
+    }
+
+    const outsideOrdinaryHours =
+      !holiday &&
+      weekday >= 1 &&
+      weekday <= 5 &&
+      spread !== null &&
+      !inWindow(time, spread[0]!, spread[1]!);
+    if (outsideOrdinaryHours || ordinarySoFar >= overtimeAfter) {
+      const overtime: DayType =
+        overtimeSoFar >= award.tierMinutes &&
+        rate("overtime_after") > rate("overtime")
+          ? "overtime_after"
+          : "overtime";
+      overtimeSoFar++;
+      if (rate(overtime) > rate(type)) type = overtime;
+    } else {
+      ordinarySoFar++;
+    }
+
+    if (inWindow(time, nightStart, nightEnd) && rate("night") > rate(type)) {
+      type = "night";
+    }
+    minutes[type]++;
+  }
+  return minutes;
+}
+
 export function totalMinutes(minutes: MinutesByType): number {
   return Object.values(minutes).reduce((sum, value) => sum + value, 0);
 }
@@ -197,10 +351,25 @@ export function totalMinutes(minutes: MinutesByType): number {
 // Pay and bill
 // ---------------------------------------------------------------------------
 
-/** How a business is billed: pay plus on-costs plus a margin, or fixed hourly rates. */
+/**
+ * How a business is billed: pay plus on-costs plus a margin, or fixed hourly
+ * rates. Fixed rates for the award rate types fall back (BILL_FALLBACK).
+ */
 export type BillRule =
   | { method: "markup"; marginPct: number }
-  | { method: "fixed"; hourlyCents: Record<DayType, number> };
+  | {
+      method: "fixed";
+      hourlyCents: Record<CoreDayType, number> &
+        Partial<Record<AwardDayType, number>>;
+    };
+
+/** The fixed rate an award rate type is billed at when its own isn't set. */
+export const BILL_FALLBACK: Record<AwardDayType, CoreDayType> = {
+  saturday_after: "saturday",
+  overtime_after: "overtime",
+  early_late: "night",
+  night_shift: "night",
+};
 
 /** A bill rule from the database, or the default margin when no rule applies. */
 export function billRuleFromRow(
@@ -213,17 +382,28 @@ export function billRuleFromRow(
     fixed_public_holiday_cents: number | null;
     fixed_overtime_cents: number | null;
     fixed_night_cents: number | null;
+    fixed_saturday_after_cents?: number | null;
+    fixed_overtime_after_cents?: number | null;
+    fixed_early_late_cents?: number | null;
+    fixed_night_shift_cents?: number | null;
   } | null,
   defaultMarginPct: number,
 ): BillRule {
   if (!row) return { method: "markup", marginPct: defaultMarginPct };
   if (row.method === "fixed") {
-    return {
-      method: "fixed",
-      hourlyCents: Object.fromEntries(
-        DAY_TYPES.map((type) => [type, row[`fixed_${type}_cents`] ?? 0]),
-      ) as Record<DayType, number>,
+    const hourlyCents: Extract<BillRule, { method: "fixed" }>["hourlyCents"] = {
+      ordinary: row.fixed_ordinary_cents ?? 0,
+      saturday: row.fixed_saturday_cents ?? 0,
+      sunday: row.fixed_sunday_cents ?? 0,
+      public_holiday: row.fixed_public_holiday_cents ?? 0,
+      overtime: row.fixed_overtime_cents ?? 0,
+      night: row.fixed_night_cents ?? 0,
     };
+    for (const type of Object.keys(BILL_FALLBACK) as AwardDayType[]) {
+      const own = row[`fixed_${type}_cents`];
+      if (own !== null && own !== undefined) hourlyCents[type] = own;
+    }
+    return { method: "fixed", hourlyCents };
   }
   return { method: "markup", marginPct: Number(row.margin_pct ?? 0) };
 }
@@ -311,7 +491,12 @@ export function hourlyBillCents(
   onCostPct: number,
   type: DayType,
 ): number {
-  if (rule.method === "fixed") return rule.hourlyCents[type];
+  if (rule.method === "fixed") {
+    return (
+      rule.hourlyCents[type] ??
+      rule.hourlyCents[BILL_FALLBACK[type as AwardDayType]]
+    );
+  }
   return roundCents(
     (hourlyPayCents(card, type) *
       (10_000 + basisPoints(onCostPct)) *

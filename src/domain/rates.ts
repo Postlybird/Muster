@@ -1,6 +1,6 @@
 /**
  * Pay rates (brief §4.8). A rate card has a base hourly rate (excluding
- * casual loading) and a multiplier per day type (including casual loading).
+ * casual loading) and a multiplier per rate type (including casual loading).
  * All money is integer cents.
  */
 
@@ -11,9 +11,39 @@ export const DAY_TYPES = [
   "public_holiday",
   "overtime",
   "night",
+  "saturday_after",
+  "overtime_after",
+  "early_late",
+  "night_shift",
 ] as const;
 
 export type DayType = (typeof DAY_TYPES)[number];
+
+/** The rate types every card has. */
+export const CORE_DAY_TYPES = [
+  "ordinary",
+  "saturday",
+  "sunday",
+  "public_holiday",
+  "overtime",
+  "night",
+] as const;
+
+export type CoreDayType = (typeof CORE_DAY_TYPES)[number];
+
+/**
+ * Rate types an award's rules add (owner, 01/11/2026): later hours of
+ * Saturday work and of overtime, and loadings for a whole early, late or
+ * night shift. A card without them never pays them.
+ */
+export type AwardDayType = Exclude<DayType, CoreDayType>;
+
+export const AWARD_DAY_TYPES = [
+  "saturday_after",
+  "overtime_after",
+  "early_late",
+  "night_shift",
+] as const satisfies readonly AwardDayType[];
 
 export const dayTypeLabels: Record<DayType, string> = {
   ordinary: "Ordinary",
@@ -22,14 +52,58 @@ export const dayTypeLabels: Record<DayType, string> = {
   public_holiday: "Public holiday",
   overtime: "Overtime",
   night: "Night",
+  saturday_after: "Saturday, later hours",
+  overtime_after: "Overtime, later hours",
+  early_late: "Early or late shift",
+  night_shift: "Night shift",
 };
 
-export type Multipliers = Record<DayType, number>;
+/** What an award rate type falls back to on a card that doesn't set it. */
+export const PAY_FALLBACK: Record<AwardDayType, CoreDayType> = {
+  saturday_after: "saturday",
+  overtime_after: "overtime",
+  early_late: "ordinary",
+  night_shift: "ordinary",
+};
+
+export type Multipliers = Record<CoreDayType, number> &
+  Partial<Record<AwardDayType, number>>;
+
+/**
+ * An award's hours rules, set on the rate card and checked by a payroll
+ * professional (brief §4.8: no award rules in code). Each is optional.
+ */
+export type AwardRules = {
+  /** Ordinary minutes in a day before overtime; null means the setting. */
+  overtimeAfterMinutes: number | null;
+  /** Minutes of overtime, and of Saturday work, at the first rate before the later one. */
+  tierMinutes: number;
+  /** From this local time on a Saturday ("12:00"), every minute is at the later Saturday rate. */
+  saturdayLaterFrom: string | null;
+  /** Monday to Friday ordinary hours ("07:00" to "18:00"); minutes outside them are overtime. */
+  ordinaryHours: { from: string; to: string } | null;
+  /** Monday to Friday, a whole shift starting before or finishing after these times is an early or late shift. */
+  earlyLate: {
+    startsBefore: string | null;
+    finishesAfter: string | null;
+  } | null;
+  /** Monday to Friday, a whole shift finishing after midnight and at or before this time is a night shift. */
+  nightShiftFinishesBy: string | null;
+};
 
 export type RateCard = {
   baseRateCents: number;
   multipliers: Multipliers;
+  /** Absent on rates kept with bookings made before award rules existed. */
+  award?: AwardRules;
 };
+
+/** The multiplier for a rate type, falling back for a card that doesn't set it. */
+export function multiplierFor(card: RateCard, dayType: DayType): number {
+  const own = card.multipliers[dayType];
+  if (own !== undefined) return own;
+  return card.multipliers[PAY_FALLBACK[dayType as AwardDayType]];
+}
 
 /** Multipliers are stored to 3 decimal places; work in thousandths to avoid float error. */
 function thousandths(multiplier: number): number {
@@ -41,18 +115,110 @@ function roundCents(value: number): number {
   return Math.sign(value) * Math.round(Math.abs(value));
 }
 
-/** Hourly pay in cents for a day type: base × multiplier, to the nearest cent. */
+/** Hourly pay in cents for a rate type: base × multiplier, to the nearest cent. */
 export function hourlyPayCents(card: RateCard, dayType: DayType): number {
   return roundCents(
-    (card.baseRateCents * thousandths(card.multipliers[dayType])) / 1000,
+    (card.baseRateCents * thousandths(multiplierFor(card, dayType))) / 1000,
   );
 }
 
-/** Hourly pay for every day type. */
+/** Hourly pay for every rate type. */
 export function hourlyPayTable(card: RateCard): Record<DayType, number> {
   return Object.fromEntries(
     DAY_TYPES.map((d) => [d, hourlyPayCents(card, d)]),
   ) as Record<DayType, number>;
+}
+
+/** The rate types a card actually uses: the core ones, and any its award rules add. */
+export function cardDayTypes(card: RateCard): DayType[] {
+  return DAY_TYPES.filter((type) => {
+    if (!(type in PAY_FALLBACK)) return true;
+    const award = card.award;
+    if (!award || card.multipliers[type] === undefined) return false;
+    if (type === "early_late") return award.earlyLate !== null;
+    if (type === "night_shift") return award.nightShiftFinishesBy !== null;
+    return true;
+  });
+}
+
+function hoursText(minutes: number): string {
+  const hours = minutes / 60;
+  return `${Number.isInteger(hours) ? hours : hours.toFixed(1)} h`;
+}
+
+/** "18:00" → "6 pm", "05:30" → "5:30 am". */
+function clockText(time: string): string {
+  const [h = 0, m = 0] = time.split(":").map(Number);
+  const suffix = h < 12 ? "am" : "pm";
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  return m === 0
+    ? `${hour} ${suffix}`
+    : `${hour}:${String(m).padStart(2, "0")} ${suffix}`;
+}
+
+/**
+ * A card's award rules in plain words, for admin screens: one line each.
+ * Money is formatted by the caller (`money`), so this stays pure.
+ */
+export function awardRulesSummary(
+  card: RateCard,
+  money: (cents: number) => string,
+): string[] {
+  const award = card.award;
+  if (!award) return [];
+  const lines: string[] = [];
+  const later = (type: AwardDayType) =>
+    card.multipliers[type] !== undefined &&
+    multiplierFor(card, type) !== multiplierFor(card, PAY_FALLBACK[type]);
+  if (award.overtimeAfterMinutes !== null) {
+    lines.push(`Overtime after ${hoursText(award.overtimeAfterMinutes)} a day`);
+  }
+  if (award.ordinaryHours) {
+    lines.push(
+      `Overtime outside ${clockText(award.ordinaryHours.from)} to ${clockText(award.ordinaryHours.to)}, Monday to Friday`,
+    );
+  }
+  if (later("overtime_after")) {
+    lines.push(
+      `Overtime after the first ${hoursText(award.tierMinutes)}: ${money(hourlyPayCents(card, "overtime_after"))} an hour`,
+    );
+  }
+  if (later("saturday_after")) {
+    const from = award.saturdayLaterFrom
+      ? ` and from ${clockText(award.saturdayLaterFrom)}`
+      : "";
+    lines.push(
+      `Saturday after the first ${hoursText(award.tierMinutes)}${from}: ${money(hourlyPayCents(card, "saturday_after"))} an hour`,
+    );
+  }
+  if (award.earlyLate) {
+    const parts = [
+      award.earlyLate.startsBefore
+        ? `starting before ${clockText(award.earlyLate.startsBefore)}`
+        : null,
+      award.earlyLate.finishesAfter
+        ? `finishing after ${clockText(award.earlyLate.finishesAfter)}`
+        : null,
+    ].filter(Boolean);
+    lines.push(
+      `Shift ${parts.join(" or ")}, Monday to Friday: ${money(hourlyPayCents(card, "early_late"))} an hour`,
+    );
+  }
+  if (award.nightShiftFinishesBy) {
+    lines.push(
+      `Shift finishing after midnight and by ${clockText(award.nightShiftFinishesBy)}, Monday to Friday: ${money(hourlyPayCents(card, "night_shift"))} an hour`,
+    );
+  }
+  return lines;
+}
+
+/** "07:00:00" from the database → "07:00". */
+function hhmm(time: string | null | undefined): string | null {
+  return time ? time.slice(0, 5) : null;
+}
+
+function optionalNumber(value: number | string | null | undefined) {
+  return value === null || value === undefined ? undefined : Number(value);
 }
 
 /** Reads a rate card row from the database into a RateCard. */
@@ -64,16 +230,63 @@ export function rateCardFromRow(row: {
   public_holiday_multiplier: number | string;
   overtime_multiplier: number | string;
   night_multiplier: number | string;
+  saturday_after_multiplier?: number | string | null;
+  overtime_after_multiplier?: number | string | null;
+  early_late_multiplier?: number | string | null;
+  night_shift_multiplier?: number | string | null;
+  tier_hours?: number | string | null;
+  overtime_after_hours?: number | string | null;
+  saturday_later_from?: string | null;
+  ordinary_from?: string | null;
+  ordinary_to?: string | null;
+  early_late_starts_before?: string | null;
+  early_late_finishes_after?: string | null;
+  night_shift_finishes_by?: string | null;
 }): RateCard {
+  const multipliers: Multipliers = {
+    ordinary: Number(row.ordinary_multiplier),
+    saturday: Number(row.saturday_multiplier),
+    sunday: Number(row.sunday_multiplier),
+    public_holiday: Number(row.public_holiday_multiplier),
+    overtime: Number(row.overtime_multiplier),
+    night: Number(row.night_multiplier),
+  };
+  const extra: Partial<Record<AwardDayType, number | undefined>> = {
+    saturday_after: optionalNumber(row.saturday_after_multiplier),
+    overtime_after: optionalNumber(row.overtime_after_multiplier),
+    early_late: optionalNumber(row.early_late_multiplier),
+    night_shift: optionalNumber(row.night_shift_multiplier),
+  };
+  for (const [type, value] of Object.entries(extra)) {
+    if (value !== undefined) multipliers[type as AwardDayType] = value;
+  }
+  const startsBefore = hhmm(row.early_late_starts_before);
+  const finishesAfter = hhmm(row.early_late_finishes_after);
+  const ordinaryFrom = hhmm(row.ordinary_from);
+  const ordinaryTo = hhmm(row.ordinary_to);
+  const overtimeAfterHours = optionalNumber(row.overtime_after_hours);
   return {
     baseRateCents: row.base_rate_cents,
-    multipliers: {
-      ordinary: Number(row.ordinary_multiplier),
-      saturday: Number(row.saturday_multiplier),
-      sunday: Number(row.sunday_multiplier),
-      public_holiday: Number(row.public_holiday_multiplier),
-      overtime: Number(row.overtime_multiplier),
-      night: Number(row.night_multiplier),
+    multipliers,
+    award: {
+      overtimeAfterMinutes:
+        overtimeAfterHours === undefined
+          ? null
+          : Math.round(overtimeAfterHours * 60),
+      tierMinutes: Math.round((optionalNumber(row.tier_hours) ?? 2) * 60),
+      saturdayLaterFrom: hhmm(row.saturday_later_from),
+      ordinaryHours:
+        ordinaryFrom && ordinaryTo
+          ? { from: ordinaryFrom, to: ordinaryTo }
+          : null,
+      earlyLate:
+        extra.early_late !== undefined && (startsBefore || finishesAfter)
+          ? { startsBefore, finishesAfter }
+          : null,
+      nightShiftFinishesBy:
+        extra.night_shift !== undefined
+          ? hhmm(row.night_shift_finishes_by)
+          : null,
     },
   };
 }

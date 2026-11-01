@@ -180,6 +180,224 @@ const costRules: CostRules = {
   gstPct: 10,
 };
 
+/** Cleaning Services Award, Level 1 casual, 50c over (owner, 01/11/2026). */
+const cleaner: RateCard = {
+  baseRateCents: 2748,
+  multipliers: {
+    ordinary: 1.25,
+    saturday: 1.75,
+    sunday: 2.25,
+    public_holiday: 2.75,
+    overtime: 1.75,
+    overtime_after: 2.25,
+    night: 1.25,
+    early_late: 1.4,
+    night_shift: 1.55,
+  },
+  award: {
+    overtimeAfterMinutes: 456,
+    tierMinutes: 120,
+    saturdayLaterFrom: null,
+    ordinaryHours: null,
+    earlyLate: { startsBefore: "06:00", finishesAfter: "18:00" },
+    nightShiftFinishesBy: "08:00",
+  },
+};
+
+/** Building and Construction General On-site Award, CW1(a) casual. */
+const labourer: RateCard = {
+  baseRateCents: 2884,
+  multipliers: {
+    ordinary: 1.25,
+    saturday: 1.75,
+    saturday_after: 2.25,
+    sunday: 2.25,
+    public_holiday: 2.75,
+    overtime: 1.75,
+    overtime_after: 2.25,
+    night: 1.25,
+  },
+  award: {
+    overtimeAfterMinutes: 480,
+    tierMinutes: 120,
+    saturdayLaterFrom: "12:00",
+    ordinaryHours: { from: "07:00", to: "18:00" },
+    earlyLate: null,
+    nightShiftFinishesBy: null,
+  },
+};
+
+/** Road Transport and Distribution Award, grade 1 casual. */
+const offsider: RateCard = {
+  baseRateCents: 2727,
+  multipliers: {
+    ordinary: 1.25,
+    saturday: 1.75,
+    sunday: 2.25,
+    public_holiday: 2.75,
+    overtime: 1.6,
+    overtime_after: 2.1,
+    night: 1.25,
+  },
+  award: {
+    overtimeAfterMinutes: 456,
+    tierMinutes: 120,
+    saturdayLaterFrom: null,
+    ordinaryHours: { from: "05:30", to: "18:30" },
+    earlyLate: null,
+    nightShiftFinishesBy: null,
+  },
+};
+
+function splitFor(
+  card: RateCard,
+  start: string,
+  end: string,
+  breakMinutes = 0,
+) {
+  return splitShift(
+    { start: sydney(start), end: sydney(end), breakMinutes },
+    rules,
+    card,
+  );
+}
+
+describe("award rules on the rate card", () => {
+  describe("cleaners", () => {
+    it("pays a day shift at the ordinary rate", () => {
+      // Wednesday 9 am to 5 pm, 30-minute break: 7.5 hours.
+      expect(
+        splitFor(cleaner, "2026-11-04T09:00", "2026-11-04T17:00", 30),
+      ).toEqual(minutes({ ordinary: 450 }));
+    });
+
+    it("pays the whole of a shift finishing after 6 pm at the early or late shift rate", () => {
+      expect(splitFor(cleaner, "2026-11-04T17:00", "2026-11-04T21:00")).toEqual(
+        minutes({ early_late: 240 }),
+      );
+    });
+
+    it("pays the whole of a shift starting before 6 am at the early or late shift rate", () => {
+      expect(splitFor(cleaner, "2026-11-04T05:00", "2026-11-04T09:00")).toEqual(
+        minutes({ early_late: 240 }),
+      );
+    });
+
+    it("pays a shift finishing after midnight at the night shift rate, then overtime", () => {
+      // Wednesday 10 pm to Thursday 6 am: 8 hours.
+      expect(splitFor(cleaner, "2026-11-04T22:00", "2026-11-05T06:00")).toEqual(
+        minutes({ night_shift: 456, overtime: 24 }),
+      );
+    });
+
+    it("pays 2 hours of overtime after 7.6 hours, then the later overtime rate", () => {
+      // Wednesday 7 am to 7 pm, 30-minute break: 11.5 hours, a late shift.
+      expect(
+        splitFor(cleaner, "2026-11-04T07:00", "2026-11-04T19:00", 30),
+      ).toEqual(
+        minutes({ early_late: 456, overtime: 120, overtime_after: 114 }),
+      );
+    });
+
+    it("pays Saturday overtime at the Saturday rate for 2 hours, then the later overtime rate", () => {
+      // Saturday 7 am to 6 pm: 11 hours.
+      expect(splitFor(cleaner, "2026-11-07T07:00", "2026-11-07T18:00")).toEqual(
+        minutes({ saturday: 576, overtime_after: 84 }),
+      );
+    });
+
+    it("pays a Friday night shift's Saturday hours at the Saturday rate", () => {
+      expect(splitFor(cleaner, "2026-11-06T22:00", "2026-11-07T04:00")).toEqual(
+        minutes({ night_shift: 120, saturday: 240 }),
+      );
+    });
+  });
+
+  describe("labourers", () => {
+    it("pays hours before 7 am as overtime", () => {
+      // Wednesday 6 am to 3:30 pm, 30-minute break.
+      expect(
+        splitFor(labourer, "2026-11-04T06:00", "2026-11-04T15:30", 30),
+      ).toEqual(minutes({ overtime: 60, ordinary: 480 }));
+    });
+
+    it("pays overtime after 8 hours and after 6 pm, at the later rate after 2 hours", () => {
+      expect(
+        splitFor(labourer, "2026-11-04T07:00", "2026-11-04T19:00"),
+      ).toEqual(minutes({ ordinary: 480, overtime: 120, overtime_after: 120 }));
+    });
+
+    it("pays the first 2 Saturday hours at the Saturday rate, then the later rate", () => {
+      expect(
+        splitFor(labourer, "2026-11-07T07:00", "2026-11-07T15:00"),
+      ).toEqual(minutes({ saturday: 120, saturday_after: 360 }));
+    });
+
+    it("pays every Saturday hour after noon at the later rate", () => {
+      expect(
+        splitFor(labourer, "2026-11-07T12:00", "2026-11-07T16:00"),
+      ).toEqual(minutes({ saturday_after: 240 }));
+    });
+
+    it("pays Sundays and public holidays at their own rates", () => {
+      expect(
+        splitFor(labourer, "2026-11-08T07:00", "2026-11-08T15:00"),
+      ).toEqual(minutes({ sunday: 480 }));
+      expect(
+        splitFor(labourer, "2026-12-25T07:00", "2026-12-25T11:00"),
+      ).toEqual(minutes({ public_holiday: 240 }));
+    });
+  });
+
+  describe("removalist offsiders", () => {
+    it("pays hours before 5:30 am as overtime", () => {
+      // Wednesday 4:30 am to 1 pm, 30-minute break.
+      expect(
+        splitFor(offsider, "2026-11-04T04:30", "2026-11-04T13:00", 30),
+      ).toEqual(minutes({ overtime: 60, ordinary: 420 }));
+    });
+
+    it("pays overtime after 7.6 hours, at the later rate after 2 hours", () => {
+      // Wednesday 6 am to 6:30 pm: 12.5 hours.
+      expect(
+        splitFor(offsider, "2026-11-04T06:00", "2026-11-04T18:30"),
+      ).toEqual(minutes({ ordinary: 456, overtime: 120, overtime_after: 174 }));
+    });
+  });
+
+  it("costs each award rate type at its own pay and bill rate", () => {
+    const cost = costShift(
+      splitFor(cleaner, "2026-11-04T07:00", "2026-11-04T19:00", 30),
+      {
+        card: cleaner,
+        billRule: { method: "markup", marginPct: 25 },
+        onCostPct: 23.45,
+        minEngagementMinutes: 180,
+        urgent: null,
+        gstPct: 10,
+      },
+    );
+    expect(
+      cost.lines.map(({ type, minutes, payRateCents }) => ({
+        type,
+        minutes,
+        payRateCents,
+      })),
+    ).toEqual([
+      { type: "overtime", minutes: 120, payRateCents: 4809 },
+      { type: "overtime_after", minutes: 114, payRateCents: 6183 },
+      { type: "early_late", minutes: 456, payRateCents: 3847 },
+    ]);
+  });
+
+  it("splits as before for rates kept before award rules existed", () => {
+    const { award: _award, ...withoutRules } = cleaner;
+    expect(
+      splitFor(withoutRules, "2026-11-04T12:00", "2026-11-04T22:00", 30),
+    ).toEqual(split("2026-11-04T12:00", "2026-11-04T22:00", 30));
+  });
+});
+
 describe("costing a shift", () => {
   it("adds on-costs and margin to pay for each rate type", () => {
     // $33.13 × 1.2345 × 1.18 = $48.26; $49.69 × 1.2345 × 1.18 = $72.38
@@ -360,5 +578,27 @@ describe("bill rules from the database", () => {
         night: 6200,
       },
     });
+  });
+
+  it("bills award rate types at their own fixed rate, or the closest one", () => {
+    const fixed = billRuleFromRow(
+      {
+        ...row,
+        method: "fixed",
+        margin_pct: null,
+        fixed_ordinary_cents: 5500,
+        fixed_saturday_cents: 7000,
+        fixed_sunday_cents: 8500,
+        fixed_public_holiday_cents: 11000,
+        fixed_overtime_cents: 8000,
+        fixed_night_cents: 6200,
+        fixed_overtime_after_cents: 9500,
+      },
+      18,
+    );
+    expect(hourlyBillCents(cleaner, fixed, 0, "overtime_after")).toBe(9500);
+    expect(hourlyBillCents(cleaner, fixed, 0, "saturday_after")).toBe(7000);
+    expect(hourlyBillCents(cleaner, fixed, 0, "early_late")).toBe(6200);
+    expect(hourlyBillCents(cleaner, fixed, 0, "night_shift")).toBe(6200);
   });
 });

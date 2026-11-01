@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { DAY_TYPES, type DayType } from "@/domain/rates";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { businessOptions } from "@/server/businesses";
@@ -8,14 +9,10 @@ import { BillRuleForm } from "../bill-rule-form";
 
 export const metadata: Metadata = { title: "Add a bill rule" };
 
-const blank = {
-  ordinary: "",
-  saturday: "",
-  sunday: "",
-  public_holiday: "",
-  overtime: "",
-  night: "",
-};
+const blank = Object.fromEntries(DAY_TYPES.map((day) => [day, ""])) as Record<
+  DayType,
+  string
+>;
 
 export default async function NewBillRulePage({
   searchParams,

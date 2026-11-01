@@ -5,12 +5,13 @@ import { notFound } from "next/navigation";
 
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { Button } from "@/components/ui/button";
-import { rateCardFromRow } from "@/domain/rates";
+import { CORE_DAY_TYPES, type CoreDayType } from "@/domain/rates";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { businessOptions } from "@/server/businesses";
 
 import { setRateArchived } from "../../actions";
+import { awardRuleValuesFromRow } from "../award-rule-values";
 import { RateCardForm } from "../rate-card-form";
 
 export const metadata: Metadata = { title: "Edit rate card" };
@@ -79,7 +80,13 @@ export default async function EditRateCardPage({
           category_id: card.category_id,
           level: card.level,
           base_rate: (card.base_rate_cents / 100).toFixed(2),
-          multipliers: rateCardFromRow(card).multipliers,
+          multipliers: Object.fromEntries(
+            CORE_DAY_TYPES.map((day) => [
+              day,
+              Number(card[`${day}_multiplier`]),
+            ]),
+          ) as Record<CoreDayType, number>,
+          award: awardRuleValuesFromRow(card),
           effective_from: card.effective_from,
           effective_to: card.effective_to ?? "",
           checked_by: card.checked_by ?? "",

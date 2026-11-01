@@ -55,15 +55,20 @@ export function workedMinutes(hours: TimesheetHours): number {
   return Math.max(0, length - hours.breakMinutes);
 }
 
-/** Minutes worked by rate type; none when nothing was worked. */
+/**
+ * Minutes worked by rate type, with the card's award rules when it has
+ * them; none when nothing was worked.
+ */
 export function timesheetMinutes(
   hours: TimesheetHours,
   rules: HoursRules,
+  card?: CostRules["card"],
 ): MinutesByType {
   if (workedMinutes(hours) === 0) return emptyMinutes();
   return splitShift(
     { start: hours.start, end: hours.finish, breakMinutes: hours.breakMinutes },
     rules,
+    card,
   );
 }
 
@@ -77,7 +82,7 @@ export function costTimesheet(
   hoursRules: HoursRules,
   costRules: CostRules,
 ): { minutes: MinutesByType; cost: ShiftCost } {
-  const minutes = timesheetMinutes(hours, hoursRules);
+  const minutes = timesheetMinutes(hours, hoursRules, costRules.card);
   return { minutes, cost: costShift(minutes, costRules) };
 }
 

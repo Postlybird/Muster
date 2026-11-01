@@ -11,7 +11,13 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { DAY_TYPES, dayTypeLabels, type DayType } from "@/domain/rates";
+import { BILL_FALLBACK } from "@/domain/pay";
+import {
+  AWARD_DAY_TYPES,
+  CORE_DAY_TYPES,
+  dayTypeLabels,
+  type DayType,
+} from "@/domain/rates";
 
 import { saveBillRule } from "../actions";
 
@@ -164,11 +170,35 @@ export function BillRuleForm({
             Bill rates (dollars per hour, excluding GST)
           </legend>
           <div className="grid gap-4 sm:grid-cols-3">
-            {DAY_TYPES.map((day) => (
+            {CORE_DAY_TYPES.map((day) => (
               <FormField
                 key={day}
                 id={`fixed_${day}`}
                 label={dayTypeLabels[day]}
+                error={fieldErrors?.[`fixed_${day}`]}
+              >
+                {(props) => (
+                  <Input
+                    {...props}
+                    name={`fixed_${day}`}
+                    inputMode="decimal"
+                    defaultValue={values.fixed[day]}
+                  />
+                )}
+              </FormField>
+            ))}
+          </div>
+          <p className="pt-2 text-sm text-muted-foreground">
+            For work types whose rate card has award rules. Leave blank to
+            charge the rate shown.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {AWARD_DAY_TYPES.map((day) => (
+              <FormField
+                key={day}
+                id={`fixed_${day}`}
+                label={dayTypeLabels[day]}
+                hint={`Blank: the ${dayTypeLabels[BILL_FALLBACK[day]].toLowerCase()} rate.`}
                 error={fieldErrors?.[`fixed_${day}`]}
               >
                 {(props) => (

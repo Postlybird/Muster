@@ -35,6 +35,18 @@ export type RateCardRow = Dated & {
   public_holiday_multiplier: number | string;
   overtime_multiplier: number | string;
   night_multiplier: number | string;
+  saturday_after_multiplier?: number | string | null;
+  overtime_after_multiplier?: number | string | null;
+  early_late_multiplier?: number | string | null;
+  night_shift_multiplier?: number | string | null;
+  tier_hours?: number | string | null;
+  overtime_after_hours?: number | string | null;
+  saturday_later_from?: string | null;
+  ordinary_from?: string | null;
+  ordinary_to?: string | null;
+  early_late_starts_before?: string | null;
+  early_late_finishes_after?: string | null;
+  night_shift_finishes_by?: string | null;
 };
 
 export type BillRuleRow = Dated & {
@@ -49,6 +61,10 @@ export type BillRuleRow = Dated & {
   fixed_public_holiday_cents: number | null;
   fixed_overtime_cents: number | null;
   fixed_night_cents: number | null;
+  fixed_saturday_after_cents?: number | null;
+  fixed_overtime_after_cents?: number | null;
+  fixed_early_late_cents?: number | null;
+  fixed_night_shift_cents?: number | null;
 };
 
 export type PricingData = {
@@ -131,6 +147,7 @@ export function makePricer(scope: PricingScope, data: PricingData) {
       categoryId: scope.categoryId,
       date,
     });
+    const rateCard = rateCardFromRow(card);
     let minutes: MinutesByType;
     try {
       minutes = splitShift(
@@ -147,6 +164,7 @@ export function makePricer(scope: PricingScope, data: PricingData) {
           ),
           night: settings.night_hours,
         },
+        rateCard,
       );
     } catch (error) {
       return {
@@ -156,7 +174,7 @@ export function makePricer(scope: PricingScope, data: PricingData) {
       };
     }
     const rules: CostRules = {
-      card: rateCardFromRow(card),
+      card: rateCard,
       billRule: billRuleFromRow(rule, settings.margin_pct),
       onCostPct: totalOnCostPct(
         settings.on_costs_pct,

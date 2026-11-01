@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { DAY_TYPES } from "@/domain/rates";
+import { CORE_DAY_TYPES, DAY_TYPES } from "@/domain/rates";
 import { requireAdmin } from "@/lib/auth";
 import {
   dollarsToCents,
@@ -38,6 +38,30 @@ const multiplier = requiredNumber("Enter a multiplier").pipe(
   z.number().min(0.5, "Too low").max(5, "Too high"),
 );
 
+/** A blank box means the card doesn't use that award rule. */
+function blankToNull(value: unknown) {
+  return value === "" || value === null || value === undefined ? null : value;
+}
+
+const optionalMultiplier = z.preprocess(
+  blankToNull,
+  z.coerce
+    .number({ error: "Enter a multiplier" })
+    .min(0.5, "Too low")
+    .max(5, "Too high")
+    .nullable(),
+);
+
+/** A time of day from a time box, "07:00", stored as "07:00". */
+const optionalTime = z.preprocess(
+  blankToNull,
+  z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, "Enter a time, like 07:00")
+    .transform((time) => time.slice(0, 5))
+    .nullable(),
+);
+
 /** Empty means the standard rates that every business gets. */
 const businessId = z.uuid("Choose a business").nullable();
 
@@ -59,16 +83,87 @@ const rateCardSchema = z
     public_holiday_multiplier: multiplier,
     overtime_multiplier: multiplier,
     night_multiplier: multiplier,
+    // The award's rules (owner, 01/11/2026). Each is optional.
+    overtime_after_hours: z.preprocess(
+      blankToNull,
+      z.coerce
+        .number({ error: "Enter the hours, like 7.6" })
+        .min(1, "Too low")
+        .max(24, "Too high")
+        .nullable(),
+    ),
+    tier_hours: requiredNumber("Enter the hours, usually 2").pipe(
+      z.number().min(0.25, "Too low").max(12, "Too high"),
+    ),
+    overtime_after_multiplier: optionalMultiplier,
+    ordinary_from: optionalTime,
+    ordinary_to: optionalTime,
+    saturday_after_multiplier: optionalMultiplier,
+    saturday_later_from: optionalTime,
+    early_late_multiplier: optionalMultiplier,
+    early_late_starts_before: optionalTime,
+    early_late_finishes_after: optionalTime,
+    night_shift_multiplier: optionalMultiplier,
+    night_shift_finishes_by: optionalTime,
     effective_from: isoDate,
     effective_to: optionalDate,
     checked_by: z.string().trim().max(120).nullable(),
     checked_on: optionalDate,
     notes: z.string().trim().max(1000),
   })
-  .refine((v) => !v.effective_to || v.effective_to >= v.effective_from, {
-    path: ["effective_to"],
-    message: "Must be on or after the start date",
+  .superRefine((v, ctx) => {
+    const problem = (path: string, message: string) =>
+      ctx.addIssue({ code: "custom", path: [path], message });
+    if (v.effective_to && v.effective_to < v.effective_from) {
+      problem("effective_to", "Must be on or after the start date");
+    }
+    if (v.ordinary_from && !v.ordinary_to) {
+      problem("ordinary_to", "Enter when ordinary hours finish");
+    }
+    if (v.ordinary_to && !v.ordinary_from) {
+      problem("ordinary_from", "Enter when ordinary hours start");
+    }
+    if (v.ordinary_from && v.ordinary_from === v.ordinary_to) {
+      problem("ordinary_to", "Must be different from the start");
+    }
+    if (v.saturday_later_from && v.saturday_after_multiplier === null) {
+      problem("saturday_after_multiplier", "Enter the later Saturday rate");
+    }
+    const earlyLateTimes =
+      v.early_late_starts_before !== null ||
+      v.early_late_finishes_after !== null;
+    if (v.early_late_multiplier !== null && !earlyLateTimes) {
+      problem(
+        "early_late_starts_before",
+        "Enter when a shift counts as early or late",
+      );
+    }
+    if (v.early_late_multiplier === null && earlyLateTimes) {
+      problem("early_late_multiplier", "Enter the rate for these shifts");
+    }
+    if (v.night_shift_multiplier !== null && !v.night_shift_finishes_by) {
+      problem("night_shift_finishes_by", "Enter the time it finishes by");
+    }
+    if (v.night_shift_multiplier === null && v.night_shift_finishes_by) {
+      problem("night_shift_multiplier", "Enter the rate for these shifts");
+    }
   });
+
+/** The award rule boxes on the rate card form, named after their columns. */
+const AWARD_RULE_FIELDS = [
+  "overtime_after_hours",
+  "tier_hours",
+  "overtime_after_multiplier",
+  "ordinary_from",
+  "ordinary_to",
+  "saturday_after_multiplier",
+  "saturday_later_from",
+  "early_late_multiplier",
+  "early_late_starts_before",
+  "early_late_finishes_after",
+  "night_shift_multiplier",
+  "night_shift_finishes_by",
+] as const;
 
 export async function saveRateCard(
   id: string | null,
@@ -83,10 +178,13 @@ export async function saveRateCard(
     level: formData.get("level"),
     base_rate_cents: cents === null || Number.isNaN(cents) ? undefined : cents,
     ...Object.fromEntries(
-      DAY_TYPES.map((d) => [
+      CORE_DAY_TYPES.map((d) => [
         `${d}_multiplier`,
         formData.get(`${d}_multiplier`),
       ]),
+    ),
+    ...Object.fromEntries(
+      AWARD_RULE_FIELDS.map((field) => [field, formData.get(field)]),
     ),
     effective_from: formData.get("effective_from"),
     effective_to: optionalText(formData.get("effective_to")),
@@ -152,6 +250,11 @@ const billRuleSchema = z
     fixed_public_holiday_cents: centsField("public holiday").nullable(),
     fixed_overtime_cents: centsField("overtime").nullable(),
     fixed_night_cents: centsField("night").nullable(),
+    // Optional: blank charges the closest rate above.
+    fixed_saturday_after_cents: centsField("later Saturday").nullable(),
+    fixed_overtime_after_cents: centsField("later overtime").nullable(),
+    fixed_early_late_cents: centsField("early or late shift").nullable(),
+    fixed_night_shift_cents: centsField("night shift").nullable(),
     effective_from: isoDate,
     effective_to: optionalDate,
     notes: z.string().trim().max(1000),
@@ -179,7 +282,7 @@ const billRuleSchema = z
       });
     }
     if (v.method === "fixed") {
-      for (const day of DAY_TYPES) {
+      for (const day of CORE_DAY_TYPES) {
         if (v[`fixed_${day}_cents`] === null) {
           ctx.addIssue({
             code: "custom",

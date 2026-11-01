@@ -35,6 +35,10 @@ const rateNames: Record<DayType, string> = {
   public_holiday: "public holiday",
   overtime: "overtime",
   night: "night",
+  saturday_after: "Saturday (later hours)",
+  overtime_after: "overtime (later hours)",
+  early_late: "early or late shift",
+  night_shift: "night shift",
 };
 
 function rateLine(line: CostLine): string {

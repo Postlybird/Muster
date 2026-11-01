@@ -102,7 +102,9 @@ export function costCancellation(
   hoursRules: HoursRules,
   costRules: CostRules,
 ): CancellationCost {
-  const type = mainType(splitShift(cancellation.shift, hoursRules));
+  const type = mainType(
+    splitShift(cancellation.shift, hoursRules, costRules.card),
+  );
   const engagement = cancellation.arrived ? costRules.minEngagementMinutes : 0;
   const minutesOf = (hours: number | null) =>
     Math.max(Math.round((hours ?? 0) * 60), engagement);

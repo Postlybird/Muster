@@ -43,7 +43,7 @@ describe("hourly pay", () => {
     expect(hourlyPayCents(tricky, "night")).toBe(1150);
   });
 
-  it("builds a table for every day type", () => {
+  it("builds a table for every rate type, falling back where a card has no award rates", () => {
     expect(hourlyPayTable(card)).toEqual({
       ordinary: 3313,
       saturday: 4638,
@@ -51,6 +51,10 @@ describe("hourly pay", () => {
       public_holiday: 7288,
       overtime: 4969,
       night: 3710,
+      saturday_after: 4638,
+      overtime_after: 4969,
+      early_late: 3313,
+      night_shift: 3313,
     });
   });
 
@@ -64,7 +68,76 @@ describe("hourly pay", () => {
       overtime_multiplier: "1.875",
       night_multiplier: "1.400",
     });
-    expect(fromRow).toEqual(card);
+    expect(fromRow).toEqual({
+      ...card,
+      award: {
+        overtimeAfterMinutes: null,
+        tierMinutes: 120,
+        saturdayLaterFrom: null,
+        ordinaryHours: null,
+        earlyLate: null,
+        nightShiftFinishesBy: null,
+      },
+    });
+  });
+
+  it("reads an award's rules from the card", () => {
+    const fromRow = rateCardFromRow({
+      base_rate_cents: 2748,
+      ordinary_multiplier: "1.250",
+      saturday_multiplier: "1.750",
+      sunday_multiplier: "2.250",
+      public_holiday_multiplier: "2.750",
+      overtime_multiplier: "1.750",
+      night_multiplier: "1.250",
+      saturday_after_multiplier: null,
+      overtime_after_multiplier: "2.250",
+      early_late_multiplier: "1.400",
+      night_shift_multiplier: "1.550",
+      tier_hours: "2.00",
+      overtime_after_hours: "7.60",
+      saturday_later_from: null,
+      ordinary_from: null,
+      ordinary_to: null,
+      early_late_starts_before: "06:00:00",
+      early_late_finishes_after: "18:00:00",
+      night_shift_finishes_by: "08:00:00",
+    });
+    expect(fromRow.multipliers).toEqual({
+      ordinary: 1.25,
+      saturday: 1.75,
+      sunday: 2.25,
+      public_holiday: 2.75,
+      overtime: 1.75,
+      night: 1.25,
+      overtime_after: 2.25,
+      early_late: 1.4,
+      night_shift: 1.55,
+    });
+    expect(fromRow.award).toEqual({
+      overtimeAfterMinutes: 456,
+      tierMinutes: 120,
+      saturdayLaterFrom: null,
+      ordinaryHours: null,
+      earlyLate: { startsBefore: "06:00", finishesAfter: "18:00" },
+      nightShiftFinishesBy: "08:00",
+    });
+  });
+
+  it("ignores a shift loading's times without its rate", () => {
+    const fromRow = rateCardFromRow({
+      base_rate_cents: 2748,
+      ordinary_multiplier: 1.25,
+      saturday_multiplier: 1.75,
+      sunday_multiplier: 2.25,
+      public_holiday_multiplier: 2.75,
+      overtime_multiplier: 1.75,
+      night_multiplier: 1.25,
+      early_late_starts_before: "06:00:00",
+      night_shift_finishes_by: "08:00:00",
+    });
+    expect(fromRow.award?.earlyLate).toBeNull();
+    expect(fromRow.award?.nightShiftFinishesBy).toBeNull();
   });
 });
 
