@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   description: brand.description,
   applicationName: brand.name,
   openGraph: { siteName: brand.name, locale: "en_AU", type: "website" },
+  // The demo stays out of search results until launch (owner, 01/11/2026).
+  ...(isDemoMode() ? { robots: { index: false, follow: false } } : {}),
 };
 
 export const viewport: Viewport = {

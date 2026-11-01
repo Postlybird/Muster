@@ -7,11 +7,11 @@
 project_id = "muster-dev"
 
 [auth]
-# The live site on Vercel. Links in sign-in emails start here, and the
-# scheduled jobs call it. Switch it to https://shifta.com.au once that
-# domain is connected in Vercel (not before: the jobs would have nowhere to
-# call).
-site_url = "https://muster-two-mauve.vercel.app"
+# The live site: shifta.com.au, connected in Vercel on 01/11/2026, whose
+# main address is www (Vercel sends shifta.com.au there). Links in sign-in
+# emails start here, and the scheduled jobs call it, so it must be the
+# address that doesn't redirect.
+site_url = "https://www.shifta.com.au"
 additional_redirect_urls = [
   "https://muster-two-mauve.vercel.app/**",
   "https://shifta.com.au/**",
