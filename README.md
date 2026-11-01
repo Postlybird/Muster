@@ -72,4 +72,4 @@ npm run test:acceptance   # the Phase 1 acceptance run (needs local Supabase + s
 | `DEMO_MODE` | `true` while we're building; `false` in production |
 | `CRON_SECRET` | A long random string (a password manager can make one; mark it Sensitive). Add the same value as the GitHub Actions secret `CRON_SECRET`, which the scheduled jobs use |
 
-The app works out its own address from each request, so `NEXT_PUBLIC_SITE_URL` isn't needed on Vercel. The live site is https://muster-two-mauve.vercel.app; if its address changes, update `site_url` in `deploy/muster-dev/supabase/config.toml`.
+The app works out its own address from each request, so `NEXT_PUBLIC_SITE_URL` isn't needed on Vercel. The live site is https://www.shifta.com.au (shifta.com.au and https://muster-two-mauve.vercel.app lead to the same site); if its main address changes, update `site_url` in `deploy/muster-dev/supabase/config.toml`.

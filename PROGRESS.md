@@ -4,7 +4,7 @@ _Last updated: 01/11/2026_
 
 ## Status
 
-**Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. The site is live on Vercel at https://muster-two-mauve.vercel.app (30/10/2026).
+**Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. The site is live on Vercel at https://www.shifta.com.au (01/11/2026; first at https://muster-two-mauve.vercel.app, which still works).
 
 **Phase 1: Run real shifts, built** (28/10/2026). All 17 steps are done, and the Phase 1 acceptance run passes: 3 businesses and 10 workers sign up and are approved, 20 shifts are filled and worked, and the payroll file and invoices are made, all through the app (the run only fast-forwards the week). Before real shifts, the owner items under Next are needed (hosting, scheduled jobs, the payroll template, our company details, and a lawyer's check of the documents). The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
@@ -368,6 +368,7 @@ _Last updated: 01/11/2026_
   - **Businesses:** name, work email, mobile and ABN on the form. After the code, one screen: the business from the ABN register, the services agreement to tick, and "Create my account" (another ABN can be tried if it finds the wrong business). The billing contact starts as the owner (changeable in Settings), sites are added while setting up the first shift, and team invites are on the Team page. Our team gets an alert straight away, and the business can set up its first shift while it waits (posting stays locked until we approve it). The approval email says when a shift is ready to post.
   - **Workers:** name and email on the form. After the code, "Two quick things": confirm their mobile with a texted code, then their suburb, how far they'll travel and the work they want (tap an industry, tick the roles). Their home screen then shows **shifts near them with the pay** (not the business or address, and no way to apply yet) and **"Get ready to work"**: photo and ID, right to work, tickets and paperwork, in their own time. Availability starts as any time, and a car and driver licence can be added later under "Getting to work" in their profile.
   - Tests: 460 pgTAP, 401 unit and 246 browser tests, plus the acceptance run.
+- **shifta.com.au connected** (01/11/2026): the site's main address is https://www.shifta.com.au: shifta.com.au sends people there, and the Vercel address still works. Sign-in emails link to it and the scheduled jobs call it. While the site is a demo, every page asks search engines not to list it, and there's no sitemap; that ends when demo mode is switched off at launch.
 - **Wordmark logo** (01/11/2026, the owner's pick from seven ideas): the logo is now the name in lower case, "shifta", with the dot of the i in hi-vis orange. It's drawn from the site's own font, so it looks the same everywhere: the header, phone menu, footer, sign-in pages, the signed-in areas and the picture shown when a link is shared. The S icon stays as the app and browser-tab icon.
 
 ## Next
@@ -375,7 +376,6 @@ _Last updated: 01/11/2026_
 - **Owner: photos of people for the home page.** Either allow the photo library in this environment (steps in our chat, 01/11/2026), and I'll pick free photos of people at work; or send me photos you have the rights to, like your own workers with their permission. Each person in the pictures (Laura, Jack, Priya, Daniel and Mei) then shows a photo instead of initials.
 - **Before opening each new state:** enter its public holidays (Admin → Rates → Public holidays) from the state's official list, and check its tickets in Admin → Catalogues → Tickets (who issues them, and whether they expire). The official state websites are blocked from our build environment, so we haven't loaded their holiday dates; we only have NSW's.
 - **Owner: before opening another state**, see "Opening a state" in the open questions.
-- **Owner: connect shifta.com.au** (steps below in the owner setup checklist). Then I'll switch sign-in links and the scheduled jobs to it.
 - **Owner: email for support@shifta.com.au.** The site shows it, so mail to it needs to reach you: most domain sellers offer free email forwarding to your own inbox.
 - **Try it:** sign up on the live site as a worker or a business, with test details only (in demo mode anyone with the outbox link can see the codes). Codes appear at `/dev/outbox`.
 - **Optional, any time:** turn on push notifications (Admin → Settings → Push notifications has the steps).
@@ -505,6 +505,8 @@ _Last updated: 01/11/2026_
 | 01/11/2026 | A business can submit with no site; it adds its first site while setting up its first shift. The billing contact starts as the owner. | Fewer screens before a business is with our team. A site is only needed to post work. |
 | 01/11/2026 | What people type on the register form is kept with their account until the code is in, then read with `signUpDetails()` and checked again before use. | The details can't be saved anywhere else until the email is confirmed, and people can change their own account details. |
 | 01/11/2026 | The logo is the lower-case wordmark with a hi-vis dot on the i; the S icon is only for app and browser-tab icons (owner's choice). | The owner picked it from seven ideas: the name is what people need to remember, and the icon still works where a square is needed. |
+| 01/11/2026 | The main address is www.shifta.com.au, and shifta.com.au redirects to it (Vercel's recommended setup, the owner's OK). Sign-in links and the scheduled jobs use the www address. | The scheduled jobs post to the site and must reach an address that doesn't redirect. People can type either. |
+| 01/11/2026 | While the site is in demo mode it asks search engines not to list it. | Anyone can read sign-in codes in the demo outbox, so the demo shouldn't be found by searching. Listing starts when demo mode goes off at launch. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
@@ -558,7 +560,7 @@ _Last updated: 01/11/2026_
 - [x] Vercel project imported from GitHub, environment variables added (steps in README). Live at https://muster-two-mauve.vercel.app.
 - [x] `CRON_SECRET` made, added to Vercel and as a GitHub Actions secret (the same value). Scheduled jobs on since 30/10/2026.
 - [x] Domain shifta.com.au bought (30/10/2026).
-- [ ] Domain connected in Vercel: Settings → Domains → Add `shifta.com.au` (and `www.shifta.com.au`), copy the DNS records Vercel shows into the domain seller's DNS settings, and wait for "Valid Configuration". Then tell us.
+- [x] Domain connected in Vercel (01/11/2026): www.shifta.com.au is the main address and shifta.com.au leads to it. The DNS records are at VentraIP: an A record for shifta.com.au and a CNAME for www, as Vercel shows them; the NS records stay VentraIP's.
 - [ ] Email forwarding for support@shifta.com.au to your own inbox.
 - [ ] Decide whether the GitHub repository should be private. It's public now, so anyone can read the code and BRIEF.md.
 - [ ] Optional: allow `ui.shadcn.com` and `abr.business.gov.au` in the cloud environment's network settings, so the shadcn CLI and the live ABN lookup work from the build container.
