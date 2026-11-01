@@ -21,6 +21,8 @@
 > - **Businesses** register with their name, work email, mobile and ABN, then confirm the business and accept the services agreement on one screen. Their billing contact starts as them, sites are added while setting up the first shift, and team invites are on the Team page. We still approve every business before its first shift goes out, and our team hears straight away; meanwhile the business can set up its first shift, ready to post.
 > - **Workers** register with their name and email, then confirm their mobile and choose their suburb and work: about two minutes, with no quiz or video. They see open shifts near them and the pay straight away (not the business or address), and can apply once we've checked their photo ID, right to work, tickets and paperwork, which they add in their own time. Availability starts as any time; car and licence questions are optional.
 > - No passwords and no "How did you hear about us?".
+>
+> **Owner update, 01/11/2026 (logo).** The logo is the name in lower case, "shifta", with a hi-vis orange dot on the i. The S icon stays as the app and browser-tab icon.
 
 *"Muster" is a working name only. Keep the brand in a single config value (`src/config/brand.ts`) so swapping in the real name is a one-line change.*
 
