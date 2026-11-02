@@ -207,6 +207,34 @@ describe("who can work a shift", () => {
     ).toEqual([]);
   });
 
+  it("keeps workers off first-in shifts their other shifts would put into overtime, unless allowed", () => {
+    // The shift is 8.5 hours on the 5th; 3 hours booked elsewhere that day.
+    const overtimeClosed = {
+      minutes: 480,
+      limits: { dailyMinutes: 456, weeklyMinutes: 38 * 60 },
+    };
+    const sameDay = [
+      {
+        shiftId: "other",
+        bookedAt: "2026-11-01T00:00:00Z",
+        day: "2026-11-05",
+        minutes: 180,
+      },
+    ];
+    expect(reasons({ bookedHours: sameDay }, { overtimeClosed })).toEqual([
+      "overtime",
+    ]);
+    // Allowed (or picked by the business): no check.
+    expect(reasons({ bookedHours: sameDay })).toEqual([]);
+    // Another day that week is fine, well short of 38 hours.
+    expect(
+      reasons(
+        { bookedHours: [{ ...sameDay[0]!, day: "2026-11-04" }] },
+        { overtimeClosed },
+      ),
+    ).toEqual([]);
+  });
+
   it("lists every rule that fails", () => {
     expect(
       reasons({ status: "pending", credentials: [], travelRadiusKm: 1 }),

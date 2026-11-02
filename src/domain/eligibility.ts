@@ -1,4 +1,10 @@
 import { policeCheckAcceptedUntil } from "./onboarding";
+import {
+  overtimeFromOtherShifts,
+  priorHours,
+  type BookedHours,
+  type OvertimeLimits,
+} from "./overtime";
 
 /**
  * Who can work a shift (brief §4.4 hard rules) and the order they're offered
@@ -17,7 +23,8 @@ export type IneligibleReason =
   | "police_check"
   | "too_far"
   | "date_blocked"
-  | "overlapping_shift";
+  | "overlapping_shift"
+  | "overtime";
 
 /** Plain words for admins looking at why someone wasn't offered a shift. */
 export const INELIGIBLE_REASONS: Record<IneligibleReason, string> = {
@@ -32,6 +39,8 @@ export const INELIGIBLE_REASONS: Record<IneligibleReason, string> = {
   too_far: "Outside their travel distance",
   date_blocked: "Not available that day",
   overlapping_shift: "Already booked at that time",
+  overtime:
+    "Their other shifts would put this one into overtime, which the business hasn't allowed",
 };
 
 export type WorkerFacts = {
@@ -58,6 +67,8 @@ export type WorkerFacts = {
   blockedDates: readonly string[];
   /** Shifts they're already booked on. */
   bookings: readonly { start: Date; end: Date }[];
+  /** Their hours with us around the shift's week, other than this shift's. */
+  bookedHours?: readonly BookedHours[];
 };
 
 export type ShiftFacts = {
@@ -72,6 +83,12 @@ export type ShiftFacts = {
   siteLng: number;
   requiredTicketTypeIds: readonly string[];
   policeCheckRequired: boolean;
+  /**
+   * For shifts workers take themselves (first in, call-outs) that the
+   * business hasn't opened to workers on overtime (owner, 02/11/2026):
+   * the shift's worked minutes and the limits. Absent otherwise.
+   */
+  overtimeClosed?: { minutes: number; limits: OvertimeLimits };
 };
 
 export type MatchRules = {
@@ -176,6 +193,22 @@ export function checkEligibility(
     )
   ) {
     reasons.push("overlapping_shift");
+  }
+  if (shift.overtimeClosed && worker.bookedHours?.length) {
+    const prior = priorHours(
+      { shiftId: "", bookedAt: null, day: shift.date },
+      worker.bookedHours,
+      shift.overtimeClosed.limits.dailyMinutes,
+    );
+    if (
+      overtimeFromOtherShifts(
+        prior,
+        shift.overtimeClosed.minutes,
+        shift.overtimeClosed.limits,
+      )
+    ) {
+      reasons.push("overtime");
+    }
   }
 
   return {

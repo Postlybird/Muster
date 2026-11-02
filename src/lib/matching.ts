@@ -9,9 +9,11 @@ import {
   type ShiftFacts,
   type WorkerFacts,
 } from "@/domain/eligibility";
+import { weekStart, workedMinutes, type BookedHours } from "@/domain/overtime";
 import {
   hourlyBillCents,
   STATE_TIME_ZONES,
+  type CostRules,
   type StateCode,
 } from "@/domain/pay";
 import { makePricer, type PricingData } from "@/domain/pricing";
@@ -46,11 +48,21 @@ type ShiftContext = {
   /** Local weekday (1 = Monday) and minutes after midnight of the start. */
   weekday: number;
   startMinute: number;
+  /**
+   * Workers take it themselves and the business hasn't opened it to
+   * workers on overtime (owner, 02/11/2026): their other shifts are checked.
+   */
+  overtimeClosed: boolean;
+  minutes: number;
+  /** The daily overtime limit on the shift's rate card, once it's priced. */
+  dailyLimitMinutes: number | null;
 };
 
-type Candidate = Omit<WorkerFacts, "bookings"> & {
+type Candidate = Omit<WorkerFacts, "bookings" | "bookedHours"> & {
   /** Shifts they're booked on. */
   bookings: { shiftId: string; start: Date; end: Date }[];
+  /** Their hours with us around the shifts' weeks, for overtime. */
+  bookedHours: BookedHours[];
   profileId: string;
   rating: number | null;
   reliability: number | null;
@@ -119,6 +131,48 @@ export function firstShown({
   return shownBefore && shownBefore < from ? shownBefore : from;
 }
 
+/** The daily overtime limit on a shift's rate card, if it has one. */
+function dailyLimitOf(rules: CostRules | null | undefined): number | null {
+  return rules?.card.award?.overtimeAfterMinutes ?? null;
+}
+
+/**
+ * Workers' hours with us in the weeks of some shifts, for the overtime
+ * check (owner, 02/11/2026). Only needed when a shift is closed to workers
+ * on overtime.
+ */
+async function loadBookedHours(
+  client: Client,
+  workerIds: string[],
+  shifts: ShiftContext[],
+): Promise<Map<string, BookedHours[]>> {
+  const byWorker = new Map<string, BookedHours[]>();
+  const closed = shifts.filter((shift) => shift.overtimeClosed);
+  if (closed.length === 0 || workerIds.length === 0) return byWorker;
+  const weeks = closed.map((shift) => weekStart(shift.facts.date)).sort();
+  const from = new Date(`${weeks[0]}T00:00:00Z`);
+  from.setUTCDate(from.getUTCDate() - 1);
+  const to = new Date(`${weeks[weeks.length - 1]}T00:00:00Z`);
+  to.setUTCDate(to.getUTCDate() + 8);
+  const { data, error } = await client.rpc("worker_booked_minutes", {
+    p_worker_ids: workerIds,
+    p_from: from.toISOString(),
+    p_to: to.toISOString(),
+  });
+  if (error) throw new Error(`Couldn't load booked hours: ${error.message}`);
+  for (const row of data ?? []) {
+    const list = byWorker.get(row.worker_id) ?? [];
+    list.push({
+      shiftId: row.shift_id,
+      bookedAt: row.booked_at,
+      day: row.day,
+      minutes: row.minutes,
+    });
+    byWorker.set(row.worker_id, list);
+  }
+  return byWorker;
+}
+
 async function loadShifts(
   client: Client,
   filter: { jobId: string } | { categoryIds: string[] },
@@ -127,7 +181,7 @@ async function loadShifts(
   let query = client
     .from("shifts")
     .select(
-      "id, starts_at, ends_at, status, jobs!inner(id, business_id, category_id, level, type, status, posted_at, favourites_first_minutes, police_check_required, sites(lat, lng, state), job_credentials(credential_type_id))",
+      "id, starts_at, ends_at, break_minutes, status, shift_pay(cost_rules), jobs!inner(id, business_id, category_id, level, type, status, posted_at, fill_mode, allow_overtime, favourites_first_minutes, police_check_required, sites(lat, lng, state), job_credentials(credential_type_id))",
     )
     .eq("status", "open")
     .eq("jobs.status", "posted")
@@ -143,9 +197,15 @@ async function loadShifts(
     if (!job.sites || !job.category_id) return [];
     const timeZone = STATE_TIME_ZONES[job.sites.state as StateCode];
     const start = new Date(shift.starts_at);
+    const end = new Date(shift.ends_at);
     const isoWeekday = Number(formatInTimeZone(start, timeZone, "i"));
     return [
       {
+        overtimeClosed: job.fill_mode === "auto" && !job.allow_overtime,
+        minutes: workedMinutes(start, end, shift.break_minutes),
+        dailyLimitMinutes: dailyLimitOf(
+          shift.shift_pay?.cost_rules as CostRules | null | undefined,
+        ),
         shiftId: shift.id,
         jobId: job.id,
         businessId: job.business_id,
@@ -160,7 +220,7 @@ async function loadShifts(
           categoryId: job.category_id,
           level: job.level,
           start,
-          end: new Date(shift.ends_at),
+          end,
           date: formatInTimeZone(start, timeZone, "yyyy-MM-dd"),
           siteLat: Number(job.sites.lat),
           siteLng: Number(job.sites.lng),
@@ -222,6 +282,7 @@ async function loadCandidates(
         }
       : null,
     blockedDates: worker.availability_blocks.map((block) => block.date),
+    bookedHours: [],
     bookings: worker.assignments.flatMap((booking) =>
       booking.shifts
         ? [
@@ -329,8 +390,26 @@ async function saveMatches(
             bookings: worker.bookings.filter(
               (booking) => booking.shiftId !== shift.shiftId,
             ),
+            bookedHours: worker.bookedHours.filter(
+              (booking) => booking.shiftId !== shift.shiftId,
+            ),
           },
-          shift.facts,
+          shift.overtimeClosed
+            ? {
+                ...shift.facts,
+                overtimeClosed: {
+                  minutes: shift.minutes,
+                  limits: {
+                    dailyMinutes:
+                      shift.dailyLimitMinutes ??
+                      Math.round(settings.daily_overtime_after_hours * 60),
+                    weeklyMinutes: Math.round(
+                      (settings.weekly_overtime_after_hours ?? 38) * 60,
+                    ),
+                  },
+                },
+              }
+            : shift.facts,
           {
             blockedWorkerIds: blockedBy.get(shift.businessId) ?? new Set(),
             policeCheckMaxAgeMonths: settings.police_check_max_age_months,
@@ -413,15 +492,16 @@ async function saveShiftPay(
   jobId: string,
   shifts: ShiftContext[],
   settings: MatchingSettings,
-) {
+): Promise<Map<string, CostRules>> {
+  const saved = new Map<string, CostRules>();
   const first = shifts[0];
-  if (!first) return;
+  if (!first) return saved;
   const { data: job } = await client
     .from("jobs")
     .select("business_id, category_id, level, type, sites(state)")
     .eq("id", jobId)
     .single();
-  if (!job?.category_id || !job.sites) return;
+  if (!job?.category_id || !job.sites) return saved;
   const scope = {
     businessId: job.business_id,
     categoryId: job.category_id,
@@ -447,6 +527,7 @@ async function saveShiftPay(
     });
     if (!quote.ok) return [];
     const { rules, cost } = quote;
+    saved.set(shift.shiftId, rules);
     return [
       {
         shift_id: shift.shiftId,
@@ -473,6 +554,24 @@ async function saveShiftPay(
       .upsert(rows, { onConflict: "shift_id" });
     if (error) throw new Error(`Couldn't save shift pay: ${error.message}`);
   }
+  return saved;
+}
+
+/** Fills in each candidate's hours with us, for shifts closed to overtime. */
+async function withBookedHours(
+  client: Client,
+  candidates: Candidate[],
+  shifts: ShiftContext[],
+): Promise<Candidate[]> {
+  const hours = await loadBookedHours(
+    client,
+    candidates.map((candidate) => candidate.id),
+    shifts,
+  );
+  return candidates.map((candidate) => ({
+    ...candidate,
+    bookedHours: hours.get(candidate.id) ?? [],
+  }));
 }
 
 export type MatchOptions = {
@@ -488,12 +587,22 @@ export async function matchJob(
   settings: MatchingSettings,
   { notify = true, now = new Date() }: MatchOptions = {},
 ): Promise<UrgentOffer[]> {
-  const shifts = await loadShifts(client, { jobId }, now);
-  if (shifts.length === 0) return [];
-  await saveShiftPay(client, jobId, shifts, settings);
-  const candidates = await loadCandidates(client, {
-    categoryIds: [shifts[0]!.facts.categoryId],
-  });
+  const loaded = await loadShifts(client, { jobId }, now);
+  if (loaded.length === 0) return [];
+  const priced = await saveShiftPay(client, jobId, loaded, settings);
+  // The daily overtime limit comes from the rates the shifts were just priced at.
+  const shifts = loaded.map((shift) => ({
+    ...shift,
+    dailyLimitMinutes:
+      dailyLimitOf(priced.get(shift.shiftId)) ?? shift.dailyLimitMinutes,
+  }));
+  const candidates = await withBookedHours(
+    client,
+    await loadCandidates(client, {
+      categoryIds: [shifts[0]!.facts.categoryId],
+    }),
+    shifts,
+  );
   return saveMatches(
     client,
     {
@@ -549,22 +658,23 @@ export async function matchWorker(
   settings: MatchingSettings,
   { notify = true, now = new Date() }: MatchOptions = {},
 ): Promise<UrgentOffer[]> {
-  const [candidate] = await loadCandidates(client, { workerId });
-  if (!candidate) {
+  const [found] = await loadCandidates(client, { workerId });
+  if (!found) {
     // Not active (any more): they shouldn't be offered anything.
     await withdrawOffers(client, workerId, new Set(), "not_active", now);
     return [];
   }
   const shifts = await loadShifts(
     client,
-    { categoryIds: candidate.categories.map((c) => c.categoryId) },
+    { categoryIds: found.categories.map((c) => c.categoryId) },
     now,
   );
+  const [candidate] = await withBookedHours(client, [found], shifts);
   const offers = await saveMatches(
     client,
     { workerId },
     shifts,
-    [candidate],
+    [candidate!],
     settings,
     now,
     notify,

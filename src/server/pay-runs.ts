@@ -5,6 +5,7 @@ import { isRunDay, lastFullWeek, type Week } from "@/domain/pay-runs";
 import { formatCalendarDate, formatCents, sydneyDateKey } from "@/lib/format";
 import { renderInvoicePdf, type InvoicePdfData } from "@/lib/invoice-pdf";
 import {
+  owedTimesheetIdsWith,
   planPayRunWith,
   savePayRunWith,
   type PayRunPlan,
@@ -75,6 +76,7 @@ export async function previewPayRun(): Promise<PayRunPreview> {
     };
   }
   await costWaitingHours();
+  await costTimesheets(await owedTimesheetIdsWith(admin, week));
   const plan = await planPayRunWith(admin, week, settings, today);
   return { week, run: null, plan, missingDetails };
 }

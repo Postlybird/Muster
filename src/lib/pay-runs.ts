@@ -103,6 +103,25 @@ function numberOrNull(value: number | string | null): number | null {
  * (costTimesheetsWith). Rates are admin-only, so `client` holds the
  * service-role key.
  */
+/**
+ * The approved hours a week's run would pay. A worker's hours add up across
+ * their week (owner, 02/11/2026), so a booking cancelled or changed since
+ * can move overtime between their shifts: these are costed again just
+ * before planning.
+ */
+export async function owedTimesheetIdsWith(
+  client: Client,
+  week: Week,
+): Promise<string[]> {
+  const { data, error } = await client.rpc("pay_run_candidates", {
+    p_until: weekEndsAt(week, TIME_ZONE).toISOString(),
+  });
+  if (error) throw new Error(`Couldn't find what's owed: ${error.message}`);
+  return (data ?? []).flatMap((candidate) =>
+    candidate.timesheet_id ? [candidate.timesheet_id] : [],
+  );
+}
+
 export async function planPayRunWith(
   client: Client,
   week: Week,

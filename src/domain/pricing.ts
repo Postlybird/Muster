@@ -13,6 +13,7 @@ import {
   type ShiftCost,
   type StateCode,
 } from "./pay";
+import type { PriorHours } from "./overtime";
 import { pickBillRule, pickRateCard, rateCardFromRow } from "./rates";
 
 /**
@@ -78,6 +79,8 @@ export type PricingData = {
   } | null;
   settings: {
     daily_overtime_after_hours: number;
+    /** Optional so older callers keep working; absent means no weekly limit. */
+    weekly_overtime_after_hours?: number;
     night_hours: { start: string; end: string };
     margin_pct: number;
     on_costs_pct: {
@@ -118,6 +121,8 @@ export type ShiftToPrice = {
   end: Date;
   breakMinutes: number;
   urgent: boolean;
+  /** A worker's hours with us before this shift that day and week. */
+  prior?: PriorHours;
 };
 
 /** Prices shifts for one business, work type, level and state. */
@@ -162,9 +167,14 @@ export function makePricer(scope: PricingScope, data: PricingData) {
           overtimeAfterMinutes: Math.round(
             settings.daily_overtime_after_hours * 60,
           ),
+          weeklyOvertimeAfterMinutes:
+            settings.weekly_overtime_after_hours === undefined
+              ? undefined
+              : Math.round(settings.weekly_overtime_after_hours * 60),
           night: settings.night_hours,
         },
         rateCard,
+        shift.prior,
       );
     } catch (error) {
       return {

@@ -1664,6 +1664,7 @@ export type Database = {
       };
       jobs: {
         Row: {
+          allow_overtime: boolean;
           archived_at: string | null;
           business_id: string;
           callout_alerted_at: string | null;
@@ -1704,6 +1705,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          allow_overtime?: boolean;
           archived_at?: string | null;
           business_id: string;
           callout_alerted_at?: string | null;
@@ -1743,6 +1745,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          allow_overtime?: boolean;
           archived_at?: string | null;
           business_id?: string;
           callout_alerted_at?: string | null;
@@ -4013,6 +4016,10 @@ export type Database = {
         Args: { p_id: string; p_note: string };
         Returns: undefined;
       };
+      overtime_from_other_shifts: {
+        Args: { p_shift_id: string; p_worker_id: string };
+        Returns: boolean;
+      };
       pay_run_candidates: {
         Args: { p_until: string };
         Returns: {
@@ -4147,6 +4154,7 @@ export type Database = {
         }[];
       };
       state_blocked: { Args: { p_state: string }; Returns: boolean };
+      state_time_zone: { Args: { p_state: string }; Returns: string };
       submit_business: { Args: Record<PropertyKey, never>; Returns: undefined };
       submit_worker_onboarding: {
         Args: Record<PropertyKey, never>;
@@ -4165,6 +4173,17 @@ export type Database = {
       withdraw_applications: {
         Args: { p_shift_ids: string[] };
         Returns: number;
+      };
+      worker_booked_minutes: {
+        Args: { p_from: string; p_to: string; p_worker_ids: string[] };
+        Returns: {
+          assignment_id: string;
+          booked_at: string;
+          day: string;
+          minutes: number;
+          shift_id: string;
+          worker_id: string;
+        }[];
       };
       worker_words_ok: {
         Args: { p_max?: number; p_text: string };

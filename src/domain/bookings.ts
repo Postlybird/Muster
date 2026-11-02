@@ -15,6 +15,7 @@ export type TakeResult =
   | "closed"
   | "not_eligible"
   | "clash"
+  | "overtime"
   | "not_ready";
 
 export type Outcome = { ok: boolean; message: string };
@@ -43,6 +44,12 @@ function problems(results: readonly string[], they: "you" | "they"): string[] {
   if (clash > 0) {
     sentences.push(
       `${shiftsLabel(clash)} ${clash === 1 ? "clashes" : "clash"} with a shift ${they}'re already booked on.`,
+    );
+  }
+  const overtime = count(results, "overtime");
+  if (overtime > 0) {
+    sentences.push(
+      `With ${they === "you" ? "your" : "their"} other shifts that day or week, ${shiftsLabel(overtime)} would go into overtime, and the business hasn't opened ${overtime === 1 ? "it" : "them"} to that.`,
     );
   }
   const notEligible = count(results, "not_eligible", "not_offered");

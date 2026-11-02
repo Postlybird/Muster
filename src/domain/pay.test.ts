@@ -602,3 +602,75 @@ describe("bill rules from the database", () => {
     expect(hourlyBillCents(cleaner, fixed, 0, "night_shift")).toBe(6200);
   });
 });
+
+describe("a worker's other hours with us count towards overtime", () => {
+  const weekly: HoursRules = { ...rules, weeklyOvertimeAfterMinutes: 38 * 60 };
+  const splitWith = (
+    card: RateCard | undefined,
+    start: string,
+    end: string,
+    prior: { dayMinutes: number; weekOrdinaryMinutes: number },
+  ) =>
+    splitShift(
+      { start: sydney(start), end: sydney(end), breakMinutes: 0 },
+      weekly,
+      card,
+      prior,
+    );
+
+  it("puts a later-booked shift into overtime after the day's limit", () => {
+    // 6 hours booked earlier that day, then Wednesday 1 pm to 5 pm.
+    expect(
+      splitWith(cleaner, "2026-11-04T13:00", "2026-11-04T17:00", {
+        dayMinutes: 360,
+        weekOrdinaryMinutes: 360,
+      }),
+    ).toEqual(minutes({ ordinary: 96, overtime: 120, overtime_after: 24 }));
+  });
+
+  it("counts overtime earlier in the day towards the later overtime rate", () => {
+    // 10 hours earlier that day: 2.4 of them overtime already.
+    expect(
+      splitWith(cleaner, "2026-11-04T19:00", "2026-11-04T21:00", {
+        dayMinutes: 600,
+        weekOrdinaryMinutes: 456,
+      }),
+    ).toEqual(minutes({ overtime_after: 120 }));
+  });
+
+  it("puts hours past 38 ordinary hours in the week into overtime", () => {
+    expect(
+      splitWith(cleaner, "2026-11-04T09:00", "2026-11-04T13:00", {
+        dayMinutes: 0,
+        weekOrdinaryMinutes: 2200,
+      }),
+    ).toEqual(minutes({ ordinary: 80, overtime: 120, overtime_after: 40 }));
+  });
+
+  it("still pays Sunday's rate when it's higher than overtime", () => {
+    expect(
+      splitWith(cleaner, "2026-11-08T09:00", "2026-11-08T13:00", {
+        dayMinutes: 456,
+        weekOrdinaryMinutes: 456,
+      }),
+    ).toEqual(minutes({ sunday: 240 }));
+  });
+
+  it("counts them with rates kept before award rules too", () => {
+    expect(
+      splitWith(undefined, "2026-11-04T13:00", "2026-11-04T17:00", {
+        dayMinutes: 360,
+        weekOrdinaryMinutes: 360,
+      }),
+    ).toEqual(minutes({ ordinary: 96, overtime: 144 }));
+  });
+
+  it("changes nothing for a shift with no other hours", () => {
+    expect(
+      splitWith(cleaner, "2026-11-04T09:00", "2026-11-04T13:00", {
+        dayMinutes: 0,
+        weekOrdinaryMinutes: 0,
+      }),
+    ).toEqual(minutes({ ordinary: 240 }));
+  });
+});

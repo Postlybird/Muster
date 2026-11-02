@@ -1,3 +1,4 @@
+import { NO_PRIOR_HOURS, type PriorHours } from "./overtime";
 import {
   DAY_TYPES,
   hourlyPayCents,
@@ -51,8 +52,13 @@ export type HoursRules = {
   timeZone: string;
   /** Public holidays in the site's state, as yyyy-mm-dd. */
   publicHolidays: ReadonlySet<string>;
-  /** Worked minutes in a shift after which the overtime rate applies. */
+  /** Worked minutes in a day after which the overtime rate applies. */
   overtimeAfterMinutes: number;
+  /**
+   * Ordinary minutes in a week (Monday to Sunday) after which the overtime
+   * rate applies (owner, 02/11/2026). Absent: no weekly limit.
+   */
+  weeklyOvertimeAfterMinutes?: number;
   /** Night hours as local "HH:MM" times. The window may cross midnight. */
   night: { start: string; end: string };
 };
@@ -131,11 +137,16 @@ function zoneOffset(timeZone: string, minute: number): number {
  * night rate. Without them (rates kept with older bookings) each minute
  * takes the first that applies: public holiday, Sunday, Saturday, overtime,
  * night, ordinary.
+ *
+ * `prior` is the worker's hours with us before this shift that day and week
+ * (src/domain/overtime.ts): they count towards the daily and weekly limits,
+ * so a worker's later-booked shift can go into overtime (owner, 02/11/2026).
  */
 export function splitShift(
   shift: ShiftTimes,
   rules: HoursRules,
   card?: RateCard,
+  prior: PriorHours = NO_PRIOR_HOURS,
 ): MinutesByType {
   const start = Math.round(shift.start.getTime() / MINUTE);
   const end = Math.round(shift.end.getTime() / MINUTE);
@@ -179,11 +190,14 @@ export function splitShift(
       rules,
       card as RateCard & { award: NonNullable<RateCard["award"]> },
       [nightStart, nightEnd],
+      prior,
     );
   }
 
   const minutes = emptyMinutes();
-  let worked = 0;
+  const weeklyLimit = rules.weeklyOvertimeAfterMinutes ?? Infinity;
+  let worked = prior.dayMinutes;
+  let weekOrdinary = prior.weekOrdinaryMinutes;
   for (let minute = start; minute < end; minute++) {
     if (isBreak(minute)) continue;
     // Local wall-clock time, read through the UTC getters.
@@ -196,7 +210,10 @@ export function splitShift(
       type = "sunday";
     } else if (weekday === 6) {
       type = "saturday";
-    } else if (worked >= rules.overtimeAfterMinutes) {
+    } else if (
+      worked >= rules.overtimeAfterMinutes ||
+      weekOrdinary >= weeklyLimit
+    ) {
       type = "overtime";
     } else if (
       inWindow(
@@ -211,6 +228,7 @@ export function splitShift(
     }
     minutes[type]++;
     worked++;
+    if (type !== "overtime") weekOrdinary++;
   }
   return minutes;
 }
@@ -268,11 +286,13 @@ function splitWithAward(
   rules: HoursRules,
   card: RateCard & { award: NonNullable<RateCard["award"]> },
   [nightStart, nightEnd]: [number, number],
+  prior: PriorHours,
 ): MinutesByType {
   const { award } = card;
   const rate = (type: DayType) => multiplierFor(card, type);
   const overtimeAfter =
     award.overtimeAfterMinutes ?? rules.overtimeAfterMinutes;
+  const weeklyLimit = rules.weeklyOvertimeAfterMinutes ?? Infinity;
   const laterFrom = award.saturdayLaterFrom
     ? minutesAfterMidnight(award.saturdayLaterFrom)
     : null;
@@ -289,8 +309,11 @@ function splitWithAward(
   );
 
   const minutes = emptyMinutes();
-  let ordinarySoFar = 0;
-  let overtimeSoFar = 0;
+  // The worker's earlier hours that day: ordinary up to the limit, and any
+  // past it already overtime, which counts towards the later rate.
+  let ordinarySoFar = Math.min(prior.dayMinutes, overtimeAfter);
+  let overtimeSoFar = Math.max(0, prior.dayMinutes - overtimeAfter);
+  let weekOrdinary = prior.weekOrdinaryMinutes;
   let saturdaySoFar = 0;
   for (let minute = shift.start; minute < shift.end; minute++) {
     if (shift.isBreak(minute)) continue;
@@ -323,7 +346,11 @@ function splitWithAward(
       weekday <= 5 &&
       spread !== null &&
       !inWindow(time, spread[0]!, spread[1]!);
-    if (outsideOrdinaryHours || ordinarySoFar >= overtimeAfter) {
+    if (
+      outsideOrdinaryHours ||
+      ordinarySoFar >= overtimeAfter ||
+      weekOrdinary >= weeklyLimit
+    ) {
       const overtime: DayType =
         overtimeSoFar >= award.tierMinutes &&
         rate("overtime_after") > rate("overtime")
@@ -333,6 +360,7 @@ function splitWithAward(
       if (rate(overtime) > rate(type)) type = overtime;
     } else {
       ordinarySoFar++;
+      weekOrdinary++;
     }
 
     if (inWindow(time, nightStart, nightEnd) && rate("night") > rate(type)) {

@@ -23,6 +23,14 @@ describe("taking work", () => {
     });
   });
 
+  it("says when other shifts would put one into overtime the business hasn't allowed", () => {
+    expect(takeOutcome("auto", ["booked", "overtime"])).toEqual({
+      ok: true,
+      message:
+        "You're booked on 1 shift. With your other shifts that day or week, 1 shift would go into overtime, and the business hasn't opened it to that.",
+    });
+  });
+
   it("fails when nothing went through", () => {
     expect(takeOutcome("auto", ["full", "full"])).toEqual({
       ok: false,
