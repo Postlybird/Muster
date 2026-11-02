@@ -107,6 +107,10 @@ export async function postJob(
     .from("jobs")
     .update({
       fill_mode: parsed.data.fill_mode,
+      // Only workers taking a shift themselves are held back (owner, 02/11/2026).
+      allow_overtime:
+        parsed.data.fill_mode === "auto" &&
+        formBoolean(formData.get("allow_overtime")),
       // Urgent call-outs go to everyone at once (brief §4.3).
       favourites_first_minutes:
         job.type === "urgent" ? null : parsed.data.favourites_first_minutes,

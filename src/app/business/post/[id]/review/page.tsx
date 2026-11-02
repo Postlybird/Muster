@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { POST_STEPS } from "@/domain/jobs";
-import type { StateCode } from "@/domain/pay";
+import { hourlyBillCents, type StateCode } from "@/domain/pay";
 import { estimateLines } from "@/domain/pricing";
 import { dayTypeLabels } from "@/domain/rates";
 import { formatCents, formatHours } from "@/lib/format";
@@ -74,6 +74,25 @@ export default async function ReviewStepPage({
     : null;
   const canPost =
     !problem && missing.length === 0 && !blocked && !!estimate?.ok;
+  // What overtime from a worker's other shifts would cost (owner,
+  // 02/11/2026), for the choice about first-in shifts.
+  const firstQuote = estimate?.ok ? estimate.quotes[0] : undefined;
+  const settings = firstQuote ? await getAllSettings() : null;
+  const overtime =
+    firstQuote && settings
+      ? {
+          rateCents: hourlyBillCents(
+            firstQuote.rules.card,
+            firstQuote.rules.billRule,
+            firstQuote.rules.onCostPct,
+            "overtime",
+          ),
+          dailyHours:
+            (firstQuote.rules.card.award?.overtimeAfterMinutes ??
+              Math.round(settings.daily_overtime_after_hours * 60)) / 60,
+          weeklyHours: settings.weekly_overtime_after_hours,
+        }
+      : null;
 
   return (
     <PostStepFrame
@@ -242,6 +261,8 @@ export default async function ReviewStepPage({
           favouritesFirst={job.favourites_first_minutes}
           urgent={job.type === "urgent"}
           canPost={canPost}
+          allowOvertime={job.allow_overtime}
+          overtime={overtime}
         />
       </div>
     </PostStepFrame>

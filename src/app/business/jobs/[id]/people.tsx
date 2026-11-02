@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { ActionButton } from "@/components/forms/action-button";
 import { ConfirmAction } from "@/components/forms/confirm-action";
+import { OvertimeNote } from "@/components/jobs/overtime-note";
 import { WorkerCard } from "@/components/jobs/worker-card";
 import { Button } from "@/components/ui/button";
 import { shiftsLabel } from "@/domain/bookings";
@@ -12,6 +13,7 @@ import { attendanceOf } from "@/lib/my-shifts";
 import { formatAuPhone } from "@/lib/phone";
 import { businessTimesheetStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
+import { overtimeIfBooked, overtimeOfBookings } from "@/server/overtime";
 import { workerPhotoLinks } from "@/server/worker-photos";
 
 import { confirmArrival, pickApplicant, reportNoShow } from "./actions";
@@ -35,7 +37,8 @@ function daysLabel(
 
 /**
  * The workers who applied, best match first (brief §4.4 ranking), for the
- * business to pick ("I'll choose").
+ * business to pick ("I'll choose"), with any overtime their other shifts
+ * with us would bring.
  */
 export async function Applicants({
   jobId,
@@ -52,7 +55,17 @@ export async function Applicants({
   const supabase = await createClient();
   const { data } = await supabase.rpc("job_applicants", { p_job_id: jobId });
   const applicants = data ?? [];
-  const photos = await workerPhotoLinks(applicants.map((a) => a.photo_path));
+  const [photos, overtime] = await Promise.all([
+    workerPhotoLinks(applicants.map((a) => a.photo_path)),
+    overtimeIfBooked(
+      applicants.flatMap((applicant) =>
+        applicant.shift_ids.map((shiftId) => ({
+          workerId: applicant.worker_id,
+          shiftId,
+        })),
+      ),
+    ),
+  ]);
   return (
     <section
       aria-labelledby="applicants"
@@ -110,6 +123,23 @@ export async function Applicants({
                   Applied for:{" "}
                   {daysLabel(applicant.shift_ids, shifts, timeZone)}
                 </p>
+                {shifts
+                  .filter((shift) => applicant.shift_ids.includes(shift.id))
+                  .flatMap((shift) => {
+                    const facts = overtime.get(
+                      `${applicant.worker_id}:${shift.id}`,
+                    );
+                    return facts ? [{ shift, facts }] : [];
+                  })
+                  .map(({ shift, facts }) => (
+                    <OvertimeNote
+                      key={shift.id}
+                      facts={facts}
+                      day={formatDayShort(shift.starts_at, timeZone)}
+                      audience="business"
+                      when="would be"
+                    />
+                  ))}
                 {canPick ? (
                   <ActionButton
                     action={pickApplicant.bind(
@@ -158,19 +188,21 @@ export async function Booked({
     ]);
   }
   const assignmentIds = bookings.map((b) => b.assignment_id);
-  const [photos, { data: events }, { data: timesheets }] = await Promise.all([
-    workerPhotoLinks(bookings.map((b) => b.photo_path)),
-    supabase
-      .from("attendance_events")
-      .select(
-        "assignment_id, kind, occurred_at, inside_geofence, distance_m, reason",
-      )
-      .in("assignment_id", assignmentIds),
-    supabase
-      .from("timesheets")
-      .select("id, assignment_id, status")
-      .in("assignment_id", assignmentIds),
-  ]);
+  const [photos, { data: events }, { data: timesheets }, overtime] =
+    await Promise.all([
+      workerPhotoLinks(bookings.map((b) => b.photo_path)),
+      supabase
+        .from("attendance_events")
+        .select(
+          "assignment_id, kind, occurred_at, inside_geofence, distance_m, reason",
+        )
+        .in("assignment_id", assignmentIds),
+      supabase
+        .from("timesheets")
+        .select("id, assignment_id, status")
+        .in("assignment_id", assignmentIds),
+      overtimeOfBookings(assignmentIds),
+    ]);
   const attendance = (assignmentId: string) =>
     (events ?? []).filter((e) => e.assignment_id === assignmentId);
   const timesheetOf = (assignmentId: string) =>
@@ -213,6 +245,21 @@ export async function Booked({
                     timeZone,
                   )}
                 </p>
+                {rows.flatMap((row) => {
+                  const facts = overtime.get(row.assignment_id);
+                  const shift = shifts.find((s) => s.id === row.shift_id);
+                  return facts && shift
+                    ? [
+                        <OvertimeNote
+                          key={`overtime-${row.assignment_id}`}
+                          facts={facts}
+                          day={formatDayShort(shift.starts_at, timeZone)}
+                          audience="business"
+                          when="is"
+                        />,
+                      ]
+                    : [];
+                })}
                 {rows
                   .flatMap((row) => {
                     const shift = shifts.find((s) => s.id === row.shift_id);

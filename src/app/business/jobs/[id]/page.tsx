@@ -214,7 +214,7 @@ export default async function JobPage({
           <ConfirmAction
             trigger={<Button variant="outline">Make it a call-out</Button>}
             title="Make this a call-out?"
-            description={`We'll text and notify every available, qualified worker nearby now, and the first to accept is booked. The open ${stillOpen.length === 1 ? "shift costs" : "shifts cost"} ${settings?.urgent_loading_pct.bill ?? 20}% more per hour; anyone already booked stays on their rate.`}
+            description={`We'll text and notify every available, qualified worker nearby now, and the first to accept is booked. The open ${stillOpen.length === 1 ? "shift costs" : "shifts cost"} ${settings?.urgent_loading_pct.bill ?? 20}% more per hour; anyone already booked stays on their rate. ${job.allow_overtime ? "Workers whose other shifts with us would put it into overtime can take it, and that overtime is charged." : "Workers whose other shifts with us would put it into overtime won't be offered it."}`}
             confirmLabel="Make it a call-out"
             action={makeCallout.bind(null, job.id)}
             variant="default"

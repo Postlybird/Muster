@@ -87,6 +87,19 @@ test("a manager posts a shift and sees the cost first", async ({ page }) => {
   await expect(page).toHaveURL(/\/review$/);
   await expect(page.getByText("$429.18")).toBeVisible();
   await expect(page.getByRole("radio", { name: /I'll choose/ })).toBeChecked();
+  // First in: the business decides whether workers whose other shifts with
+  // us would put this one into overtime may take it.
+  await page.getByRole("radio", { name: /First in/ }).check();
+  await expect(
+    page.getByRole("checkbox", {
+      name: /Let workers on overtime take this shift/,
+    }),
+  ).not.toBeChecked();
+  await expect(page.getByText(/charged at \$\d+\.\d\d an hour/)).toBeVisible();
+  await page.getByRole("radio", { name: /I'll choose/ }).check();
+  await expect(
+    page.getByRole("checkbox", { name: /Let workers on overtime/ }),
+  ).toHaveCount(0);
   await expectAccessible(page);
   await page.getByRole("button", { name: "Post work" }).click();
 

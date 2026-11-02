@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { WizardActions } from "@/components/wizard/wizard-actions";
 import { FAVOURITES_FIRST_OPTIONS, FILL_MODES } from "@/domain/jobs";
+import { formatCents } from "@/lib/format";
 
 import { postJob } from "./actions";
 
@@ -22,10 +23,12 @@ function minutesLabel(minutes: number): string {
 
 export function ReviewForm({
   jobId,
-  fillMode,
+  fillMode: savedFillMode,
   favouritesFirst,
   urgent,
   canPost,
+  allowOvertime,
+  overtime,
 }: {
   jobId: string;
   fillMode: string;
@@ -33,6 +36,13 @@ export function ReviewForm({
   /** Urgent call-outs go to everyone at once, so there's no head start. */
   urgent: boolean;
   canPost: boolean;
+  allowOvertime: boolean;
+  /** The overtime charge an hour and the limits, once the job is priced. */
+  overtime: {
+    rateCents: number;
+    dailyHours: number;
+    weeklyHours: number;
+  } | null;
 }) {
   const {
     state,
@@ -41,6 +51,7 @@ export function ReviewForm({
     fieldErrors: errors,
   } = useServerForm(postJob.bind(null, jobId));
   const [saveTemplate, setSaveTemplate] = useState(false);
+  const [fillMode, setFillMode] = useState(savedFillMode);
 
   return (
     <form onSubmit={onSubmit} noValidate className="max-w-2xl space-y-6">
@@ -48,7 +59,8 @@ export function ReviewForm({
         id="fill_mode"
         name="fill_mode"
         legend="How should we fill it?"
-        defaultValue={fillMode}
+        value={fillMode}
+        onValueChange={setFillMode}
         error={errors?.fill_mode}
         columns={1}
         choices={Object.entries(FILL_MODES).map(([value, info]) => ({
@@ -57,6 +69,42 @@ export function ReviewForm({
           description: info.description,
         }))}
       />
+      {fillMode === "auto" ? (
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="allow_overtime"
+            name="allow_overtime"
+            defaultChecked={allowOvertime}
+            className="mt-0.5"
+          />
+          <Label
+            htmlFor="allow_overtime"
+            className="flex-col items-start gap-1 font-normal"
+          >
+            <span className="font-medium">
+              Let workers on overtime take this shift
+            </span>
+            <span className="text-sm text-muted-foreground">
+              A worker&apos;s hours with us add up. If their other shifts would
+              take this one past{" "}
+              {overtime
+                ? `${overtime.dailyHours} hours that day or ${overtime.weeklyHours} that week`
+                : "the day's or week's limit"}
+              , those hours are overtime
+              {overtime
+                ? `, charged at ${formatCents(overtime.rateCents)} an hour (excluding GST)`
+                : ""}
+              . Leave this unticked and those workers can&apos;t take it.
+            </span>
+          </Label>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          If a worker&apos;s other shifts with us would put this one into
+          overtime, you&apos;ll see it on their application, with what it adds,
+          before you book them.
+        </p>
+      )}
       {urgent ? null : (
         <FormField
           id="favourites_first_minutes"

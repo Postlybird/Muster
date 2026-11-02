@@ -10,6 +10,7 @@ import Link from "next/link";
 
 import { EmptyState } from "@/components/empty-state";
 import { ActionButton } from "@/components/forms/action-button";
+import { OvertimeNote } from "@/components/jobs/overtime-note";
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ import { attendanceOf, cancellable, liveShift } from "@/lib/my-shifts";
 import { distanceLabel } from "@/lib/offers";
 import { formatAuPhone } from "@/lib/phone";
 import { createClient } from "@/lib/supabase/server";
+import { overtimeOfBookings } from "@/server/overtime";
 import { getAllSettings } from "@/server/settings";
 
 import { withdrawApplications } from "./actions";
@@ -168,6 +170,12 @@ export default async function WorkerJobPage({
   const open = offers ?? [];
   const booked = (mine ?? []).filter(
     (s) => s.assignment_status === "confirmed",
+  );
+  // Overtime from their other shifts with us (owner, 02/11/2026).
+  const overtime = await overtimeOfBookings(
+    booked.flatMap((shift) =>
+      shift.assignment_id ? [shift.assignment_id] : [],
+    ),
   );
   const applied = (mine ?? []).filter(
     (s) => s.application_status === "applied",
@@ -337,6 +345,22 @@ export default async function WorkerJobPage({
           className="border-success/30 bg-success-soft"
         >
           <ShiftList shifts={booked} timeZone={siteZone} />
+          {booked.flatMap((shift) => {
+            const facts = shift.assignment_id
+              ? overtime.get(shift.assignment_id)
+              : undefined;
+            return facts
+              ? [
+                  <OvertimeNote
+                    key={`overtime-${shift.shift_id}`}
+                    facts={facts}
+                    day={formatDayShort(shift.starts_at, siteZone)}
+                    audience="worker"
+                    when="is"
+                  />,
+                ]
+              : [];
+          })}
           <div className="space-y-1 border-t pt-3">
             <p className="flex items-start gap-1 font-medium [overflow-wrap:anywhere]">
               <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
