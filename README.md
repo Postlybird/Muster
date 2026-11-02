@@ -1,6 +1,6 @@
 # Shifta
 
-Work, sorted. On-demand labour hire for every industry:
+Work, sorted. On-demand labour hire for labouring, cleaning, restoration, and warehouses and removals:
 businesses book checked staff for shifts, and workers pick up shifts on their
 phones. We are the labour hire provider. The name, slogan and contact details
 are set in `src/config/brand.ts`. (The repository and the Supabase project
