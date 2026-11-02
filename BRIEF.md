@@ -25,6 +25,8 @@
 > **Owner update, 01/11/2026 (logo).** The logo is the name in lower case, "shifta", with a hi-vis orange dot on the i. The S icon stays as the app and browser-tab icon.
 >
 > **Owner update, 01/11/2026 (pay rates).** The launch work types have real pay rates, checked by the owner's accountant (changes to §4.8): each award's casual rate plus 50c an hour, with weekend, holiday, overtime and shift rates worked out from the same rate. The margin is a setting. Overtime follows each award: after the award's daily hours, at a higher rate after the first 2 hours, and outside its ordinary hours on weekdays; Saturday's later rate (after 2 hours, or from noon under the building award); and the higher rate for a whole early, late or night shift. These rules are still set by admin on each rate card, not written into the code, and each hour is paid at the highest rate that applies.
+>
+> **Owner update, 02/11/2026 (overtime across shifts).** Overtime is worked out for each worker (changes to §4.4 and §4.8). We employ every worker for every shift, so their hours with us add up across the day and the week (38 hours, Monday to Sunday). Hours are added up in the order the shifts were booked, and the business whose booking takes a worker past the limit pays the overtime, after being told before it happens: on each applicant when it picks workers, and, for shifts workers take themselves (first in, call-outs), by a box when posting ("Let workers on overtime take this shift", off unless ticked). Workers see the overtime on their shifts and timesheets.
 
 *"Muster" is a working name only. Keep the brand in a single config value (`src/config/brand.ts`) so swapping in the real name is a one-line change.*
 

@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 01/11/2026_
+_Last updated: 02/11/2026_
 
 ## Status
 
@@ -377,11 +377,18 @@ _Last updated: 01/11/2026_
   - The website's example pay now follows the live rate card: $34.35 an hour for a restoration labourer, and about $165 for a four-hour call-out.
   - Tests: 470 pgTAP, 423 unit and 250 browser tests, plus the acceptance run.
 - **Each worker sees their overtime** (01/11/2026, the owner: overtime shown "for each individual"): once a business approves a worker's hours, the worker's timesheet shows how their pay adds up, a line per rate: for example 7.6 hours ordinary, 2 hours of overtime and 0.4 at the higher overtime rate, with any early or late shift loading, top-up to the minimum shift and call-out loading. Each worker's overtime comes from their own hours, so one who stays later than the others on a job is the only one paid overtime. Workers see their pay only, never what the business is charged. Tests: 478 pgTAP, 423 unit and 252 browser tests, plus the acceptance run.
+- **Overtime across a worker's shifts** (02/11/2026, the owner's choice: the business pays, told beforehand):
+  - We employ every worker for every shift, so their hours with us add up: past 7.6 hours a day (8 for general labourers) or 38 ordinary hours a week, Monday to Sunday, the rest is overtime. The weekly limit is a new setting in Admin → Settings → Pay and billing.
+  - Hours add up in the order the shifts were booked. The business whose booking takes a worker past a limit is charged the overtime; a business booked earlier isn't. If an earlier shift is cancelled or finishes early, the overtime shrinks or goes, as the week's hours are costed again before each pay run.
+  - **Businesses that pick their workers** see it on each applicant before booking, for example "With their other shifts with us that day (6 h), 2.4 h of this shift would be overtime: about $X more, excluding GST", and on the worker once booked.
+  - **First-in shifts and call-outs:** when posting first-in work there's a box, "Let workers on overtime take this shift", with the overtime charge an hour. It's off unless ticked; then workers whose other shifts would put it into overtime aren't offered it and can't take it. A call-out keeps the job's choice, which its confirmation says.
+  - **Workers** see it on their booked shift ("about $X more for you") and on their timesheet.
+  - Tests: 490 pgTAP, 440 unit and 258 browser tests, plus the acceptance run.
 
 ## Next
 
 - **Owner: enter the margin** on the live site: sign in as an admin, open Admin → Settings → Pay and billing, set "Default margin" to the margin you chose, and save. The figure is kept out of the code because the code is public. Until then, charges use the old placeholder margin.
-- **Owner: ask the accountant to confirm** what isn't in the pay guides: overtime after 7.6 hours a day for casuals (cleaning and road transport) and 8 hours (building), and ordinary hours of 7 am to 6 pm (building) and 5:30 am to 6:30 pm (road transport). Each is a box on the rate card in Admin → Rates, so it can change without us.
+- **Owner: ask the accountant to confirm** what isn't in the pay guides: overtime after 7.6 hours a day for casuals (cleaning and road transport) and 8 hours (building), after 38 ordinary hours a week (Monday to Sunday), and ordinary hours of 7 am to 6 pm (building) and 5:30 am to 6:30 pm (road transport). Each is a box on the rate card in Admin → Rates, so it can change without us.
 - **Owner: photos of people for the home page.** Either allow the photo library in this environment (steps in our chat, 01/11/2026), and I'll pick free photos of people at work; or send me photos you have the rights to, like your own workers with their permission. Each person in the pictures (Laura, Jack, Priya, Daniel and Mei) then shows a photo instead of initials.
 - **Before opening each new state:** enter its public holidays (Admin → Rates → Public holidays) from the state's official list, and check its tickets in Admin → Catalogues → Tickets (who issues them, and whether they expire). The official state websites are blocked from our build environment, so we haven't loaded their holiday dates; we only have NSW's.
 - **Owner: before opening another state**, see "Opening a state" in the open questions.
@@ -522,6 +529,9 @@ _Last updated: 01/11/2026_
 | 01/11/2026 | An award's overtime and shift rules are set on each rate card (admin-set data, not code), and each hour is paid at the highest rate that applies. Bookings made before keep the rules they were priced with. | Brief §4.8: no award rules in code; a payroll professional checks the cards. |
 | 01/11/2026 | General labourers and removalist offsiders are treated as day workers: weekday hours outside ordinary hours are paid as overtime, not shift rates. | The awards' shift rates are for workers on shift rosters, which we don't run, and overtime pays more. |
 | 01/11/2026 | The pictures of the app on the website take a restoration labourer's pay from the current rate card (replacing the 31/10/2026 decision to update them by hand). | They stay right when the rates change each July. |
+| 02/11/2026 | A worker's hours with us add up across the day and week, in the order their shifts were booked; the business whose booking takes them past a limit pays the overtime (owner's choice). | We employ them for every shift. Booking order means the business charged is the one we could warn before it booked. |
+| 02/11/2026 | First-in shifts and call-outs aren't taken by workers their other shifts would put into overtime, unless the business ticks "Let workers on overtime take this shift" when posting. Businesses that pick see the overtime on each applicant. | So a business never gets overtime it didn't see coming (owner: "the business needs to understand the overtime beforehand"). |
+| 02/11/2026 | The weekly limit is 38 ordinary hours, Monday to Sunday, a setting; hours already overtime under the daily limit don't count twice. | The awards' weekly hours for casuals, to be confirmed by the accountant with the daily ones. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
@@ -540,7 +550,6 @@ _Last updated: 01/11/2026_
 - **Late cancellations by a business.** Each booking is charged 3 hours for now (a placeholder setting). Should the worker also be paid those hours if they hadn't arrived yet? (Workers who have arrived are always paid at least the minimum engagement, brief §4.5.) The setting is off for now.
 - **Early starts and late finishes.** Paid time starts at the rostered start even if a worker clocks in early, and a late finish is paid as clocked unless the business changes it. Is that the rule you want, or should both follow the roster unless the business approves extra time?
 - **Changing a posted job.** For now a business can't edit a job once it's posted, because workers decide on what they were shown. From step 1.9 they'll be able to cancel and post again. Should they be able to change small things, like the instructions or who to report to, after posting?
-- **Overtime across a worker's shifts** (01/11/2026). We're the employer for every shift, so a worker's hours at different businesses add up: 6 hours at one business and 4 at another on the same day (or more than 38 hours in a week) means overtime. The payroll provider pays it from the hours, but the app works out pay shift by shift. Should the app (a) not offer shifts that would take a worker into that overtime (our recommendation), (b) allow it and absorb the extra cost, or (c) allow it and charge the business whose shift goes over?
 - **Allowances** (01/11/2026). The building award's fares and travel allowance ($22.41 a day worked, for general labourers) and the road transport award's furniture carter allowance ($27.39 a week, if it applies to offsiders) aren't in pay or bills yet. Should we add daily and weekly allowances to rate cards? The payroll provider pays them correctly either way; this is about our estimates and invoices.
 - **Invoice and pricing extras** (30/10/2026). On offer, waiting for your choice: a Xero-ready invoice file; a PO or reference number on jobs and invoice lines; the award and level on invoice lines; separate invoices per branch; and leaving super off overtime when pricing (super isn't owed on overtime).
 
