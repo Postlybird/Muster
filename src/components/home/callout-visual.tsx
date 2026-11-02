@@ -41,7 +41,7 @@ const EXAMPLE_HOURS = 4;
 /**
  * A phone showing a call-out text, worded as the real message is, and the
  * booking that follows. The details are illustrative (the footer says so);
- * the pay follows a restoration labourer's current rate (`hourlyCents`) and
+ * the pay follows a restoration technician's current rate (`hourlyCents`) and
  * the call-out loading.
  */
 export function CalloutPhone({
@@ -66,7 +66,7 @@ export function CalloutPhone({
           Text message · now
         </p>
         <p className="mt-2 rounded-2xl rounded-tl-sm bg-card p-3 text-sm shadow-xs">
-          Urgent work: Restoration labourer in Granville, today from 2:00 pm.
+          Urgent work: Restoration technician in Granville, today from 2:00 pm.
           {dollars === null
             ? ""
             : ` About $${dollars} with the call-out rate.`}{" "}
@@ -75,7 +75,7 @@ export function CalloutPhone({
         </p>
         <div className="mt-4 rounded-2xl bg-card p-3 shadow-xs">
           <p className="text-sm font-semibold text-deep">
-            Restoration labourer
+            Restoration technician
           </p>
           <p className="text-xs text-muted-foreground">
             Granville · today 2:00 pm to 6:00 pm · {payPct}% more per hour

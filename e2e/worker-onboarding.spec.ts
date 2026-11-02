@@ -34,7 +34,7 @@ test("a new worker signs up in two minutes, then gets ready to work", async ({
   const { jobId } = await postTestJob({
     business: "Harbour Restoration",
     site: "Granville flood job",
-    category: "Restoration labourer",
+    category: "Restoration technician",
     fillMode: "pick",
   });
   try {
@@ -70,7 +70,9 @@ async function signUpAndGetReady(page: Page) {
     nearby.getByText("You can apply once we've checked your details."),
   ).toBeVisible();
   // Seeded restoration work near Parramatta shows, without the business.
-  await expect(nearby.getByText("Restoration labourer").first()).toBeVisible();
+  await expect(
+    nearby.getByText("Restoration technician").first(),
+  ).toBeVisible();
   await expect(nearby.getByText("Harbour Restoration")).toHaveCount(0);
   await expect(nearby.getByRole("link")).toHaveCount(0);
   await expectAccessible(page);
@@ -173,7 +175,7 @@ test("an active worker's profile and availability", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Liam O'Brien" }),
   ).toBeVisible();
-  await expect(page.getByText("Restoration labourer")).toBeVisible();
+  await expect(page.getByText("Restoration technician")).toBeVisible();
   await expectAccessible(page);
 
   await page.getByRole("link", { name: /Change.*Availability/ }).click();

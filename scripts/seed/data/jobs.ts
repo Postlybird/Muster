@@ -33,7 +33,7 @@ export const DEMO_JOBS: SeedJob[] = [
   {
     business: "Harbour Restoration",
     site: "Granville flood job",
-    category: "restoration_labourer",
+    category: "restoration_technician",
     type: "multi_day",
     headcount: 3,
     fillMode: "pick",
@@ -71,7 +71,7 @@ export const DEMO_JOBS: SeedJob[] = [
   {
     business: "Beaches Make Safe",
     site: "Manly storm repairs",
-    category: "strip_out_demolition",
+    category: "general_labourer",
     type: "urgent",
     headcount: 2,
     fillMode: "auto",
@@ -89,7 +89,7 @@ export const DEMO_JOBS: SeedJob[] = [
   {
     business: "Southern Cross Pack-out",
     site: "Sutherland storage",
-    category: "contents_packout",
+    category: "restoration_technician",
     type: "single",
     headcount: 4,
     fillMode: "pick",

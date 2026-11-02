@@ -9,11 +9,11 @@ test("the rate calculator splits a shift and shows pay, bill and margin", async 
   await page.goto("/admin/rates/calculator");
   await expectAccessible(page);
 
-  // A Saturday morning for a restoration labourer: 4 hours at $48.09
+  // A Saturday morning for a commercial cleaner: 4 hours at $48.09
   // (the cleaning award's Saturday rate, plus 50c an hour).
   await page
     .getByLabel("Work category")
-    .selectOption({ label: "Restoration labourer" });
+    .selectOption({ label: "Commercial cleaner" });
   await page.getByLabel("Date").fill("2026-11-07");
   await page.getByLabel("Start").fill("08:00");
   await page.getByLabel("Finish").fill("12:00");
@@ -50,12 +50,12 @@ test("the rate calculator pays a long weekday shift by the award's overtime rule
   await signInAsDemo(page, "Alex Morgan");
   await page.goto("/admin/rates/calculator");
 
-  // A restoration labourer (cleaning award) on a Wednesday, 7 am to 7 pm with
+  // A commercial cleaner (cleaning award) on a Wednesday, 7 am to 7 pm with
   // a 30-minute break: finishing after 6 pm makes it a late shift, overtime
   // starts after 7.6 hours, and the later overtime rate after 2 more.
   await page
     .getByLabel("Work category")
-    .selectOption({ label: "Restoration labourer" });
+    .selectOption({ label: "Commercial cleaner" });
   await page.getByLabel("Date").fill("2026-11-11");
   await page.getByLabel("Start").fill("07:00");
   await page.getByLabel("Finish").fill("19:00");

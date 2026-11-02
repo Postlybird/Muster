@@ -17,7 +17,7 @@ test.describe("accessibility (WCAG 2.1 AA)", () => {
     "/faq",
     "/contact",
     "/industries",
-    "/industries/hospitality",
+    "/industries/warehousing-logistics",
     "/login?as=worker",
     "/register",
     "/register/worker",

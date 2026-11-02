@@ -12,18 +12,19 @@ test.describe("admin rates", () => {
   }) => {
     await page.goto("/admin/rates");
     await expect(page).toHaveURL(/\/admin\/rates\/rate-cards$/);
-    // Other work types still have placeholder rates.
-    await expect(
-      page.getByText(/haven't been checked by a payroll professional/),
-    ).toBeVisible();
-    const rows = page.getByRole("row", { name: /Restoration labourer/ });
+    const rows = page.getByRole("row", { name: /Commercial cleaner/ });
     // The accountant-checked card: $27.48 base × 1.25 = $34.35 ordinary.
     const current = rows.filter({ hasText: "$27.48" });
     await expect(current).toContainText("$34.35");
     await expect(current).toContainText("Overtime after 7.6 h a day");
     await expect(current).toContainText("Owner's accountant");
     // The placeholder card it replaced.
-    await expect(rows.filter({ hasText: "$26.50" })).toContainText("Replaced");
+    await expect(rows.filter({ hasText: "$26.00" })).toContainText("Replaced");
+    // The warehouse work types wait for their award's checked rates, so
+    // there's no card to post them with (owner, 02/11/2026).
+    await expect(
+      page.getByRole("row", { name: /Forklift driver/ }),
+    ).toHaveCount(0);
     await expectAccessible(page);
   });
 
@@ -102,7 +103,7 @@ test.describe("admin rates", () => {
     ).toBeVisible();
     await page
       .getByLabel("Work category")
-      .selectOption({ label: "Trades assistant" });
+      .selectOption({ label: "Builders cleaner" });
     await page.getByLabel("Fixed bill rates").check();
     // A unique start date: one rule per category from a given date.
     await page.getByLabel("Applies from").fill(randomFutureDate());
@@ -113,12 +114,12 @@ test.describe("admin rates", () => {
     await page.getByLabel("Margin", { exact: true }).fill("25");
     await page.getByRole("button", { name: "Add bill rule" }).click();
     await expect(
-      page.getByRole("heading", { name: "Trades assistant" }),
+      page.getByRole("heading", { name: "Builders cleaner" }),
     ).toBeVisible();
 
     await page.goto("/admin/rates/bill-rules");
     await expect(
-      page.getByRole("row", { name: /Trades assistant/ }).first(),
+      page.getByRole("row", { name: /Builders cleaner/ }).first(),
     ).toContainText("25% margin");
   });
 

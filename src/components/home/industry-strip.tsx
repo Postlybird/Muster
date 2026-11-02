@@ -4,7 +4,7 @@ import Link from "next/link";
 import { IndustryIcon } from "@/components/industries/industry-icon";
 import type { PublicIndustry } from "@/server/industries";
 
-/** Every industry in one row of links, just under the home page's first screen. */
+/** The industries we cover, in one row of links, just under the home page's first screen. */
 export function IndustryStrip({
   industries,
   headingId,
@@ -18,7 +18,7 @@ export function IndustryStrip({
         id={headingId}
         className="shrink-0 text-sm font-semibold tracking-wide text-primary uppercase"
       >
-        Staff for every industry
+        Industries we cover
       </h2>
       <ul className="flex flex-wrap gap-2">
         {industries.map((industry) => (

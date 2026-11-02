@@ -55,7 +55,7 @@ test("an admin finds workers by work type, mobile and papers expiring soon", asy
   await expect(
     results.getByRole("link", { name: "Ahmed Hassan" }),
   ).toBeVisible();
-  await expect(results.getByRole("link", { name: "Aisha Rahman" })).toHaveCount(
+  await expect(results.getByRole("link", { name: "Priya Patel" })).toHaveCount(
     0,
   );
 

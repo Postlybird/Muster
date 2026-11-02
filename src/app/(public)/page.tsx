@@ -22,11 +22,20 @@ const HERO_POINTS = [
   "Workers paid every week",
 ];
 
-const QUICK_ANSWERS = [
+/** "a, b and c", for the work types in the first answer. */
+function andList(items: string[]): string {
+  if (items.length < 2) return items.join("");
+  return `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
+}
+
+/** What businesses ask first, with the work they can book from the live catalogue. */
+const quickAnswers = (bookable: string[]) => [
   {
     question: "What kind of staff can I get?",
     answer:
-      "General labourers and skilled workers across hospitality, events, warehousing, manufacturing, retail, cleaning, construction, offices and restoration, for a single shift or a busy season.",
+      bookable.length > 0
+        ? `General and skilled staff for a single shift or a busy season: ${andList(bookable.map((name) => name.toLowerCase()))}.`
+        : "General and skilled staff for a single shift or a busy season.",
   },
   {
     question: "How quickly can I get someone?",
@@ -87,12 +96,17 @@ function SectionHeading({
 }
 
 export default async function HomePage() {
-  const [industries, settings, labourerPay] = await Promise.all([
+  const [industries, settings, technicianPay] = await Promise.all([
     listIndustries(),
     getAllSettings(),
-    standardWeekdayPay("restoration_labourer"),
+    standardWeekdayPay("restoration_technician"),
   ]);
   const payPct = settings.urgent_loading_pct.pay;
+  const bookable = industries.flatMap((industry) =>
+    industry.workTypes
+      .filter((workType) => workType.bookable)
+      .map((workType) => workType.name),
+  );
 
   return (
     <main className="flex-1">
@@ -147,7 +161,7 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* Every industry, in one row. */}
+      {/* The industries we cover, in one row. */}
       <section
         aria-labelledby="industries-title"
         className="border-y bg-background py-6"
@@ -254,7 +268,7 @@ export default async function HomePage() {
               )}
             </ol>
           </div>
-          <CalloutPhone payPct={payPct} hourlyCents={labourerPay} />
+          <CalloutPhone payPct={payPct} hourlyCents={technicianPay} />
         </Container>
       </section>
 
@@ -323,7 +337,7 @@ export default async function HomePage() {
             </Link>
           </div>
           <dl className="grid gap-6 md:grid-cols-2">
-            {QUICK_ANSWERS.map(({ question, answer }) => (
+            {quickAnswers(bookable).map(({ question, answer }) => (
               <div
                 key={question}
                 className="space-y-2 rounded-3xl border bg-card p-7 shadow-soft"

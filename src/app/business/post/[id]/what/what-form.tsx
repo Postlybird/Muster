@@ -31,11 +31,12 @@ export function WhatForm({
   jobId: string;
   values: WhatValues;
   sites: { id: string; name: string; suburb: string }[];
-  /** Work types, by industry. */
+  /** Work types, by industry; `ready` once they have pay rates. */
   industries: IndustryGroup<{
     id: string;
     name: string;
     description: string;
+    ready: boolean;
   }>[];
 }) {
   const {
@@ -45,9 +46,9 @@ export function WhatForm({
     fieldErrors: errors,
   } = useServerForm(saveWhat.bind(null, jobId));
   const [categoryId, setCategoryId] = useState(values.categoryId);
-  const description = industries
-    .flatMap((industry) => industry.items)
-    .find((c) => c.id === categoryId)?.description;
+  const workTypes = industries.flatMap((industry) => industry.items);
+  const description = workTypes.find((c) => c.id === categoryId)?.description;
+  const comingSoon = workTypes.some((c) => !c.ready);
 
   return (
     <form onSubmit={onSubmit} noValidate className="max-w-2xl space-y-6">
@@ -91,7 +92,12 @@ export function WhatForm({
       <FormField
         id="category_id"
         label="Type of work"
-        hint={description}
+        hint={
+          description ??
+          (comingSoon
+            ? "Work marked “coming soon” can't be booked yet: we're setting its pay rates."
+            : undefined)
+        }
         error={errors?.category_id}
       >
         {(props) => (
@@ -105,8 +111,14 @@ export function WhatForm({
             {industries.map((industry) => (
               <optgroup key={industry.name} label={industry.name}>
                 {industry.items.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
+                  <option
+                    key={category.id}
+                    value={category.id}
+                    disabled={!category.ready}
+                  >
+                    {category.ready
+                      ? category.name
+                      : `${category.name} (coming soon)`}
                   </option>
                 ))}
               </optgroup>

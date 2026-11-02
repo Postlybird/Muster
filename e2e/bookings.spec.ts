@@ -22,7 +22,7 @@ test("a worker applies, the business picks them, and they see the address", asyn
   const { jobId } = await postTestJob({
     business: "Harbour Restoration",
     site: "Granville flood job",
-    category: "Restoration labourer",
+    category: "Restoration technician",
     fillMode: "pick",
   });
   posted.push(jobId);
@@ -113,7 +113,9 @@ test("a worker applies, the business picks them, and they see the address", asyn
   await expect(
     page
       .getByRole("region", { name: "Booked" })
-      .getByRole("link", { name: /Restoration labourer.*Harbour Restoration/ })
+      .getByRole("link", {
+        name: /Restoration technician.*Harbour Restoration/,
+      })
       .first(),
   ).toBeVisible();
   await expectAccessible(page);

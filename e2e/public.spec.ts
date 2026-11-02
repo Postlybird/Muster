@@ -33,8 +33,12 @@ test("the home page leads with general and skilled labour, and call-outs come la
     staff
       .getByRole("region", { name: "Skilled labour" })
       .getByRole("listitem")
-      .filter({ hasText: "Forklift driver" }),
+      .filter({ hasText: "Restoration technician" }),
   ).toBeVisible();
+  // Work still waiting for its pay rates isn't offered here yet.
+  await expect(
+    staff.getByRole("listitem").filter({ hasText: "Forklift driver" }),
+  ).toHaveCount(0);
 
   // Call-outs are an add-on, further down, with the extra pay.
   const callouts = page.getByRole("region", {
@@ -133,34 +137,43 @@ test("each industry has a page with the work and the tickets it needs", async ({
 }) => {
   await page.goto("/");
   await page
-    .getByRole("region", { name: "Staff for every industry" })
-    .getByRole("link", { name: "Hospitality" })
+    .getByRole("region", { name: "Industries we cover" })
+    .getByRole("link", { name: "Restoration" })
     .click();
-  await expect(page).toHaveURL(/\/industries\/hospitality$/);
+  await expect(page).toHaveURL(/\/industries\/restoration$/);
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Hospitality staff, sorted.",
+      name: "Restoration staff, sorted.",
     }),
   ).toBeVisible();
-  const bartender = page
-    .getByRole("listitem")
-    .filter({ has: page.getByRole("heading", { name: "Bartender" }) });
-  // Tickets each state issues are named by what every state's has in common.
-  await expect(bartender).toContainText(
-    "Needs: Responsible Service of Alcohol (RSA)",
-  );
-
-  // Every industry is listed, with a link to its page.
-  await page.goto("/industries");
-  await page
-    .getByRole("main")
-    .getByRole("link", { name: "Warehousing and logistics" })
-    .click();
+  // Restoration technicians cover all restoration work (owner, 02/11/2026).
   await expect(
-    page.getByRole("heading", { name: "Forklift driver" }),
-  ).toBeVisible();
+    page.getByRole("listitem").filter({
+      has: page.getByRole("heading", { name: "Restoration technician" }),
+    }),
+  ).toContainText("Needs: White Card");
 
+  // Only the industries we focus on are listed, each with a link to its
+  // page, and work still waiting for its pay rates says so.
+  await page.goto("/industries");
+  const main = page.getByRole("main");
+  await expect(main.getByRole("link", { name: "Hospitality" })).toHaveCount(0);
+  await main.getByRole("link", { name: "Warehousing and logistics" }).click();
+  const forklift = page
+    .getByRole("listitem")
+    .filter({ has: page.getByRole("heading", { name: "Forklift driver" }) });
+  await expect(forklift).toContainText("Needs: Forklift licence (LF)");
+  await expect(forklift).toContainText("Coming soon");
+  await expect(
+    page.getByRole("listitem").filter({
+      has: page.getByRole("heading", { name: "Removalist offsider" }),
+    }),
+  ).not.toContainText("Coming soon");
+  await expectAccessible(page);
+
+  const archived = await page.goto("/industries/hospitality");
+  expect(archived?.status()).toBe(404);
   const missing = await page.goto("/industries/not-an-industry");
   expect(missing?.status()).toBe(404);
 });

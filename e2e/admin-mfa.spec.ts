@@ -56,7 +56,7 @@ test("admins need an authenticator app as well as their email", async ({
   // Admin data loads, so the database accepts the second factor too.
   await page.goto("/admin/catalogues/categories");
   await expect(
-    page.getByRole("link", { name: "Restoration labourer" }),
+    page.getByRole("link", { name: "Restoration technician" }),
   ).toBeVisible();
 
   // Next time: just the code. Codes can't be reused, so use the next one.

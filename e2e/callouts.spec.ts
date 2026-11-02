@@ -45,7 +45,7 @@ test("open work becomes a call-out, and a worker accepts it from the text", asyn
   const { jobId, shiftId } = await postTestJob({
     business: "Harbour Restoration",
     site: "Granville flood job",
-    category: "Restoration labourer",
+    category: "Restoration technician",
     fillMode: "pick",
   });
   posted.push(jobId);
@@ -113,7 +113,7 @@ test("a call-out nobody takes in 20 minutes alerts the business and our team", a
   const { jobId, shiftId } = await postTestJob({
     business: "Harbour Restoration",
     site: "Granville flood job",
-    category: "Restoration labourer",
+    category: "Restoration technician",
     fillMode: "auto",
   });
   posted.push(jobId);

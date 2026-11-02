@@ -63,8 +63,8 @@ function ProfileCard({ person }: { person: Person }) {
         ))}
       </div>
       <p className="mt-3 hidden rounded-xl bg-muted/70 px-3 py-2 text-sm text-foreground @sm:block">
-        &ldquo;Licensed forklift driver, three years in busy warehouses. Happy
-        to start early.&rdquo;
+        &ldquo;Three years with removalists around Sydney. Careful with
+        furniture, and happy to start early.&rdquo;
       </p>
     </div>
   );

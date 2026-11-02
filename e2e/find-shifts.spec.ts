@@ -23,7 +23,7 @@ test("a worker sees work they can take, without the address", async ({
   await expect(page).toHaveURL(/\/worker\/shifts$/);
   const flood = page
     .getByRole("link", {
-      name: /Restoration labourer.*Harbour Restoration.*Granville/,
+      name: /Restoration technician.*Harbour Restoration.*Granville/,
     })
     .first();
   await expect(flood).toContainText(/\$\d+\.\d\d an hour/);
@@ -34,7 +34,7 @@ test("a worker sees work they can take, without the address", async ({
   await flood.click();
   await expect(page).toHaveURL(/\/worker\/shifts\/[0-9a-f-]+$/);
   await expect(
-    page.getByRole("heading", { name: "Restoration labourer" }),
+    page.getByRole("heading", { name: "Restoration technician" }),
   ).toBeVisible();
   await expect(page.getByText("for Harbour Restoration")).toBeVisible();
   await expect(
@@ -62,7 +62,7 @@ test("a business sees how many workers its job was offered to", async ({
   const { jobId } = await postTestJob({
     business: "Harbour Restoration",
     site: "Granville flood job",
-    category: "Restoration labourer",
+    category: "Restoration technician",
     fillMode: "pick",
   });
   await signInAsDemo(page, "Lisa Nguyen");

@@ -216,7 +216,7 @@ export const TEMPLATES = {
     when: "Urgent work is posted that the worker can take (if they opted in).",
     urgent: true,
     values: {
-      work: "Restoration labourer",
+      work: "Restoration technician",
       suburb: "Manly",
       when: "Wed 4 Nov from 7:00 am",
       pay: "About $310.50 with the call-out rate.",
@@ -512,7 +512,7 @@ export const TEMPLATES = {
     when: "Nobody has accepted a call-out after a while (a setting: 20 minutes to start).",
     urgent: true,
     values: {
-      work: "Restoration labourer",
+      work: "Restoration technician",
       site: "Granville flood job",
       when: "Sat 31 Oct from 2:00 pm",
       minutes: "20",
@@ -709,7 +709,7 @@ export const TEMPLATES = {
     urgent: true,
     values: {
       business: "Harbour Restoration",
-      work: "Restoration labourer",
+      work: "Restoration technician",
       site: "Granville flood job",
       when: "Sat 31 Oct from 2:00 pm",
       minutes: "20",

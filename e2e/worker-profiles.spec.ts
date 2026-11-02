@@ -21,7 +21,7 @@ test("a business opens an applicant's profile, and businesses he hasn't applied 
   const { jobId, shiftId } = await postTestJob({
     business: "Harbour Restoration",
     site: "Granville flood job",
-    category: "Restoration labourer",
+    category: "Restoration technician",
     fillMode: "pick",
   });
   posted.push(jobId);
@@ -54,7 +54,7 @@ test("a business opens an applicant's profile, and businesses he hasn't applied 
     "Four years on water damage jobs around Western Sydney",
   );
   const experience = page.getByRole("region", { name: "Experience" });
-  await expect(experience.getByText("Restoration labourer")).toBeVisible();
+  await expect(experience.getByText("Restoration technician")).toBeVisible();
   await expect(
     experience.getByText(
       /^4 years' experience · level \d+ · \d+ shifts? on Shifta$/,

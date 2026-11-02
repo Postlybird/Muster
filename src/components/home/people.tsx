@@ -23,7 +23,7 @@ export const PEOPLE = {
   laura: {
     first: "Laura",
     initial: "M",
-    role: "Forklift driver",
+    role: "Removalist offsider",
     rating: "5.0",
     tone: "bg-primary text-primary-foreground",
   },
@@ -37,21 +37,21 @@ export const PEOPLE = {
   priya: {
     first: "Priya",
     initial: "S",
-    role: "Barista",
+    role: "Restoration technician",
     rating: "4.9",
     tone: "bg-highlight-soft text-deep",
   },
   daniel: {
     first: "Daniel",
     initial: "K",
-    role: "Traffic controller",
+    role: "Builders cleaner",
     rating: "4.8",
     tone: "bg-success-soft text-success",
   },
   mei: {
     first: "Mei",
     initial: "L",
-    role: "Cleaner",
+    role: "Commercial cleaner",
     rating: "5.0",
     tone: "bg-primary-soft text-primary",
   },

@@ -14,7 +14,12 @@ test.describe("admin catalogues", () => {
     await expect(page).toHaveURL(/\/admin\/catalogues\/categories$/);
     const row = page.getByRole("row", { name: /Restoration technician/ });
     await expect(row).toContainText("White Card");
-    await expect(row).toContainText("IICRC WRT");
+    // It covers all restoration work (owner, 02/11/2026): a job that needs a
+    // certified technician asks for IICRC tickets itself.
+    await expect(row).not.toContainText("IICRC WRT");
+    await expect(
+      page.getByRole("row", { name: /Forklift driver/ }),
+    ).toContainText("Forklift licence (LF)");
     await expectAccessible(page);
   });
 

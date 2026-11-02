@@ -8,6 +8,7 @@ import { failure, invalid, type ActionState } from "@/lib/forms";
 import { ticketsForState } from "@/lib/state-tickets";
 import { saveFailed } from "@/server/errors";
 import { draftForAction, finishPostStep } from "@/server/jobs";
+import { workTypesWithRates } from "@/server/pricing";
 
 const schema = z.object({
   type: z.enum(["single", "multi_day", "urgent"], {
@@ -72,6 +73,13 @@ export async function saveWhat(
   if (!category) {
     return failure("Check the highlighted fields.", {
       category_id: ["Choose the type of work"],
+    });
+  }
+  if (!(await workTypesWithRates(job.business_id)).has(category.id)) {
+    return failure("Check the highlighted fields.", {
+      category_id: [
+        "This work is coming soon: we're setting its pay rates. Choose another type of work.",
+      ],
     });
   }
 

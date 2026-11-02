@@ -120,7 +120,7 @@ test("Phase 1 acceptance: 10 workers and 3 businesses onboarded, 20 shifts fille
     last: `Muster-${tag}`,
     // The last four work on restoration jobs, which need a White Card.
     industry: index < 6 ? "Cleaning" : "Restoration",
-    category: index < 6 ? "Commercial cleaner" : "Restoration labourer",
+    category: index < 6 ? "Commercial cleaner" : "Restoration technician",
     ticket: index < 6 ? null : "White Card",
   }));
   const workers: Worker[] = [];
@@ -154,14 +154,14 @@ test("Phase 1 acceptance: 10 workers and 3 businesses onboarded, 20 shifts fille
     await signInWithEmailCode(page, restoration.ownerEmail);
     const floodWeek = await postWork(page, {
       business: restoration,
-      category: "Restoration labourer",
+      category: "Restoration technician",
       workers: 1,
       fillMode: "I'll choose",
       days: { first: monday, last: friday },
     });
     const floodTwoDays = await postWork(page, {
       business: restoration,
-      category: "Restoration labourer",
+      category: "Restoration technician",
       workers: 1,
       fillMode: "I'll choose",
       days: { first: monday, last: tuesday },

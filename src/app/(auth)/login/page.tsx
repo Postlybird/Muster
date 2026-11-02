@@ -39,7 +39,7 @@ const copy = {
 
 /**
  * What a worker sees: a shift offered to them. The details are illustrative;
- * the pay is a restoration labourer's current rate (`hourlyCents`).
+ * the pay is a restoration technician's current rate (`hourlyCents`).
  */
 function ShiftOffer({ hourlyCents }: { hourlyCents: number | null }) {
   return (
@@ -52,7 +52,7 @@ function ShiftOffer({ hourlyCents }: { hourlyCents: number | null }) {
           A shift for you
         </p>
         <p className="mt-4 text-2xl font-bold text-deep">
-          Restoration labourer
+          Restoration technician
         </p>
         <p className="mt-1 text-muted-foreground">
           Granville · Tue 7:00 am to 3:30 pm
@@ -102,9 +102,9 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     redirect(safeNextPath(next, roleHome[user.role]));
   }
 
-  const [demoUsers, labourerPay] = await Promise.all([
+  const [demoUsers, technicianPay] = await Promise.all([
     isDemoMode() ? listDemoUsers() : null,
-    as === "worker" ? standardWeekdayPay("restoration_labourer") : null,
+    as === "worker" ? standardWeekdayPay("restoration_technician") : null,
   ]);
   const text = copy[as ?? "default"];
   const withNext = (role: "worker" | "business") =>
@@ -205,7 +205,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       {/* Stays beside the form, even when demo accounts make it long. */}
       {as === "worker" ? (
         <div className="hidden rounded-[2rem] bg-primary-soft p-10 lg:sticky lg:top-[calc(var(--banner-h)+3rem)] lg:block xl:p-14">
-          <ShiftOffer hourlyCents={labourerPay} />
+          <ShiftOffer hourlyCents={technicianPay} />
         </div>
       ) : (
         <HeroVisual className="hidden lg:sticky lg:top-[calc(var(--banner-h)+3rem)] lg:block" />

@@ -70,7 +70,7 @@ test("a business cancels a shift late, and the booked worker is told", async ({
   const { jobId, shiftId } = await postTestJob({
     business: "Harbour Restoration",
     site: "Granville flood job",
-    category: "Restoration labourer",
+    category: "Restoration technician",
     fillMode: "pick",
   });
   posted.push(jobId);
@@ -114,7 +114,7 @@ test("two no-shows put a worker's account on hold", async ({ page }) => {
     const job = await postTestJob({
       business: "Harbour Restoration",
       site: "Granville flood job",
-      category: "Restoration labourer",
+      category: "Restoration technician",
       fillMode: "pick",
     });
     posted.push(job.jobId);

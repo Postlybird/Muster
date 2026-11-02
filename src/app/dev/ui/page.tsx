@@ -128,19 +128,19 @@ export default function UiKitPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="kit-category">Work type</Label>
-            <Select defaultValue="restoration_labourer">
+            <Select defaultValue="restoration_technician">
               <SelectTrigger id="kit-category">
                 <SelectValue placeholder="Choose a work type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="restoration_labourer">
-                  Restoration labourer
+                <SelectItem value="restoration_technician">
+                  Restoration technician
                 </SelectItem>
                 <SelectItem value="commercial_cleaner">
                   Commercial cleaner
                 </SelectItem>
-                <SelectItem value="trades_assistant">
-                  Trades assistant
+                <SelectItem value="general_labourer">
+                  General labourer
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -234,7 +234,7 @@ export default function UiKitPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Restoration labourer</CardTitle>
+              <CardTitle>Restoration technician</CardTitle>
               <CardDescription>
                 Parramatta · Thu 29 Oct, 7:00 am – 3:30 pm
               </CardDescription>

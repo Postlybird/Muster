@@ -7,7 +7,8 @@ import type { PublicIndustry, PublicWorkType } from "@/server/industries";
 /**
  * Our core service (owner, 01/11/2026): on-demand labour, fast, general or
  * skilled. The work types are picked by code from the live catalogue, so
- * one an admin turns off drops out by itself.
+ * one an admin turns off drops out by itself, and one still waiting for its
+ * pay rates shows once it can be booked.
  */
 const KINDS: {
   key: string;
@@ -24,13 +25,10 @@ const KINDS: {
     text: "Extra hands for busy days, big jobs and short notice: reliable people who turn up ready to work.",
     codes: [
       "general_labourer",
-      "restoration_labourer",
       "commercial_cleaner",
-      "kitchen_hand",
-      "pick_packer",
-      "event_staff",
-      "process_worker",
       "removalist_offsider",
+      "pick_packer",
+      "storeperson",
     ],
     cta: "Hire general labour",
   },
@@ -39,16 +37,7 @@ const KINDS: {
     icon: Wrench,
     title: "Skilled labour",
     text: "People with the experience, tickets and licences the job needs, and the ratings to show for it.",
-    codes: [
-      "forklift_driver",
-      "traffic_controller",
-      "trades_assistant",
-      "restoration_technician",
-      "bartender",
-      "barista",
-      "cook",
-      "receptionist",
-    ],
+    codes: ["restoration_technician", "builders_cleaner", "forklift_driver"],
     cta: "Hire skilled staff",
   },
 ];
@@ -56,7 +45,9 @@ const KINDS: {
 export function LabourTypes({ industries }: { industries: PublicIndustry[] }) {
   const byCode = new Map<string, PublicWorkType>(
     industries.flatMap((industry) =>
-      industry.workTypes.map((workType) => [workType.code, workType] as const),
+      industry.workTypes
+        .filter((workType) => workType.bookable)
+        .map((workType) => [workType.code, workType] as const),
     ),
   );
   return (

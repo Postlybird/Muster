@@ -7,17 +7,17 @@ import { brand } from "@/config/brand";
 import { listIndustries } from "@/server/industries";
 
 export const metadata: Metadata = {
-  title: "Staff for every industry",
-  description: `Checked, job-ready staff for hospitality, events, warehousing, retail, cleaning, construction, offices and more. ${brand.tagline}`,
+  title: "Industries we cover",
+  description: `Checked, job-ready labourers, cleaners, restoration technicians and warehouse and removals staff. ${brand.tagline}`,
 };
 
 export default async function IndustriesPage() {
   const industries = await listIndustries();
   return (
     <main className="flex-1">
-      <PageBand title="Staff for every industry">
-        One app for the shifts every business has to fill. Choose an industry to
-        see the work we cover and the tickets each job needs.
+      <PageBand title="Industries we cover">
+        Labouring, cleaning, restoration, and warehouses and removals. Choose an
+        industry to see the work we cover and the tickets each job needs.
       </PageBand>
       <Container className="py-12 sm:py-16">
         <IndustryCards industries={industries} headingLevel="h2" />

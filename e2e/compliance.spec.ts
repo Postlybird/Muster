@@ -82,11 +82,13 @@ test("tickets are warned about, then expire, and a booking that needs them is fl
     .from("worker_credentials")
     .update({ expires_on: addDays(today, 365), last_expiry_warning_days: null })
     .eq("id", wrt!.id);
+  // A job for a certified technician asks for the ticket.
   const job = await postTestJob({
     business: "Harbour Restoration",
     site: "Granville flood job",
     category: "Restoration technician",
     fillMode: "pick",
+    tickets: ["IICRC WRT"],
   });
   posted.push(job.jobId);
   await bookTestWorker(job.shiftId, "Ahmed Hassan");

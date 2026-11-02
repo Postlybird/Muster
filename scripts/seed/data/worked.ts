@@ -48,7 +48,7 @@ export const DEMO_WORKED: SeedWorkedShift[] = [
   {
     business: "Harbour Restoration",
     site: "Granville flood job",
-    category: "restoration_labourer",
+    category: "restoration_technician",
     daysAgo: 8,
     start: "07:00",
     end: "15:30",

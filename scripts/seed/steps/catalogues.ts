@@ -7,8 +7,13 @@ import {
   PPE_ITEMS,
 } from "../data/catalogues";
 
-/** Adds missing catalogue entries (by code). Admin edits are left alone. */
+/**
+ * Adds missing catalogue entries (by code). Admin edits are left alone.
+ * Industries and work types outside the focus (owner, 02/11/2026) are added
+ * archived; an existing database was brought into line by a migration.
+ */
 export async function seedCatalogues(client: SeedClient) {
+  const now = new Date().toISOString();
   const credentialRows = CREDENTIAL_TYPES.map((c, i) => ({
     code: c.code,
     name: c.name,
@@ -72,6 +77,7 @@ export async function seedCatalogues(client: SeedClient) {
           description: industry.description,
           icon: industry.icon,
           sort_order: (i + 1) * 10,
+          archived_at: industry.archived ? now : null,
         })),
         { onConflict: "code", ignoreDuplicates: true },
       )
@@ -102,6 +108,7 @@ export async function seedCatalogues(client: SeedClient) {
           police_check_required: c.policeCheckRequired,
           min_engagement_hours: c.minEngagementHours,
           sort_order: (i + 1) * 10,
+          archived_at: c.archived ? now : null,
         })),
         { onConflict: "code", ignoreDuplicates: true },
       )

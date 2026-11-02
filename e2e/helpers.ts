@@ -149,7 +149,7 @@ export async function quickSignUp(
   {
     suburb = ["Parra", "Parramatta NSW 2150"],
     industry = "Restoration",
-    workType = "Restoration labourer",
+    workType = "Restoration technician",
   }: { suburb?: [string, string]; industry?: string; workType?: string } = {},
 ) {
   await expect(page).toHaveURL(/\/worker\/onboarding\/start$/);
@@ -529,6 +529,8 @@ export async function postTestJob(options: {
   category: string;
   fillMode: "pick" | "auto";
   headcount?: number;
+  /** Tickets (by name) the job asks for besides the work type's usual ones. */
+  tickets?: string[];
 }): Promise<{ jobId: string; shiftId: string }> {
   const supabase = serviceClient() as unknown as SupabaseClient<Database>;
   const pick = (min: number, max: number) =>
@@ -579,9 +581,22 @@ export async function postTestJob(options: {
     .select("id")
     .single();
   if (!job) throw new Error(`Couldn't post a test job: ${error?.message}`);
-  const tickets = category.category_credentials.map((c) => ({
+  const { data: extra } = options.tickets?.length
+    ? await supabase
+        .from("credential_types")
+        .select("id")
+        .in("name", options.tickets)
+    : { data: [] };
+  if ((extra ?? []).length !== (options.tickets?.length ?? 0)) {
+    throw new Error(`Unknown ticket in ${options.tickets?.join(", ")}`);
+  }
+  const ticketIds = new Set([
+    ...category.category_credentials.map((c) => c.credential_type_id),
+    ...(extra ?? []).map((ticket) => ticket.id),
+  ]);
+  const tickets = [...ticketIds].map((id) => ({
     job_id: job.id,
-    credential_type_id: c.credential_type_id,
+    credential_type_id: id,
   }));
   if (tickets.length > 0)
     await supabase.from("job_credentials").insert(tickets);

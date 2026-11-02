@@ -97,10 +97,15 @@ export async function onboardingSnapshot(
         .from("identity_checks")
         .select("id", { count: "exact", head: true })
         .eq("worker_id", worker.id),
+      // Only work types still offered: archived ones can't be read.
       supabase
         .from("worker_categories")
-        .select("category_id", { count: "exact", head: true })
-        .eq("worker_id", worker.id),
+        .select("category_id, categories!inner(id)", {
+          count: "exact",
+          head: true,
+        })
+        .eq("worker_id", worker.id)
+        .eq("categories.active", true),
       supabase
         .from("availability_weekly")
         .select("id", { count: "exact", head: true })

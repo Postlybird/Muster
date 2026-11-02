@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { groupByIndustry } from "@/lib/industries";
 import { loadDraft } from "@/server/jobs";
+import { workTypesWithRates } from "@/server/pricing";
 import { getAllSettings } from "@/server/settings";
 
 import { emptySite, SiteForm } from "../../../sites/site-form";
@@ -16,7 +17,7 @@ export default async function WhatStepPage({
 }: PageProps<"/business/post/[id]/what">) {
   const { id } = await params;
   const { job, business, supabase } = await loadDraft(id);
-  const [{ data: sites }, { data: categories }] = await Promise.all([
+  const [{ data: sites }, { data: categories }, withRates] = await Promise.all([
     supabase
       .from("sites")
       .select("id, name, suburb")
@@ -30,7 +31,13 @@ export default async function WhatStepPage({
       .is("archived_at", null)
       .order("sort_order")
       .order("name"),
+    workTypesWithRates(business.id),
   ]);
+  // Work still waiting for its pay rates shows, but can't be chosen yet.
+  const choices = (categories ?? []).map((category) => ({
+    ...category,
+    ready: withRates.has(category.id),
+  }));
 
   return (
     <PostStepFrame
@@ -61,7 +68,7 @@ export default async function WhatStepPage({
         <WhatForm
           jobId={job.id}
           sites={sites ?? []}
-          industries={groupByIndustry(categories ?? [])}
+          industries={groupByIndustry(choices)}
           values={{
             type: job.type,
             siteId:

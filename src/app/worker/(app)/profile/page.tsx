@@ -91,6 +91,12 @@ export default async function ProfilePage() {
     .filter(Boolean)
     .join(" ");
   const myTickets = tickets.rows.filter((r) => r.summary.state !== "missing");
+  // Work types we've archived aren't offered any more, so they're left out.
+  const workTypes = (categories ?? []).flatMap((row) =>
+    row.categories
+      ? [{ name: row.categories.name, years: row.years_experience }]
+      : [],
+  );
 
   return (
     <div className="space-y-6">
@@ -162,17 +168,17 @@ export default async function ProfilePage() {
       </Section>
 
       <Section title="Work types" href="/worker/onboarding/work-types">
-        {(categories ?? []).length > 0 ? (
+        {workTypes.length > 0 ? (
           <ul className="space-y-1">
-            {(categories ?? []).map((row) => (
-              <li key={row.categories?.name}>
-                {row.categories?.name}
+            {workTypes.map(({ name, years }) => (
+              <li key={name}>
+                {name}
                 <span className="text-muted-foreground">
                   {" "}
                   ·{" "}
-                  {row.years_experience === 0
+                  {years === 0
                     ? "under a year"
-                    : `${row.years_experience}${row.years_experience === 10 ? "+" : ""} year${row.years_experience === 1 ? "" : "s"}`}
+                    : `${years}${years === 10 ? "+" : ""} year${years === 1 ? "" : "s"}`}
                 </span>
               </li>
             ))}

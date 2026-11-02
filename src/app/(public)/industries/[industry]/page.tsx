@@ -1,4 +1,4 @@
-import { ArrowRight, IdCard } from "lucide-react";
+import { ArrowRight, Clock, IdCard } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -112,6 +112,16 @@ export default async function IndustryPage({
                 <h3 className="text-xl font-bold text-foreground">
                   {workType.name}
                 </h3>
+                {workType.bookable ? null : (
+                  <p className="flex items-start gap-2 text-sm font-medium text-deep">
+                    <Clock
+                      className="mt-0.5 size-4 shrink-0 text-primary"
+                      aria-hidden
+                    />
+                    Coming soon: we&apos;re setting the pay rates, so it
+                    can&apos;t be booked yet. Workers can sign up now.
+                  </p>
+                )}
                 {workType.description ? (
                   <p className="text-muted-foreground">
                     {workType.description}

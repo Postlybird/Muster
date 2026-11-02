@@ -5,12 +5,16 @@ import { cache } from "react";
 import { industrySlug, workTypeNeeds } from "@/lib/industries";
 import { createClient } from "@/lib/supabase/server";
 
+import { workTypesWithRates } from "./pricing";
+
 export type PublicWorkType = {
   /** The work type's code, which doesn't change when it's renamed. */
   code: string;
   name: string;
   description: string;
   needs: string[];
+  /** False while it waits for its pay rates: it can't be booked yet. */
+  bookable: boolean;
 };
 
 export type PublicIndustry = {
@@ -26,18 +30,26 @@ export type PublicIndustry = {
 
 /**
  * Active industries and their active work types, for the website. Read as
- * the visitor (the catalogues are public), once per request.
+ * the visitor (the catalogues are public), once per request; which work
+ * types have pay rates comes from src/server/pricing.ts.
  */
 export const listIndustries = cache(async (): Promise<PublicIndustry[]> => {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("industries")
-    .select(
-      "code, name, summary, description, icon, categories(code, name, description, sort_order, active, archived_at, police_check_required, category_credentials(credential_types(name, family, sort_order, active)))",
-    )
-    .eq("active", true)
-    .is("archived_at", null)
-    .order("sort_order");
+  const [{ data, error }, withRates] = await Promise.all([
+    supabase
+      .from("industries")
+      .select(
+        "code, name, summary, description, icon, categories(id, code, name, description, sort_order, active, archived_at, police_check_required, category_credentials(credential_types(name, family, sort_order, active)))",
+      )
+      .eq("active", true)
+      .is("archived_at", null)
+      .order("sort_order"),
+    workTypesWithRates().catch((problem: unknown) => {
+      // Without rates every work type shows as bookable; say why.
+      console.error(problem);
+      return null;
+    }),
+  ]);
   if (error) {
     // The pages still work without the list; say why it's missing.
     console.error(`Couldn't read industries: ${error.message}`);
@@ -60,6 +72,7 @@ export const listIndustries = cache(async (): Promise<PublicIndustry[]> => {
         name: c.name,
         description: c.description,
         needs: workTypeNeeds(c),
+        bookable: withRates ? withRates.has(c.id) : true,
       })),
   }));
 });

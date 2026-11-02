@@ -53,3 +53,28 @@ export async function standardWeekdayPay(
   });
   return card ? hourlyPayCents(rateCardFromRow(card), "ordinary") : null;
 }
+
+/**
+ * The work types that can be booked: those with a rate card in effect today
+ * or later, the standard one or (with `businessId`) the business's own. Work
+ * types still waiting for checked rates (owner, 02/11/2026: the warehouse
+ * ones) can't be posted, and the website says they're coming soon. Ids only.
+ */
+export async function workTypesWithRates(
+  businessId?: string,
+): Promise<Set<string>> {
+  const today = sydneyDateKey(new Date());
+  const query = createAdminClient()
+    .from("rate_cards")
+    .select("category_id, effective_to")
+    .is("archived_at", null);
+  const { data, error } = businessId
+    ? await query.or(`business_id.is.null,business_id.eq.${businessId}`)
+    : await query.is("business_id", null);
+  if (error) throw new Error(`Couldn't load rate cards: ${error.message}`);
+  return new Set(
+    (data ?? [])
+      .filter((card) => !card.effective_to || card.effective_to >= today)
+      .map((card) => card.category_id),
+  );
+}

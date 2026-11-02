@@ -44,7 +44,7 @@ test("a manager posts a shift and sees the cost first", async ({ page }) => {
     .selectOption({ label: "Parramatta depot (Parramatta)" });
   await page
     .getByLabel("Type of work")
-    .selectOption({ label: "Restoration labourer" });
+    .selectOption({ label: "Restoration technician" });
   await page.getByLabel("How many workers?").fill("2");
   await expectAccessible(page);
   await page.getByRole("button", { name: "Save and continue" }).click();
@@ -82,10 +82,10 @@ test("a manager posts a shift and sees the cost first", async ({ page }) => {
   await expectAccessible(page);
   await page.getByRole("button", { name: "Save and continue" }).click();
 
-  // Check and post: 2 workers × 4 hours at $48.77 (Harbour's 15% margin),
+  // Check and post: 2 workers × 4 hours at $50.34 (Harbour's 15% margin),
   // plus GST.
   await expect(page).toHaveURL(/\/review$/);
-  await expect(page.getByText("$429.18")).toBeVisible();
+  await expect(page.getByText("$442.99")).toBeVisible();
   await expect(page.getByRole("radio", { name: /I'll choose/ })).toBeChecked();
   // First in: the business decides whether workers whose other shifts with
   // us would put this one into overtime may take it.
@@ -107,7 +107,7 @@ test("a manager posts a shift and sees the cost first", async ({ page }) => {
   await expect(page.getByText(/^Posted\./)).toBeVisible();
   await expect(
     page.getByRole("heading", {
-      name: "Restoration labourer at Parramatta depot",
+      name: "Restoration technician at Parramatta depot",
     }),
   ).toBeVisible();
   await expect(page.getByText("0 of 2 booked")).toBeVisible();
@@ -266,7 +266,7 @@ test("an urgent call-out texts workers nearby who opted in", async ({
 }) => {
   test.setTimeout(90_000);
   await acceptCurrentAgreement("Beaches Make Safe");
-  // Liam does strip-outs within reach of Manly and takes urgent work; he's
+  // Liam does restoration work within reach of Manly and takes urgent work; he's
   // switched on "available now", so the time of day doesn't matter.
   const service = serviceClient();
   const { data: liam } = await service
@@ -291,7 +291,7 @@ test("an urgent call-out texts workers nearby who opted in", async ({
     .selectOption({ label: "Manly storm repairs (Manly)" });
   await page
     .getByLabel("Type of work")
-    .selectOption({ label: "Strip-out and demolition labourer" });
+    .selectOption({ label: "Restoration technician" });
   await page.getByLabel("How many workers?").fill("1");
   await page.getByRole("button", { name: "Save and continue" }).click();
 
@@ -328,7 +328,7 @@ test("an urgent call-out texts workers nearby who opted in", async ({
     .like("body", `%/worker/shifts/${jobId}`);
   expect(texts).toHaveLength(1);
   expect(texts![0]!.body).toMatch(
-    /Urgent work: Strip-out and demolition labourer in Manly, .* First in gets it:/,
+    /Urgent work: Restoration technician in Manly, .* First in gets it:/,
   );
 });
 
@@ -340,7 +340,7 @@ test("supervisors see their sites' jobs but don't post", async ({ page }) => {
   await expect(
     page
       .getByRole("link", {
-        name: /Restoration labourer at Granville flood job/,
+        name: /Restoration technician at Granville flood job/,
       })
       .first(),
   ).toBeVisible();

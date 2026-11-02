@@ -2,8 +2,9 @@ import type { StateCode } from "@/domain/pay";
 
 /**
  * Launch catalogues: the BRIEF.md appendix for restoration and cleaning, and
- * starting work types for the other industries (30/10/2026). Admins can edit
- * all of it.
+ * starting work types for the other industries (30/10/2026). The focus
+ * (owner, 02/11/2026) is four industries and eight work types; the rest are
+ * added archived, for admins to bring back. Admins can edit all of it.
  */
 
 export type SeedCredentialType = {
@@ -349,25 +350,39 @@ export type SeedIndustry = {
   description: string;
   /** An icon name from src/config/industry-icons.ts. */
   icon: string;
+  /** Outside the focus (owner, 02/11/2026): added archived. */
+  archived?: true;
 };
 
+/**
+ * The focus (owner, 02/11/2026) comes first, in the website's order; the
+ * other industries are kept, archived, for admins to bring back.
+ */
 export const INDUSTRIES: SeedIndustry[] = [
   {
-    code: "hospitality",
-    name: "Hospitality",
+    code: "construction",
+    name: "Construction and labouring",
     summary:
-      "Bar, floor, kitchen and housekeeping staff for venues, hotels and caterers.",
+      "General labourers with a White Card, for building sites, fit-outs and clean-ups.",
     description:
-      "Cafés, restaurants, pubs, hotels and caterers book bar, floor, kitchen and housekeeping staff for a busy night, a function or a whole season. Bar staff hold a current NSW RSA.",
-    icon: "utensils",
+      "General labourers for building sites, civil works, fit-outs and clean-ups: carrying materials, loading skips and helping the trades. Every worker holds a White Card.",
+    icon: "hard-hat",
   },
   {
-    code: "events",
-    name: "Events",
-    summary: "Crews for festivals, conferences, weddings and sport.",
+    code: "cleaning",
+    name: "Cleaning",
+    summary: "Commercial and builders cleaners.",
     description:
-      "Event staff and bump-in crews for festivals, conferences, weddings, concerts and sport. Book one person or a full crew, for one night or a whole run.",
-    icon: "party-popper",
+      "Commercial cleaners for offices, venues and sites, and builders cleaners who get new and renovated spaces ready to hand over.",
+    icon: "sparkles",
+  },
+  {
+    code: "restoration",
+    name: "Restoration",
+    summary: "Restoration technicians for water, fire, mould and storm damage.",
+    description:
+      "Restoration technicians for water, fire, mould and storm damage: strip-outs, drying equipment, pack-outs and clean-ups, including urgent call-outs. Ask for IICRC tickets on a job when you need certified technicians.",
+    icon: "droplets",
   },
   {
     code: "warehousing_logistics",
@@ -379,12 +394,32 @@ export const INDUSTRIES: SeedIndustry[] = [
     icon: "package",
   },
   {
+    code: "hospitality",
+    name: "Hospitality",
+    summary:
+      "Bar, floor, kitchen and housekeeping staff for venues, hotels and caterers.",
+    description:
+      "Cafés, restaurants, pubs, hotels and caterers book bar, floor, kitchen and housekeeping staff for a busy night, a function or a whole season. Bar staff hold a current NSW RSA.",
+    icon: "utensils",
+    archived: true,
+  },
+  {
+    code: "events",
+    name: "Events",
+    summary: "Crews for festivals, conferences, weddings and sport.",
+    description:
+      "Event staff and bump-in crews for festivals, conferences, weddings, concerts and sport. Book one person or a full crew, for one night or a whole run.",
+    icon: "party-popper",
+    archived: true,
+  },
+  {
     code: "manufacturing",
     name: "Manufacturing",
     summary: "Process workers and packers for production lines.",
     description:
       "Process workers and packers for factories and food production, from one shift to cover a gap to extra hands for a big order.",
     icon: "factory",
+    archived: true,
   },
   {
     code: "retail",
@@ -393,23 +428,7 @@ export const INDUSTRIES: SeedIndustry[] = [
     description:
       "Sales assistants for busy trading periods, and stocktake teams and merchandisers for stores, centres and pop-ups.",
     icon: "shopping-bag",
-  },
-  {
-    code: "cleaning",
-    name: "Cleaning",
-    summary: "Commercial and builders cleaners.",
-    description:
-      "Commercial cleaners for offices, venues and sites, and builders cleaners who get new and renovated spaces ready to hand over.",
-    icon: "sparkles",
-  },
-  {
-    code: "construction",
-    name: "Construction and labouring",
-    summary:
-      "Labourers, trades assistants and traffic controllers with the right tickets.",
-    description:
-      "Labourers, trades assistants and traffic controllers for building sites, civil works and fit-outs. Every worker holds a White Card, and traffic controllers hold a current card.",
-    icon: "hard-hat",
+    archived: true,
   },
   {
     code: "office_admin",
@@ -418,14 +437,7 @@ export const INDUSTRIES: SeedIndustry[] = [
     description:
       "Receptionists, administration assistants and data entry staff to cover leave, busy periods and projects.",
     icon: "briefcase",
-  },
-  {
-    code: "restoration",
-    name: "Restoration",
-    summary: "Labourers and technicians for water, fire and storm damage.",
-    description:
-      "Restoration labourers and technicians, strip-out crews and pack-out teams for water, fire, mould and storm damage, including urgent call-outs.",
-    icon: "droplets",
+    archived: true,
   },
 ];
 
@@ -440,6 +452,8 @@ export type SeedCategory = {
   minEngagementHours: number;
   requiredCredentials: string[];
   defaultPpe: string[];
+  /** Outside the focus (owner, 02/11/2026): added archived. */
+  archived?: true;
 };
 
 export const CATEGORIES: SeedCategory[] = [
@@ -458,16 +472,19 @@ export const CATEGORIES: SeedCategory[] = [
       "p2_disposable",
       "safety_glasses",
     ],
+    archived: true,
   },
   {
     code: "restoration_technician",
     industry: "restoration",
     name: "Restoration technician",
+    // All restoration work (owner, 02/11/2026): jobs that need a certified
+    // technician ask for IICRC tickets.
     description:
-      "Qualified technician for water damage and drying: moisture mapping, equipment placement and monitoring.",
+      "Water, fire, mould and storm damage work: strip-outs, setting up drying equipment, pack-outs and clean-ups. Jobs can ask for IICRC tickets.",
     policeCheckRequired: false,
     minEngagementHours: 4,
-    requiredCredentials: ["white_card", "iicrc_wrt"],
+    requiredCredentials: ["white_card"],
     defaultPpe: [
       "steel_cap_boots",
       "nitrile_gloves",
@@ -485,6 +502,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 3,
     requiredCredentials: [],
     defaultPpe: ["steel_cap_boots", "cut_resistant_gloves"],
+    archived: true,
   },
   {
     code: "strip_out_demolition",
@@ -503,6 +521,7 @@ export const CATEGORIES: SeedCategory[] = [
       "hearing_protection",
       "hard_hat",
     ],
+    archived: true,
   },
   {
     code: "mould_remediation_assistant",
@@ -520,6 +539,7 @@ export const CATEGORIES: SeedCategory[] = [
       "safety_glasses",
       "gumboots",
     ],
+    archived: true,
   },
   {
     code: "commercial_cleaner",
@@ -542,6 +562,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 4,
     requiredCredentials: ["white_card"],
     defaultPpe: ["steel_cap_boots", "safety_glasses", "hi_vis"],
+    archived: true,
   },
   {
     code: "removalist_offsider",
@@ -554,7 +575,7 @@ export const CATEGORIES: SeedCategory[] = [
     requiredCredentials: [],
     defaultPpe: ["steel_cap_boots"],
   },
-  // Other industries (30/10/2026).
+  // Other industries (30/10/2026), archived (02/11/2026).
   {
     code: "food_beverage_attendant",
     name: "Waiter and food and beverage attendant",
@@ -565,6 +586,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 2,
     requiredCredentials: [],
     defaultPpe: ["non_slip_shoes"],
+    archived: true,
   },
   {
     code: "bartender",
@@ -576,6 +598,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 2,
     requiredCredentials: ["rsa_nsw"],
     defaultPpe: ["non_slip_shoes"],
+    archived: true,
   },
   {
     code: "barista",
@@ -586,6 +609,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 2,
     requiredCredentials: [],
     defaultPpe: ["non_slip_shoes"],
+    archived: true,
   },
   {
     code: "kitchen_hand",
@@ -596,6 +620,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 2,
     requiredCredentials: [],
     defaultPpe: ["non_slip_shoes"],
+    archived: true,
   },
   {
     code: "cook",
@@ -607,6 +632,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 2,
     requiredCredentials: [],
     defaultPpe: ["non_slip_shoes"],
+    archived: true,
   },
   {
     code: "room_attendant",
@@ -617,6 +643,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 2,
     requiredCredentials: [],
     defaultPpe: ["nitrile_gloves"],
+    archived: true,
   },
   {
     code: "event_staff",
@@ -628,6 +655,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 3,
     requiredCredentials: [],
     defaultPpe: [],
+    archived: true,
   },
   {
     code: "bump_in_crew",
@@ -639,6 +667,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 4,
     requiredCredentials: [],
     defaultPpe: ["steel_cap_boots", "hi_vis"],
+    archived: true,
   },
   {
     code: "pick_packer",
@@ -683,6 +712,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 4,
     requiredCredentials: [],
     defaultPpe: ["steel_cap_boots", "hearing_protection"],
+    archived: true,
   },
   {
     code: "production_packer",
@@ -693,6 +723,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 4,
     requiredCredentials: [],
     defaultPpe: ["steel_cap_boots"],
+    archived: true,
   },
   {
     code: "retail_assistant",
@@ -704,6 +735,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 3,
     requiredCredentials: [],
     defaultPpe: [],
+    archived: true,
   },
   {
     code: "stocktake_counter",
@@ -714,6 +746,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 3,
     requiredCredentials: [],
     defaultPpe: [],
+    archived: true,
   },
   {
     code: "merchandiser",
@@ -724,6 +757,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 3,
     requiredCredentials: [],
     defaultPpe: [],
+    archived: true,
   },
   {
     code: "builders_cleaner",
@@ -757,6 +791,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 4,
     requiredCredentials: ["white_card", "traffic_controller"],
     defaultPpe: ["steel_cap_boots", "hi_vis"],
+    archived: true,
   },
   {
     code: "receptionist",
@@ -767,6 +802,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 3,
     requiredCredentials: [],
     defaultPpe: [],
+    archived: true,
   },
   {
     code: "admin_assistant",
@@ -777,6 +813,7 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 3,
     requiredCredentials: [],
     defaultPpe: [],
+    archived: true,
   },
   {
     code: "data_entry_operator",
@@ -787,5 +824,6 @@ export const CATEGORIES: SeedCategory[] = [
     minEngagementHours: 3,
     requiredCredentials: [],
     defaultPpe: [],
+    archived: true,
   },
 ];

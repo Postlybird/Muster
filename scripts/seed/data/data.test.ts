@@ -16,17 +16,40 @@ import {
   INDUSTRIES,
   PPE_ITEMS,
 } from "./catalogues";
+import { DEMO_JOBS } from "./jobs";
 import { ADMINS, BUSINESSES, WORKERS } from "./people";
 import { hourlyPayTable, rateCardFromRow } from "@/domain/rates";
 
 import { AWARD_RATE_CARDS, DEFAULT_BASE_RATES_CENTS } from "./rates";
+import { DEMO_WORKED } from "./worked";
 
 const credentialCodes = new Set(CREDENTIAL_TYPES.map((c) => c.code));
 const categoryCodes = new Set(CATEGORIES.map((c) => c.code));
 const ppeCodes = new Set(PPE_ITEMS.map((p) => p.code));
 
+/** The focus (owner, 02/11/2026): four industries and eight work types. */
+const FOCUS_INDUSTRIES = [
+  "construction",
+  "cleaning",
+  "restoration",
+  "warehousing_logistics",
+];
+const FOCUS_WORK_TYPES = [
+  "general_labourer",
+  "commercial_cleaner",
+  "builders_cleaner",
+  "restoration_technician",
+  "pick_packer",
+  "storeperson",
+  "forklift_driver",
+  "removalist_offsider",
+];
+/** Waiting for their award's checked rates: they can't be posted yet. */
+const WAITING_FOR_RATES = ["pick_packer", "storeperson", "forklift_driver"];
+const live = new Set(CATEGORIES.filter((c) => !c.archived).map((c) => c.code));
+
 describe("seed catalogues", () => {
-  it("keep the brief's appendix, and add the other industries", () => {
+  it("keep the brief's appendix and the other industries, archived outside the focus", () => {
     for (const code of [
       "restoration_labourer",
       "restoration_technician",
@@ -39,18 +62,42 @@ describe("seed catalogues", () => {
     ])
       expect(categoryCodes).toContain(code);
     expect(INDUSTRIES.length).toBeGreaterThanOrEqual(9);
+    expect([...live].sort()).toEqual([...FOCUS_WORK_TYPES].sort());
+    expect(INDUSTRIES.filter((i) => !i.archived).map((i) => i.code)).toEqual(
+      FOCUS_INDUSTRIES,
+    );
   });
 
-  it("put every work type in a known industry, with a starting pay rate", () => {
+  it("put every work type in a known industry, the focus ones in the focus industries", () => {
     const industryCodes = new Set(INDUSTRIES.map((i) => i.code));
     for (const category of CATEGORIES) {
       expect(industryCodes).toContain(category.industry);
-      expect(DEFAULT_BASE_RATES_CENTS[category.code]).toBeGreaterThan(0);
+      if (!category.archived)
+        expect(FOCUS_INDUSTRIES).toContain(category.industry);
     }
     for (const industry of INDUSTRIES) {
       expect(Object.keys(INDUSTRY_ICONS)).toContain(industry.icon);
       expect(CATEGORIES.some((c) => c.industry === industry.code)).toBe(true);
     }
+  });
+
+  it("only give placeholder rates to focus work types that also have checked ones", () => {
+    const checked = new Set(AWARD_RATE_CARDS.flatMap((card) => card.codes));
+    for (const code of Object.keys(DEFAULT_BASE_RATES_CENTS)) {
+      expect(live).toContain(code);
+      expect(checked).toContain(code);
+    }
+    for (const code of FOCUS_WORK_TYPES) {
+      const priced = checked.has(code);
+      expect(priced, code).toBe(!WAITING_FOR_RATES.includes(code));
+    }
+  });
+
+  it("have restoration technicians cover all restoration work, with a White Card", () => {
+    const technician = CATEGORIES.find(
+      (c) => c.code === "restoration_technician",
+    )!;
+    expect(technician.requiredCredentials).toEqual(["white_card"]);
   });
 
   it("only reference tickets and PPE that exist", () => {
@@ -131,13 +178,14 @@ describe("seed people", () => {
     for (const phone of phones) expect(normaliseAuMobile(phone)).toBe(phone);
   });
 
-  it("puts everyone in known Sydney suburbs and work types", () => {
+  it("puts everyone in known Sydney suburbs and work types we offer", () => {
     for (const worker of WORKERS) {
       expect(findSuburb(worker.suburb), worker.suburb).toBeDefined();
-      for (const c of worker.categories)
-        expect(categoryCodes).toContain(c.code);
+      for (const c of worker.categories) expect(live).toContain(c.code);
       for (const t of worker.tickets) expect(credentialCodes).toContain(t.code);
     }
+    for (const job of [...DEMO_JOBS, ...DEMO_WORKED])
+      expect(live).toContain(job.category);
     for (const business of BUSINESSES)
       expect(findSuburb(business.suburb)).toBeDefined();
   });

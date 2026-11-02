@@ -246,10 +246,7 @@ export const WORKERS: SeedWorker[] = [
     dateOfBirth: "1994-03-12",
     status: "active",
     rightToWork: citizen,
-    categories: [
-      { code: "restoration_labourer", years: 4 },
-      { code: "strip_out_demolition", years: 2 },
-    ],
+    categories: [{ code: "restoration_technician", years: 4 }],
     tickets: [
       { code: "white_card", status: "verified", issuedDaysAgo: 1800 },
       { code: "asbestos_awareness", status: "verified", issuedDaysAgo: 600 },
@@ -276,7 +273,7 @@ export const WORKERS: SeedWorker[] = [
     },
     categories: [
       { code: "commercial_cleaner", years: 6 },
-      { code: "contents_packout", years: 2 },
+      { code: "restoration_technician", years: 2 },
     ],
     tickets: [{ code: "police_check", status: "verified", issuedDaysAgo: 120 }],
     transport: { car: false, publicTransport: true },
@@ -313,7 +310,7 @@ export const WORKERS: SeedWorker[] = [
     status: "active",
     rightToWork: citizen,
     categories: [
-      { code: "contents_packout", years: 3 },
+      { code: "restoration_technician", years: 3 },
       { code: "removalist_offsider", years: 1 },
     ],
     tickets: [
@@ -334,8 +331,8 @@ export const WORKERS: SeedWorker[] = [
     status: "active",
     rightToWork: citizen,
     categories: [
-      { code: "strip_out_demolition", years: 5 },
-      { code: "trades_assistant", years: 3 },
+      { code: "restoration_technician", years: 5 },
+      { code: "general_labourer", years: 3 },
     ],
     tickets: [
       { code: "white_card", status: "verified", issuedDaysAgo: 3000 },
@@ -370,10 +367,7 @@ export const WORKERS: SeedWorker[] = [
     dateOfBirth: "1986-12-03",
     status: "active",
     rightToWork: citizen,
-    categories: [
-      { code: "restoration_labourer", years: 3 },
-      { code: "mould_remediation_assistant", years: 2 },
-    ],
+    categories: [{ code: "restoration_technician", years: 3 }],
     tickets: [
       { code: "white_card", status: "verified", issuedDaysAgo: 1500 },
       { code: "respirator_fit_test", status: "verified", expiresInDays: 5 },
@@ -391,7 +385,7 @@ export const WORKERS: SeedWorker[] = [
     dateOfBirth: "2001-02-14",
     status: "pending",
     rightToWork: citizen,
-    categories: [{ code: "contents_packout", years: 1 }],
+    categories: [{ code: "restoration_technician", years: 1 }],
     tickets: [{ code: "police_check", status: "pending", issuedDaysAgo: 60 }],
     transport: { car: false, publicTransport: true },
     travelRadiusKm: 20,
@@ -407,8 +401,8 @@ export const WORKERS: SeedWorker[] = [
     status: "active",
     rightToWork: citizen,
     categories: [
-      { code: "trades_assistant", years: 10 },
-      { code: "strip_out_demolition", years: 6 },
+      { code: "general_labourer", years: 10 },
+      { code: "restoration_technician", years: 6 },
     ],
     tickets: [
       { code: "white_card", status: "verified", issuedDaysAgo: 4000 },
@@ -443,7 +437,7 @@ export const WORKERS: SeedWorker[] = [
     dateOfBirth: "2000-10-10",
     status: "active",
     rightToWork: citizen,
-    categories: [{ code: "restoration_labourer", years: 1 }],
+    categories: [{ code: "restoration_technician", years: 1 }],
     tickets: [{ code: "white_card", status: "verified", issuedDaysAgo: 400 }],
     transport: { car: true, licenceClass: "C", publicTransport: false },
     travelRadiusKm: 50,
@@ -458,7 +452,7 @@ export const WORKERS: SeedWorker[] = [
     dateOfBirth: "1993-07-07",
     status: "active",
     rightToWork: citizen,
-    categories: [{ code: "mould_remediation_assistant", years: 3 }],
+    categories: [{ code: "restoration_technician", years: 3 }],
     tickets: [
       { code: "white_card", status: "verified", issuedDaysAgo: 1200 },
       { code: "respirator_fit_test", status: "verified", expiresInDays: 200 },
@@ -476,10 +470,7 @@ export const WORKERS: SeedWorker[] = [
     dateOfBirth: "1987-02-28",
     status: "active",
     rightToWork: citizen,
-    categories: [
-      { code: "restoration_technician", years: 9 },
-      { code: "mould_remediation_assistant", years: 4 },
-    ],
+    categories: [{ code: "restoration_technician", years: 9 }],
     tickets: [
       { code: "white_card", status: "verified", issuedDaysAgo: 3500 },
       { code: "iicrc_wrt", status: "verified", expiresInDays: 300 },
@@ -509,7 +500,7 @@ export const WORKERS: SeedWorker[] = [
     },
     categories: [
       { code: "commercial_cleaner", years: 3 },
-      { code: "contents_packout", years: 1 },
+      { code: "restoration_technician", years: 1 },
     ],
     tickets: [{ code: "police_check", status: "verified", issuedDaysAgo: 85 }],
     transport: { car: false, publicTransport: true },
@@ -558,7 +549,7 @@ export const WORKERS: SeedWorker[] = [
     dateOfBirth: "1989-09-09",
     status: "active",
     rightToWork: citizen,
-    categories: [{ code: "strip_out_demolition", years: 2 }],
+    categories: [{ code: "restoration_technician", years: 2 }],
     tickets: [
       { code: "white_card", status: "verified", issuedDaysAgo: 700 },
       { code: "asbestos_awareness", status: "pending", issuedDaysAgo: 3 },
@@ -576,7 +567,7 @@ export const WORKERS: SeedWorker[] = [
     dateOfBirth: "2002-01-25",
     status: "active",
     rightToWork: citizen,
-    categories: [{ code: "contents_packout", years: 2 }],
+    categories: [{ code: "restoration_technician", years: 2 }],
     tickets: [{ code: "police_check", status: "verified", issuedDaysAgo: 30 }],
     transport: { car: false, publicTransport: true },
     travelRadiusKm: 20,
@@ -592,7 +583,7 @@ export const WORKERS: SeedWorker[] = [
     status: "active",
     rightToWork: citizen,
     categories: [
-      { code: "restoration_labourer", years: 6 },
+      { code: "restoration_technician", years: 6 },
       { code: "removalist_offsider", years: 4 },
     ],
     tickets: [
@@ -633,10 +624,7 @@ export const WORKERS: SeedWorker[] = [
       expiresInDays: null,
       passportCountry: "New Zealand",
     },
-    categories: [
-      { code: "restoration_labourer", years: 5 },
-      { code: "strip_out_demolition", years: 5 },
-    ],
+    categories: [{ code: "restoration_technician", years: 5 }],
     tickets: [
       { code: "white_card", status: "verified", issuedDaysAgo: 2600 },
       { code: "asbestos_awareness", status: "verified", issuedDaysAgo: 1000 },
@@ -655,7 +643,7 @@ export const WORKERS: SeedWorker[] = [
     dateOfBirth: "1997-03-27",
     status: "pending",
     rightToWork: citizen,
-    categories: [{ code: "trades_assistant", years: 1 }],
+    categories: [{ code: "general_labourer", years: 1 }],
     tickets: [{ code: "white_card", status: "pending", issuedDaysAgo: 20 }],
     transport: { car: true, licenceClass: "C", publicTransport: false },
     travelRadiusKm: 30,
@@ -693,7 +681,7 @@ export const WORKERS: SeedWorker[] = [
         "8105: work limited to 48 hours per fortnight during study periods",
       passportCountry: "Japan",
     },
-    categories: [{ code: "mould_remediation_assistant", years: 1 }],
+    categories: [{ code: "restoration_technician", years: 1 }],
     tickets: [
       { code: "white_card", status: "pending", issuedDaysAgo: 40 },
       { code: "respirator_fit_test", status: "pending", expiresInDays: 330 },
@@ -711,7 +699,7 @@ export const WORKERS: SeedWorker[] = [
     dateOfBirth: "1999-10-05",
     status: "pending",
     rightToWork: citizen,
-    categories: [{ code: "contents_packout", years: 2 }],
+    categories: [{ code: "restoration_technician", years: 2 }],
     tickets: [
       {
         code: "police_check",
@@ -740,7 +728,7 @@ export const WORKERS: SeedWorker[] = [
       expiresInDays: null,
       passportCountry: "Brazil",
     },
-    categories: [{ code: "restoration_labourer", years: 2 }],
+    categories: [{ code: "restoration_technician", years: 2 }],
     tickets: [{ code: "white_card", status: "pending", issuedDaysAgo: 15 }],
     transport: { car: true, licenceClass: "C", publicTransport: false },
     travelRadiusKm: 35,
@@ -810,7 +798,7 @@ export const WORKERS: SeedWorker[] = [
     dateOfBirth: "1995-06-16",
     status: "suspended",
     rightToWork: citizen,
-    categories: [{ code: "restoration_labourer", years: 2 }],
+    categories: [{ code: "restoration_technician", years: 2 }],
     tickets: [{ code: "white_card", status: "verified", issuedDaysAgo: 900 }],
     transport: { car: true, licenceClass: "C", publicTransport: false },
     travelRadiusKm: 40,

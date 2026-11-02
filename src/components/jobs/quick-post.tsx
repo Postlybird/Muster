@@ -18,18 +18,25 @@ export type PostShortcut = {
   action: () => Promise<ActionState>;
 };
 
-/** The business's templates, each a one-tap start. */
+/**
+ * The business's templates, each a one-tap start. A template for work that
+ * can't be posted any more (its work type archived, so the business can't
+ * read it) is left out.
+ */
 export async function templateShortcuts(
   businessId: string,
 ): Promise<PostShortcut[]> {
   const supabase = await createClient();
   const { data: templates } = await supabase
     .from("job_templates")
-    .select("id, name, jobs(headcount, categories(name), sites(name))")
+    .select("id, name, jobs(headcount, categories(name, active), sites(name))")
     .eq("business_id", businessId)
     .is("archived_at", null)
     .order("name");
-  return (templates ?? []).map((template) => ({
+  const usable = (templates ?? []).filter(
+    (template) => template.jobs?.categories?.active,
+  );
+  return usable.map((template) => ({
     key: `template-${template.id}`,
     kind: "template",
     title: template.name,
@@ -64,9 +71,10 @@ export async function recentJobShortcuts(
   const shortcuts: PostShortcut[] = [];
   const seen = new Set<string>();
   for (const job of jobs ?? []) {
-    // Only work that can still be posted: the site and work type in use.
-    if (job.sites?.archived_at || job.categories?.archived_at) continue;
-    if (job.categories && !job.categories.active) continue;
+    // Only work that can still be posted: the site and work type in use. An
+    // archived work type can't be read by the business at all.
+    if (job.sites?.archived_at || !job.categories) continue;
+    if (job.categories.archived_at || !job.categories.active) continue;
     const same = `${job.category_id}|${job.site_id}|${job.headcount}`;
     if (seen.has(same)) continue;
     seen.add(same);
