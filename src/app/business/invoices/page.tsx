@@ -35,7 +35,9 @@ export default async function BusinessInvoicesPage() {
   const supabase = await createClient();
   const { data: invoices } = await supabase
     .from("invoices")
-    .select("id, number, issued_on, due_on, total_cents, status, pdf_path")
+    .select(
+      "id, number, issued_on, due_on, total_cents, credited_cents, status, pdf_path",
+    )
     .eq("business_id", business.id)
     .order("issued_on", { ascending: false })
     .order("number", { ascending: false })
@@ -69,11 +71,14 @@ export default async function BusinessInvoicesPage() {
                     <StatusBadge status={status} />
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {formatCents(invoice.total_cents)}, issued{" "}
-                    {formatCalendarDate(invoice.issued_on)}
-                    {invoice.status === "paid"
-                      ? ""
-                      : `, due ${formatCalendarDate(invoice.due_on)}`}
+                    {formatCents(invoice.total_cents)}
+                    {invoice.credited_cents > 0
+                      ? ` (${formatCents(invoice.credited_cents)} credited)`
+                      : ""}
+                    , issued {formatCalendarDate(invoice.issued_on)}
+                    {invoice.status === "issued"
+                      ? `, due ${formatCalendarDate(invoice.due_on)}`
+                      : ""}
                   </p>
                 </div>
                 {invoice.pdf_path ? (

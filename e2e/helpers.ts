@@ -713,10 +713,22 @@ export async function undoPayRuns(from: string) {
   if (ids.length === 0) return;
   const { data: invoices } = await service
     .from("invoices")
-    .select("pdf_path")
+    .select("id, pdf_path")
     .in("pay_run_id", ids);
-  const paths = (invoices ?? []).flatMap((i) => (i.pdf_path as string) ?? []);
+  const invoiceIds = (invoices ?? []).map((i) => i.id as string);
+  const { data: notes } = invoiceIds.length
+    ? await service
+        .from("credit_notes")
+        .select("pdf_path")
+        .in("invoice_id", invoiceIds)
+    : { data: [] };
+  const paths = [...(invoices ?? []), ...(notes ?? [])].flatMap(
+    (file) => (file.pdf_path as string) ?? [],
+  );
   if (paths.length > 0) await service.storage.from("invoices").remove(paths);
+  if (invoiceIds.length > 0) {
+    await service.from("credit_notes").delete().in("invoice_id", invoiceIds);
+  }
   await service.from("pay_run_lines").delete().in("pay_run_id", ids);
   await service.from("invoices").delete().in("pay_run_id", ids);
   await service.from("pay_runs").delete().in("id", ids);

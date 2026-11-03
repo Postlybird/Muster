@@ -244,7 +244,7 @@ export const businessTimesheetStatuses: Record<TimesheetStatus, StatusInfo> = {
   },
 };
 
-export type InvoiceStatus = "issued" | "overdue" | "paid";
+export type InvoiceStatus = "issued" | "overdue" | "paid" | "credited";
 
 /** Issued invoices are overdue once their due date has passed. */
 export function invoiceStatus(
@@ -252,6 +252,7 @@ export function invoiceStatus(
   today: string,
 ): InvoiceStatus {
   if (invoice.status === "paid") return "paid";
+  if (invoice.status === "credited") return "credited";
   return isOverdue(invoice, today) ? "overdue" : "issued";
 }
 
@@ -272,6 +273,11 @@ export const businessInvoiceStatuses: Record<InvoiceStatus, StatusInfo> = {
     tone: "success",
     next: "Nothing to do. Thank you.",
   },
+  credited: {
+    label: "Credited",
+    tone: "neutral",
+    next: "Nothing to pay: it's been credited in full.",
+  },
 };
 
 /** An invoice, as our team sees it. */
@@ -290,5 +296,10 @@ export const adminInvoiceStatuses: Record<InvoiceStatus, StatusInfo> = {
     label: "Paid",
     tone: "success",
     next: "Nothing to do.",
+  },
+  credited: {
+    label: "Credited",
+    tone: "neutral",
+    next: "Nothing to do: it's been credited in full.",
   },
 };

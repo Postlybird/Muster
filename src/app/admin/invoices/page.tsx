@@ -26,6 +26,7 @@ type Row = {
   issued_on: string;
   due_on: string;
   total_cents: number;
+  credited_cents: number;
   status: string;
   businesses: { legal_name: string; trading_name: string | null } | null;
 };
@@ -66,6 +67,11 @@ function InvoiceTable({ rows, today }: { rows: Row[]; today: string }) {
             </TableCell>
             <TableCell className="text-right">
               {formatCents(invoice.total_cents)}
+              {invoice.credited_cents > 0 ? (
+                <span className="block text-xs text-muted-foreground">
+                  {formatCents(invoice.credited_cents)} credited
+                </span>
+              ) : null}
             </TableCell>
             <TableCell>
               <StatusBadge
@@ -79,7 +85,10 @@ function InvoiceTable({ rows, today }: { rows: Row[]; today: string }) {
   );
 }
 
-/** Every invoice: what's owed (overdue first), then what's been paid. */
+/**
+ * Every invoice: what's owed (overdue first), then what's been paid or
+ * credited in full. Credit notes lower what's owed.
+ */
 export default async function AdminInvoicesPage() {
   await requireAdmin();
   const supabase = await createClient();
@@ -87,7 +96,7 @@ export default async function AdminInvoicesPage() {
     supabase
       .from("invoices")
       .select(
-        "id, number, issued_on, due_on, total_cents, status, businesses(legal_name, trading_name)",
+        "id, number, issued_on, due_on, total_cents, credited_cents, status, businesses(legal_name, trading_name)",
       )
       .eq("status", "issued")
       .order("due_on")
@@ -95,15 +104,16 @@ export default async function AdminInvoicesPage() {
     supabase
       .from("invoices")
       .select(
-        "id, number, issued_on, due_on, total_cents, status, businesses(legal_name, trading_name)",
+        "id, number, issued_on, due_on, total_cents, credited_cents, status, businesses(legal_name, trading_name)",
       )
-      .eq("status", "paid")
+      .in("status", ["paid", "credited"])
       .order("issued_on", { ascending: false })
       .order("number", { ascending: false })
       .limit(100),
   ]);
   const today = sydneyDateKey(new Date());
-  const owed = (unpaid ?? []).reduce((sum, i) => sum + i.total_cents, 0);
+  const owing = (invoice: Row) => invoice.total_cents - invoice.credited_cents;
+  const owed = (unpaid ?? []).reduce((sum, i) => sum + owing(i), 0);
   const overdue = (unpaid ?? []).filter(
     (i) => invoiceStatus(i, today) === "overdue",
   );
@@ -124,7 +134,7 @@ export default async function AdminInvoicesPage() {
             <p className="text-sm text-muted-foreground">
               {formatCents(owed)} owed
               {overdue.length > 0
-                ? `, of which ${formatCents(overdue.reduce((sum, i) => sum + i.total_cents, 0))} is overdue`
+                ? `, of which ${formatCents(overdue.reduce((sum, i) => sum + owing(i), 0))} is overdue`
                 : ""}
               .
             </p>
@@ -141,7 +151,7 @@ export default async function AdminInvoicesPage() {
 
       <section aria-labelledby="paid" className="space-y-3">
         <h2 id="paid" className="text-lg font-semibold">
-          Paid
+          Paid or credited
         </h2>
         {paid?.length ? (
           <InvoiceTable rows={paid} today={today} />

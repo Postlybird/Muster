@@ -373,7 +373,7 @@ export async function sendInvoiceReminders() {
   const { data: invoices, error } = await admin
     .from("invoices")
     .select(
-      "id, status, due_on, pdf_path, reminders_sent, last_reminder_on, businesses(accounts_email)",
+      "id, status, due_on, pdf_path, total_cents, credited_cents, reminders_sent, last_reminder_on, businesses(accounts_email)",
     )
     .eq("status", "issued")
     .lt("due_on", today)
@@ -400,7 +400,12 @@ export async function sendInvoiceReminders() {
     if (!claimed?.length) continue;
     try {
       const stored = await storedInvoicePdf(admin, invoice.id, settings);
-      await emailTemplate("invoice_overdue", to, invoiceValues(stored.data), {
+      // What's still owed, after any credit notes.
+      const values = {
+        ...invoiceValues(stored.data),
+        total: formatCents(invoice.total_cents - invoice.credited_cents),
+      };
+      await emailTemplate("invoice_overdue", to, values, {
         url: `/business/invoices/${invoice.id}`,
         attachments: [
           {

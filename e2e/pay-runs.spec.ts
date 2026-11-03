@@ -5,6 +5,7 @@ import { expect, test } from "@playwright/test";
 import { addDays, lastFullWeek } from "../src/domain/pay-runs";
 import {
   formatCalendarDate,
+  formatCents,
   fromSydneyTime,
   sydneyDateKey,
 } from "../src/lib/format";
@@ -239,4 +240,127 @@ test("a business with an overdue invoice is reminded, once a day, with the invoi
     page.getByText(`1 sent, the last on ${formatCalendarDate(today)}`),
   ).toBeVisible();
   await expectAccessible(page);
+});
+
+test("an admin credits an invoice, and the business gets the credit note", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await hoursLastWeek("Fatima Al-Sayed");
+  await signInAsDemo(page, "Alex Morgan");
+  await page.goto("/admin/pay-runs");
+  await page.getByRole("button", { name: "Run pay and invoices" }).click();
+  await page.getByRole("button", { name: "Run it" }).click();
+  await expect(
+    page.getByText(/^Done\. Each invoice has been emailed/),
+  ).toBeVisible({ timeout: 30_000 });
+  const invoice = page
+    .getByRole("row")
+    .filter({ hasText: "Westside Cleaning" })
+    .getByRole("link");
+  const number = await invoice.innerText();
+  await invoice.click();
+  await expect(
+    page.getByRole("heading", { name: `Invoice ${number}` }),
+  ).toBeVisible();
+
+  const service = serviceClient();
+  const { data: before } = await service
+    .from("invoices")
+    .select("id, total_cents, gst_cents, business_id")
+    .eq("number", number)
+    .single();
+  const { data: westside } = await service
+    .from("businesses")
+    .select("accounts_email")
+    .eq("id", before!.business_id)
+    .single();
+  const since = new Date().toISOString();
+
+  // More than the invoice is refused; then $11.00 of it is credited.
+  const amount = page.getByLabel("Amount to credit, including GST");
+  await amount.fill(((before!.total_cents + 100) / 100).toFixed(2));
+  await page.getByLabel("Reason").fill("Charged for a break that was taken.");
+  await page.getByRole("button", { name: "Issue credit note" }).click();
+  await expect(
+    page.getByText("That's more than is left to credit on the invoice").first(),
+  ).toBeVisible();
+  await amount.fill("11.00");
+  await page.getByRole("button", { name: "Issue credit note" }).click();
+  const issued = page.getByText(
+    /^Credit note CN-\d+ for \$11\.00 issued and emailed to the business\.$/,
+  );
+  await expect(issued).toBeVisible();
+  const note = (await issued.innerText()).split(" ")[2]!;
+  await expect(page.getByText(`${note}: $11.00`)).toBeVisible();
+  await expect(
+    page.getByText("Charged for a break that was taken."),
+  ).toBeVisible();
+  await expectAccessible(page);
+
+  const [pdf] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("link", { name: `Download ${note} (PDF)` }).click(),
+  ]);
+  expect(pdf.suggestedFilename()).toBe(`${note}.pdf`);
+  expect(
+    readFileSync((await pdf.path())!)
+      .subarray(0, 5)
+      .toString(),
+  ).toBe("%PDF-");
+
+  const { data: emails } = await service
+    .from("dev_outbox")
+    .select("subject, body, meta")
+    .eq("channel", "email")
+    .eq("recipient", westside!.accounts_email!)
+    .eq("subject", `Credit note ${note} from Shifta`)
+    .gte("created_at", since);
+  expect(emails).toHaveLength(1);
+  expect(emails![0]!.body).toContain(
+    `We've credited $11.00 (including GST of $1.00) against invoice ${number}.`,
+  );
+  expect(emails![0]!.meta).toMatchObject({ attachments: [`${note}.pdf`] });
+
+  // The business sees the credit note and what's left to pay.
+  const left = before!.total_cents - 1_100;
+  await page.context().clearCookies();
+  await signInAsDemo(page, "Sofia Rossi");
+  await page.goto(`/business/invoices/${before!.id}`);
+  await expect(
+    page.getByText(`${formatCents(left)} due by`, { exact: false }),
+  ).toContainText("after $11.00 credited.");
+  await expect(page.getByText(`${note}: $11.00 credited`)).toBeVisible();
+  await expectAccessible(page);
+  const [copy] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("link", { name: `Download ${note} (PDF)` }).click(),
+  ]);
+  expect(copy.suggestedFilename()).toBe(`${note}.pdf`);
+
+  // Crediting the rest closes it, and the notes' GST adds up to the invoice's.
+  await page.context().clearCookies();
+  await signInAsDemo(page, "Alex Morgan");
+  await page.goto(`/admin/invoices/${before!.id}`);
+  await page
+    .getByLabel("Amount to credit, including GST")
+    .fill((left / 100).toFixed(2));
+  await page.getByLabel("Reason").fill("The shift was cancelled by us.");
+  await page.getByRole("button", { name: "Issue credit note" }).click();
+  await expect(page.getByText("There's nothing left to credit.")).toBeVisible();
+  await expect(
+    page.getByText(`${formatCents(before!.total_cents)} credited.`),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Mark paid" })).toHaveCount(0);
+  await expectAccessible(page);
+  const { data: notes } = await service
+    .from("credit_notes")
+    .select("gst_cents, total_cents")
+    .eq("invoice_id", before!.id);
+  expect(notes!.reduce((sum, n) => sum + n.total_cents, 0)).toBe(
+    before!.total_cents,
+  );
+  expect(notes!.reduce((sum, n) => sum + n.gst_cents, 0)).toBe(
+    before!.gst_cents,
+  );
 });

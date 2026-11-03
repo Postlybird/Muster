@@ -248,3 +248,129 @@ export function InvoiceDocument({ data }: { data: InvoicePdfData }) {
 export async function renderInvoicePdf(data: InvoicePdfData): Promise<Buffer> {
   return renderToBuffer(<InvoiceDocument data={data} />);
 }
+
+/**
+ * Everything printed on a credit note (owner, 03/11/2026). For GST it's an
+ * adjustment note, so that's its title: it names the invoice it corrects,
+ * the reason, and the credit with its GST.
+ */
+export type CreditNotePdfData = {
+  number: string;
+  issuedOn: string;
+  invoice: { number: string; issuedOn: string };
+  reason: string;
+  from: InvoicePdfData["from"];
+  to: InvoicePdfData["to"];
+  subtotalCents: number;
+  gstCents: number;
+  totalCents: number;
+  /** What's left to pay on the invoice after this credit. */
+  owingCents: number;
+  /** The invoice was paid already, so the credit is owed back. */
+  invoicePaid: boolean;
+};
+
+export function CreditNoteDocument({ data }: { data: CreditNotePdfData }) {
+  const { from, to } = data;
+  return (
+    <Document
+      title={`Adjustment note ${data.number}`}
+      author={from.legalName}
+      creator={brand.name}
+      producer={brand.name}
+    >
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <View>
+            <T style={styles.brand}>{brand.name}</T>
+            <T style={styles.bold}>{from.legalName}</T>
+            <T>{`ABN ${formatAbn(from.abn)}`}</T>
+            {from.address ? <T>{from.address}</T> : null}
+            {from.email ? <T>{from.email}</T> : null}
+            {from.phone ? <T>{from.phone}</T> : null}
+          </View>
+          <View>
+            <T style={styles.title}>Adjustment note</T>
+            <View style={styles.facts}>
+              <T style={styles.bold}>{`Credit note ${data.number}`}</T>
+              <T>{`Issued ${formatCalendarDate(data.issuedOn)}`}</T>
+              <T>{`For tax invoice ${data.invoice.number}`}</T>
+              <T
+                style={styles.muted}
+              >{`issued ${formatCalendarDate(data.invoice.issuedOn)}`}</T>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.billTo}>
+          <T style={styles.label}>Credited to</T>
+          <T style={styles.bold}>{to.legalName}</T>
+          {to.tradingName && to.tradingName !== to.legalName ? (
+            <T>{`Trading as ${to.tradingName}`}</T>
+          ) : null}
+          <T>{`ABN ${formatAbn(to.abn)}`}</T>
+          {to.contact ? <T>{`Attention: ${to.contact}`}</T> : null}
+        </View>
+
+        <View style={styles.headRow}>
+          <T style={[styles.what, styles.bold]}>Reason</T>
+          <T style={[styles.amount, styles.bold]}>Amount</T>
+        </View>
+        <View style={styles.row} wrap={false}>
+          <T style={styles.what}>{data.reason}</T>
+          <T style={styles.amount}>{formatCents(data.subtotalCents)}</T>
+        </View>
+
+        <View style={styles.totals} wrap={false}>
+          <View style={styles.totalRow}>
+            <T>Subtotal</T>
+            <T>{formatCents(data.subtotalCents)}</T>
+          </View>
+          <View style={styles.totalRow}>
+            <T>GST</T>
+            <T>{formatCents(data.gstCents)}</T>
+          </View>
+          <View style={styles.grandTotal}>
+            <T>Total credit (AUD)</T>
+            <T>{formatCents(data.totalCents)}</T>
+          </View>
+        </View>
+
+        <View style={styles.payment} wrap={false}>
+          <T style={styles.label}>What it means</T>
+          <T>{creditNoteOutcome(data)}</T>
+        </View>
+
+        <Text
+          style={styles.footer}
+          fixed
+          render={({ pageNumber, totalPages }) =>
+            pdfText(
+              `${data.number} · ${from.legalName} · Page ${pageNumber} of ${totalPages}`,
+            )
+          }
+        />
+      </Page>
+    </Document>
+  );
+}
+
+/** What the credit does to the invoice, in a sentence (the PDF and its email). */
+export function creditNoteOutcome(data: {
+  invoice: { number: string };
+  owingCents: number;
+  invoicePaid: boolean;
+}): string {
+  if (data.invoicePaid) {
+    return `You've already paid invoice ${data.invoice.number}, so we'll be in touch about the credit.`;
+  }
+  return data.owingCents > 0
+    ? `There's ${formatCents(data.owingCents)} still to pay on invoice ${data.invoice.number}.`
+    : `There's nothing more to pay on invoice ${data.invoice.number}.`;
+}
+
+export async function renderCreditNotePdf(
+  data: CreditNotePdfData,
+): Promise<Buffer> {
+  return renderToBuffer(<CreditNoteDocument data={data} />);
+}

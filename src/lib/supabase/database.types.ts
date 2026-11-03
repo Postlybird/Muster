@@ -1160,6 +1160,83 @@ export type Database = {
         };
         Relationships: [];
       };
+      credit_notes: {
+        Row: {
+          business_id: string;
+          created_at: string;
+          emailed_at: string | null;
+          emailed_to: string | null;
+          gst_cents: number;
+          id: string;
+          invoice_id: string;
+          issued_by: string;
+          issued_on: string;
+          number: string;
+          pdf_path: string | null;
+          reason: string;
+          subtotal_cents: number;
+          total_cents: number;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          business_id: string;
+          created_at?: string;
+          emailed_at?: string | null;
+          emailed_to?: string | null;
+          gst_cents: number;
+          id?: string;
+          invoice_id: string;
+          issued_by: string;
+          issued_on: string;
+          number: string;
+          pdf_path?: string | null;
+          reason: string;
+          subtotal_cents: number;
+          total_cents: number;
+          updated_at?: string;
+        };
+        Update: {
+          business_id?: string;
+          created_at?: string;
+          emailed_at?: string | null;
+          emailed_to?: string | null;
+          gst_cents?: number;
+          id?: string;
+          invoice_id?: string;
+          issued_by?: string;
+          issued_on?: string;
+          number?: string;
+          pdf_path?: string | null;
+          reason?: string;
+          subtotal_cents?: number;
+          total_cents?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "credit_notes_business_id_fkey";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credit_notes_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "credit_notes_issued_by_fkey";
+            columns: ["issued_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       dev_outbox: {
         Row: {
           body: string;
@@ -1383,6 +1460,7 @@ export type Database = {
         Row: {
           business_id: string;
           created_at: string;
+          credited_cents: number;
           due_on: string;
           emailed_at: string | null;
           emailed_to: string | null;
@@ -1406,6 +1484,7 @@ export type Database = {
         Insert: {
           business_id: string;
           created_at?: string;
+          credited_cents?: number;
           due_on: string;
           emailed_at?: string | null;
           emailed_to?: string | null;
@@ -1428,6 +1507,7 @@ export type Database = {
         Update: {
           business_id?: string;
           created_at?: string;
+          credited_cents?: number;
           due_on?: string;
           emailed_at?: string | null;
           emailed_to?: string | null;
@@ -3826,6 +3906,10 @@ export type Database = {
         Returns: boolean;
       };
       is_business_owner: { Args: { p_business_id: string }; Returns: boolean };
+      issue_credit_note: {
+        Args: { p_invoice: string; p_reason: string; p_total_cents: number };
+        Returns: string;
+      };
       job_applicants: {
         Args: { p_job_id: string };
         Returns: {

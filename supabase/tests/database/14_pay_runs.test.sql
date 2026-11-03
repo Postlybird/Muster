@@ -234,7 +234,7 @@ select throws_ok(
   $$ select public.mark_invoice_paid(
        (select id from public.invoices where business_id = 'b1111111-0000-0000-0000-000000000001'),
        current_date) $$,
-  '23514', 'That invoice is already paid', 'once'
+  '23514', 'That invoice is already paid or credited', 'once'
 );
 select lives_ok(
   $$ select public.mark_invoice_unpaid(

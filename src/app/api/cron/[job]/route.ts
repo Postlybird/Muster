@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { checkAttendance } from "@/server/attendance";
 import { checkCallouts } from "@/server/callouts";
 import { runCompliance } from "@/server/compliance";
+import { finishCreditNotes } from "@/server/credit-notes";
 import { sendDueNotifications } from "@/server/notifications";
 import { scheduledPayRun, sendInvoiceReminders } from "@/server/pay-runs";
 import { finishShifts } from "@/server/reliability";
@@ -21,7 +22,11 @@ const JOBS: Record<string, () => Promise<unknown>> = {
   attendance: () => checkAttendance(),
   timesheets: () => runTimesheets(),
   "pay-run": () => scheduledPayRun(),
-  "invoice-reminders": () => sendInvoiceReminders(),
+  // Each morning: overdue reminders, and any credit note not yet sent.
+  "invoice-reminders": async () => ({
+    reminders: await sendInvoiceReminders(),
+    creditNotes: await finishCreditNotes(),
+  }),
   notifications: () => sendDueNotifications(),
   compliance: () => runCompliance(),
   callouts: () => checkCallouts(),

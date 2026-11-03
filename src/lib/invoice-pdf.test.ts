@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { renderInvoicePdf, type InvoicePdfData } from "./invoice-pdf";
+import {
+  creditNoteOutcome,
+  renderCreditNotePdf,
+  renderInvoicePdf,
+  type InvoicePdfData,
+} from "./invoice-pdf";
 
 const invoice: InvoicePdfData = {
   number: "INV-1001",
@@ -42,5 +47,39 @@ describe("invoice PDFs", () => {
     const pdf = await renderInvoicePdf(invoice);
     expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
     expect(pdf.length).toBeGreaterThan(1000);
+  });
+});
+
+describe("credit note PDFs", () => {
+  const note = {
+    number: "CN-1001",
+    issuedOn: "2026-11-03",
+    invoice: { number: invoice.number, issuedOn: invoice.issuedOn },
+    reason: "An hour was charged twice on 20/10/2026.",
+    from: invoice.from,
+    to: invoice.to,
+    subtotalCents: 5_400,
+    gstCents: 540,
+    totalCents: 5_940,
+    owingCents: 41_580,
+    invoicePaid: false,
+  };
+
+  it("render", async () => {
+    const pdf = await renderCreditNotePdf(note);
+    expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
+    expect(pdf.length).toBeGreaterThan(1000);
+  });
+
+  it("say what's left to pay, or that it's owed back", () => {
+    expect(creditNoteOutcome(note)).toBe(
+      "There's $415.80 still to pay on invoice INV-1001.",
+    );
+    expect(creditNoteOutcome({ ...note, owingCents: 0 })).toBe(
+      "There's nothing more to pay on invoice INV-1001.",
+    );
+    expect(creditNoteOutcome({ ...note, invoicePaid: true })).toBe(
+      "You've already paid invoice INV-1001, so we'll be in touch about the credit.",
+    );
   });
 });

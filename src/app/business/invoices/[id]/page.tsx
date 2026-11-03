@@ -15,7 +15,10 @@ import { getAllSettings } from "@/server/settings";
 
 export const metadata: Metadata = { title: "Invoice" };
 
-/** One weekly invoice: each line, the totals, and how to pay it. */
+/**
+ * One weekly invoice: each line, the totals, any credit notes against it,
+ * and how to pay it.
+ */
 export default async function BusinessInvoicePage({
   params,
 }: PageProps<"/business/invoices/[id]">) {
@@ -23,20 +26,30 @@ export default async function BusinessInvoicePage({
   if (!business || !canManage(role)) notFound();
   const { id } = await params;
   const supabase = await createClient();
-  const [{ data: invoice }, { data: lines }, settings] = await Promise.all([
-    supabase
-      .from("invoices")
-      .select(
-        "id, number, issued_on, due_on, subtotal_cents, gst_cents, total_cents, status, paid_on, pdf_path",
-      )
-      .eq("id", id)
-      .eq("business_id", business.id)
-      .maybeSingle(),
-    supabase.rpc("invoice_lines", { p_invoice_id: id }),
-    getAllSettings(),
-  ]);
+  const [{ data: invoice }, { data: lines }, { data: creditNotes }, settings] =
+    await Promise.all([
+      supabase
+        .from("invoices")
+        .select(
+          "id, number, issued_on, due_on, subtotal_cents, gst_cents, total_cents, credited_cents, status, paid_on, pdf_path",
+        )
+        .eq("id", id)
+        .eq("business_id", business.id)
+        .maybeSingle(),
+      supabase.rpc("invoice_lines", { p_invoice_id: id }),
+      supabase
+        .from("credit_notes")
+        .select(
+          "id, number, issued_on, reason, total_cents, gst_cents, pdf_path",
+        )
+        .eq("invoice_id", id)
+        .eq("business_id", business.id)
+        .order("created_at"),
+      getAllSettings(),
+    ]);
   if (!invoice) notFound();
   const status = invoiceStatus(invoice, sydneyDateKey(new Date()));
+  const leftCents = invoice.total_cents - invoice.credited_cents;
   const bank = settings.bank_details;
   const contact = [
     settings.company_details.email || brand.supportEmail,
@@ -65,7 +78,11 @@ export default async function BusinessInvoicePage({
         detail={
           invoice.status === "paid" && invoice.paid_on
             ? `Paid ${formatCalendarDate(invoice.paid_on)}.`
-            : `${formatCents(invoice.total_cents)} due by ${formatCalendarDate(invoice.due_on)}.`
+            : invoice.status === "credited"
+              ? `${formatCents(invoice.credited_cents)} credited.`
+              : invoice.credited_cents > 0
+                ? `${formatCents(leftCents)} due by ${formatCalendarDate(invoice.due_on)}, after ${formatCents(invoice.credited_cents)} credited.`
+                : `${formatCents(invoice.total_cents)} due by ${formatCalendarDate(invoice.due_on)}.`
         }
       />
 
@@ -81,7 +98,46 @@ export default async function BusinessInvoicePage({
         />
       </section>
 
-      {invoice.status !== "paid" && bank.account_number ? (
+      {creditNotes?.length ? (
+        <section aria-labelledby="credit-notes" className="space-y-3">
+          <h2 id="credit-notes" className="text-lg font-semibold">
+            Credit notes
+          </h2>
+          <ul className="divide-y rounded-lg border bg-card">
+            {creditNotes.map((note) => (
+              <li
+                key={note.id}
+                className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between"
+              >
+                <div className="min-w-0 space-y-1 text-sm">
+                  <p className="font-medium">
+                    {note.number}: {formatCents(note.total_cents)} credited{" "}
+                    <span className="font-normal text-muted-foreground">
+                      (GST {formatCents(note.gst_cents)}),{" "}
+                      {formatCalendarDate(note.issued_on)}
+                    </span>
+                  </p>
+                  <p className="[overflow-wrap:anywhere]">{note.reason}</p>
+                </div>
+                {note.pdf_path ? (
+                  <Button asChild variant="outline" size="sm">
+                    <a
+                      href={`/business/invoices/${invoice.id}/credit-notes/${note.id}/pdf`}
+                      download
+                      aria-label={`Download ${note.number} (PDF)`}
+                    >
+                      <Download aria-hidden />
+                      Download {note.number}
+                    </a>
+                  </Button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {invoice.status === "issued" && bank.account_number ? (
         <section
           aria-labelledby="pay"
           className="space-y-2 rounded-lg border bg-card p-4"
