@@ -419,7 +419,7 @@ _Last updated: 03/11/2026_
   2. I'll add it to the rates sheet for your accountant to check.
   3. Once they approve it, I'll load the rates, and the three work types can be posted.
 - **Owner: stage 2, the accounts.** One service at a time, starting with Twilio, I'll send click-by-click steps; you type the keys into Vercel and GitHub, never into chat. The full list is in `docs/launch.md`: Twilio, Resend, Google Cloud, Cloudflare Turnstile, the ABN Lookup GUID, Supabase Pro with a new `shifta-live` project in Sydney, and Vercel Pro with a second project for the live site.
-- **Owner: Employment Hero's timesheet import template**, once you have it from them, so the payroll file matches it exactly.
+- **Owner: choose the payroll provider** (03/11/2026: Employment Hero charges for at least 10 people, about $100 a month from the start). Shortlist: Microkeeper and Payroller, both Australian, with Single Touch Payroll and super on payday, from a few dollars per worker a month; or your accountant's own payroll, if they can offer one without a minimum. In each free trial, check the timesheet import from a file, casuals on more than one award, and super paid through its own clearing house. Then send me its timesheet import template, so the payroll file matches it exactly. Nothing else in Shifta depends on which one.
 - **Owner: two choices about restoration** (no rush; they can change any time):
   - Every restoration job asks for a White Card, and an IICRC ticket only when the business ticks it. If you'd rather every restoration job needed the IICRC WRT, it's one tick in Admin → Catalogues → Work types → Restoration technician.
   - Restoration labouring is now charged at the technician rate. If you'd rather charge it less, we can bring back "Restoration labourer" (its rates are already checked).
@@ -587,7 +587,7 @@ _Last updated: 03/11/2026_
 - **Contact phone number.** The contact page and messages show only the email until we have a number.
 - **The 10 questions in `docs/plan.md`.** Phase 1 uses our recommendations. Tell us if any should change.
 - **How quickly will new workers be checked?** The app tells workers "usually within two business days". Change it if that's not realistic.
-- **Employment Hero timesheet import template.** The payroll file uses draft columns until we have it.
+- **The payroll provider and its timesheet import template** (Employment Hero, or a cheaper alternative: see Next). The payroll file uses draft columns until we have it.
 - **Company details for tax invoices** (legal name, ABN, address, contact and bank account). Enter them in Settings → Pay and billing; the demo shows made-up ones.
 - **The weekly run day.** It's Monday for now. Businesses have 48 hours to approve hours, so weekend shifts are usually still waiting on Monday and get paid a week later. Running on Wednesday would catch them. Which day suits you?
 - **Texts for bookings and reminders.** The brief keeps texts for login codes and urgent work. Workers who install the app and turn notifications on now get bookings and reminders there instead. Workers who haven't still get them by text: should they? Each text costs a few cents once Twilio is set up.
@@ -605,7 +605,7 @@ _Last updated: 03/11/2026_
 2. **Insurance:** workers' compensation (icare in NSW) before anyone works, and public liability, which businesses will ask for.
 3. **Lawyer:** the documents listed below.
 4. **Payroll professional:** pay rates, minimum engagements, overtime rules and on-costs for each work type we launch with. Done for the nine launch work types (01/11/2026), apart from the points under Next; workers' comp and insurance on-costs are still placeholders until the policies are in.
-5. **Employment Hero Payroll:** set up the company, awards, super and Single Touch Payroll, and send us its timesheet import template.
+5. **Payroll** (Employment Hero was assumed; the owner is looking at cheaper ones, 03/11/2026): set up the company, awards, super on payday and Single Touch Payroll, and send us its timesheet import template.
 6. **The books** (owner, 03/11/2026: no Xero; Shifta issues and tracks the invoices): agree with the accountant how they'll do the BAS and tax return from Shifta's invoices and reports, Employment Hero's payroll reports and the bank statements.
 7. **Website and services:** connect the domain and support email (owner setup checklist below); approve and sign up for texts (Twilio), email (Resend), an address lookup, and the Vercel and Supabase paid plans; get the free ABN Lookup GUID and Cloudflare Turnstile keys.
 8. **Admin setup on the real site:** company and bank details, settings, work types (archive any we won't offer yet), rate cards, public holidays, the lawyer-approved agreements, and message templates.
