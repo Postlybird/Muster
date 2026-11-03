@@ -3,6 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useId, useState, useTransition } from "react";
 
+import { useBotCheck } from "@/components/forms/bot-check";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,9 +37,12 @@ export function RegisterForm({ kind }: { kind: RegisterKind }) {
   const formErrorId = useId();
   const hydrated = useHydrated();
   const business = kind === "business";
+  // Rendered in both steps, as "send a new code" needs it too.
+  const botCheck = useBotCheck();
 
   async function request(): Promise<string | null> {
-    const result = await sendRegisterCode(kind, fields);
+    const captchaToken = await botCheck.getToken();
+    const result = await sendRegisterCode(kind, fields, captchaToken);
     if (!result.ok) {
       setErrors(result.fieldErrors ?? {});
       return result.error;
@@ -50,16 +54,19 @@ export function RegisterForm({ kind }: { kind: RegisterKind }) {
 
   if (sentTo) {
     return (
-      <CodeStep
-        destination={sentTo}
-        next={REGISTER_NEXT[kind]}
-        submitLabel="Continue"
-        onBack={() => {
-          setSentTo(null);
-          setError(null);
-        }}
-        onResend={request}
-      />
+      <>
+        {botCheck.element}
+        <CodeStep
+          destination={sentTo}
+          next={REGISTER_NEXT[kind]}
+          submitLabel="Continue"
+          onBack={() => {
+            setSentTo(null);
+            setError(null);
+          }}
+          onResend={request}
+        />
+      </>
     );
   }
 
@@ -110,65 +117,68 @@ export function RegisterForm({ kind }: { kind: RegisterKind }) {
   };
 
   return (
-    <form
-      noValidate
-      className="space-y-5"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (!hydrated) return;
-        setError(null);
-        startTransition(async () => setError(await request()));
-      }}
-    >
-      <div className="grid gap-5 sm:grid-cols-2">
-        {field("firstName", "First name", { autoComplete: "given-name" })}
-        {field("lastName", "Last name", { autoComplete: "family-name" })}
-      </div>
-      {field(
-        "email",
-        business ? "Work email" : "Email address",
-        {
-          type: "email",
-          inputMode: "email",
-          autoComplete: "email",
-          placeholder: "you@example.com",
-        },
-        "We'll email you a code to confirm it. No password to remember.",
-      )}
-      {business
-        ? field("phone", "Mobile number", {
-            type: "tel",
-            inputMode: "tel",
-            autoComplete: "tel",
-            placeholder: "0412 345 678",
-          })
-        : null}
-      {business
-        ? field(
-            "abn",
-            "ABN",
-            { inputMode: "numeric", placeholder: "12 345 678 901" },
-            "We fill in your business details from the ABN register.",
-          )
-        : null}
-      <div aria-live="polite">
-        {error ? (
-          <Alert variant="destructive" id={formErrorId}>
-            <AlertDescription className="text-foreground">
-              {error}
-            </AlertDescription>
-          </Alert>
-        ) : null}
-      </div>
-      <Button
-        type="submit"
-        size="lg"
-        className="h-12 w-full text-base"
-        disabled={pending || !hydrated}
+    <>
+      {botCheck.element}
+      <form
+        noValidate
+        className="space-y-5"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!hydrated) return;
+          setError(null);
+          startTransition(async () => setError(await request()));
+        }}
       >
-        {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
-        Email me a code
-      </Button>
-    </form>
+        <div className="grid gap-5 sm:grid-cols-2">
+          {field("firstName", "First name", { autoComplete: "given-name" })}
+          {field("lastName", "Last name", { autoComplete: "family-name" })}
+        </div>
+        {field(
+          "email",
+          business ? "Work email" : "Email address",
+          {
+            type: "email",
+            inputMode: "email",
+            autoComplete: "email",
+            placeholder: "you@example.com",
+          },
+          "We'll email you a code to confirm it. No password to remember.",
+        )}
+        {business
+          ? field("phone", "Mobile number", {
+              type: "tel",
+              inputMode: "tel",
+              autoComplete: "tel",
+              placeholder: "0412 345 678",
+            })
+          : null}
+        {business
+          ? field(
+              "abn",
+              "ABN",
+              { inputMode: "numeric", placeholder: "12 345 678 901" },
+              "We fill in your business details from the ABN register.",
+            )
+          : null}
+        <div aria-live="polite">
+          {error ? (
+            <Alert variant="destructive" id={formErrorId}>
+              <AlertDescription className="text-foreground">
+                {error}
+              </AlertDescription>
+            </Alert>
+          ) : null}
+        </div>
+        <Button
+          type="submit"
+          size="lg"
+          className="h-12 w-full text-base"
+          disabled={pending || !hydrated}
+        >
+          {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
+          Email me a code
+        </Button>
+      </form>
+    </>
   );
 }

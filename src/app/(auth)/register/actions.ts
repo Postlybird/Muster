@@ -34,6 +34,7 @@ const name = z.string().trim().min(1).max(60);
 export async function sendRegisterCode(
   kind: RegisterKind,
   fields: RegisterFields,
+  captchaToken?: string,
 ): Promise<RegisterResult> {
   const errors: Partial<Record<keyof RegisterFields, string>> = {};
   const first = name.safeParse(fields.firstName);
@@ -71,5 +72,13 @@ export async function sendRegisterCode(
   data.first_name = first.data;
   data.last_name = last.data;
   data.full_name = `${first.data} ${last.data}`;
-  return sendEmailCode({ email: email!, data, next: REGISTER_NEXT[kind] });
+  return sendEmailCode({
+    email: email!,
+    data,
+    next: REGISTER_NEXT[kind],
+    captchaToken:
+      typeof captchaToken === "string"
+        ? captchaToken.slice(0, 4096)
+        : undefined,
+  });
 }

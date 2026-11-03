@@ -25,6 +25,8 @@ export function friendlyAuthError(error: AuthError): string {
       return "Too many codes requested. Wait a minute, then try again.";
     case "email_address_invalid":
       return "That email address doesn't look right. Check it and try again.";
+    case "captcha_failed":
+      return "We couldn't check the request came from a person. Wait a moment, then try again.";
     case "signup_disabled":
       return "New accounts can't be created right now. Contact us for help.";
     default:
@@ -42,10 +44,13 @@ export async function sendEmailCode({
   email,
   data,
   next,
+  captchaToken,
 }: {
   email: string;
   data: Record<string, string>;
   next?: string;
+  /** The bot check's token, on the live site (src/components/forms/bot-check.tsx). */
+  captchaToken?: string;
 }): Promise<EmailCodeResult> {
   const supabase = await createClient();
   // The link always carries a query, so the live site's sign-in email
@@ -58,6 +63,7 @@ export async function sendEmailCode({
       shouldCreateUser: true,
       data,
       emailRedirectTo: confirmUrl.toString(),
+      ...(captchaToken === undefined ? {} : { captchaToken }),
     },
   });
   if (error) return { ok: false, error: friendlyAuthError(error) };

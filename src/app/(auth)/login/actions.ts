@@ -25,6 +25,7 @@ const sendCodeSchema = z.object({
   value: z.string().trim().min(1).max(254),
   as: z.enum(["worker", "business"]).optional(),
   next: z.string().max(500).optional(),
+  captchaToken: z.string().max(4096).optional(),
 });
 
 const verifyCodeSchema = z.object({
@@ -42,7 +43,7 @@ export async function sendCode(
   if (!parsed.success) {
     return { ok: false, error: "Enter your email address." };
   }
-  const { method, value, as, next } = parsed.data;
+  const { method, value, as, next, captchaToken } = parsed.data;
   const email = cleanEmail(value);
   if (!email) {
     return {
@@ -54,6 +55,7 @@ export async function sendCode(
     email,
     data: { signup_role: signupRoleFor(as) },
     next,
+    captchaToken,
   });
   return result.ok ? { ok: true, method, destination: email } : result;
 }
