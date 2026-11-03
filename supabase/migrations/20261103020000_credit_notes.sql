@@ -46,9 +46,10 @@ create trigger credit_notes_audit after insert or update on public.credit_notes
   for each row execute function public.audit_row_change();
 
 -- Issues a credit note against an invoice: our team only. The amount is
--- GST included and at most what's left to credit; its GST is the invoice's
--- in proportion, and the note that credits the last of the invoice takes
--- exactly the GST left, so the notes add up to the invoice.
+-- GST included and at most what's left to credit. Its GST is the invoice's
+-- in proportion: the GST on everything credited so far, rounded, less what
+-- earlier notes took, so rounding never drifts and the notes that credit a
+-- whole invoice add up to its GST exactly.
 create function public.issue_credit_note(p_invoice uuid, p_total_cents integer, p_reason text)
 returns uuid
 language plpgsql
@@ -82,12 +83,10 @@ begin
     raise exception 'That''s more than is left to credit on the invoice' using errcode = 'check_violation';
   end if;
 
-  if v_invoice.credited_cents + p_total_cents = v_invoice.total_cents then
-    v_gst := v_invoice.gst_cents - coalesce(
-      (select sum(c.gst_cents) from public.credit_notes c where c.invoice_id = p_invoice), 0);
-  else
-    v_gst := round(p_total_cents::numeric * v_invoice.gst_cents / v_invoice.total_cents)::integer;
-  end if;
+  v_gst := round((v_invoice.credited_cents + p_total_cents)::numeric
+      * v_invoice.gst_cents / v_invoice.total_cents)::integer
+    - round(v_invoice.credited_cents::numeric
+      * v_invoice.gst_cents / v_invoice.total_cents)::integer;
 
   insert into public.credit_notes (
     invoice_id, business_id, number, issued_on, reason,

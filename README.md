@@ -61,7 +61,7 @@ npm run test:acceptance   # the Phase 1 acceptance run (needs local Supabase + s
   - pushes the sign-in settings in `deploy/muster-dev/supabase/config.toml` (the live site's address, and login codes going to the demo outbox). `supabase config push` changes only what that file declares.
   - loads the demo data, then checks a code by text (used to confirm a worker's mobile) and a sign-in code by email reach the demo outbox
   - saves the site's address and `CRON_SECRET` in the project's Vault, and runs one scheduled job to check the site accepts it
-- **Scheduled jobs:** Supabase's scheduler (pg_cron) calls `/api/cron/<job>` on the live site with the `CRON_SECRET`: reminders, finished shifts, possible no-shows, timesheets and held notifications every 10 minutes, compliance hourly, and the pay run early each morning (it only runs on the run day). The schedule is in `supabase/migrations/20261030000000_scheduled_jobs.sql`. After changing `CRON_SECRET`, change it in Vercel and GitHub, redeploy the site, then run the database workflow again.
+- **Scheduled jobs:** Supabase's scheduler (pg_cron) calls `/api/cron/<job>` on the live site with the `CRON_SECRET`: reminders, finished shifts, possible no-shows, timesheets and held notifications every 10 minutes, compliance hourly, the pay run early each morning (it only runs on the run day), and overdue invoice reminders each morning. The schedule is in `supabase/migrations/20261030000000_scheduled_jobs.sql`. After changing `CRON_SECRET`, change it in Vercel and GitHub, redeploy the site, then run the database workflow again.
 - **App:** Vercel, with functions pinned to Sydney (`syd1`, see `vercel.json`). Set these environment variables in Vercel:
 
 | Variable | Value |
@@ -73,3 +73,5 @@ npm run test:acceptance   # the Phase 1 acceptance run (needs local Supabase + s
 | `CRON_SECRET` | A long random string (a password manager can make one; mark it Sensitive). Add the same value as the GitHub Actions secret `CRON_SECRET`, which the scheduled jobs use |
 
 The app works out its own address from each request, so `NEXT_PUBLIC_SITE_URL` isn't needed on Vercel. The live site is https://www.shifta.com.au (shifta.com.au and https://muster-two-mauve.vercel.app lead to the same site); if its main address changes, update `site_url` in `deploy/muster-dev/supabase/config.toml`.
+
+- **The live site** (being set up, see `docs/launch.md`): its own Supabase project and Vercel project, with real email, texts and address search, and no demo data. `.github/workflows/live-deploy.yml` updates it when the owner releases a tested commit to the `main` branch.

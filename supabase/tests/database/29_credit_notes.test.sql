@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(14);
+select plan(16);
 
 insert into auth.users (id, email, email_confirmed_at, raw_user_meta_data) values
   ('c4444444-4444-4444-4444-444444444444', 'cn.admin@pgtap.test', now(), '{}'),
@@ -25,12 +25,17 @@ insert into public.business_users (business_id, profile_id, role, accepted_at) v
 
 -- A run far in the past, so it can't clash with the demo's.
 insert into public.pay_runs (id, period_start, period_end, line_count, pay_cents, bill_cents, gst_cents)
-values ('cf111111-0000-0000-0000-000000000001', date '2001-01-01', date '2001-01-07', 1, 7000, 10000, 1000);
+values
+  ('cf111111-0000-0000-0000-000000000001', date '2001-01-01', date '2001-01-07', 1, 7000, 10000, 1000),
+  ('cf222222-0000-0000-0000-000000000002', date '2001-01-08', date '2001-01-14', 1, 7000, 10000, 1000);
 -- $110.00: $100.00 and $10.00 GST.
 insert into public.invoices (id, pay_run_id, business_id, number, issued_on, due_on,
   subtotal_cents, gst_cents, total_cents) values
   ('ce111111-0000-0000-0000-000000000001', 'cf111111-0000-0000-0000-000000000001',
    'cb111111-0000-0000-0000-000000000001', 'PGTAP-CN-1', date '2001-01-08', date '2001-01-22',
+   10000, 1000, 11000),
+  ('ce222222-0000-0000-0000-000000000002', 'cf222222-0000-0000-0000-000000000002',
+   'cb111111-0000-0000-0000-000000000001', 'PGTAP-CN-2', date '2001-01-15', date '2001-01-29',
    10000, 1000, 11000);
 
 set local role authenticated;
@@ -98,11 +103,26 @@ select throws_ok(
   '23514', 'That invoice is already paid or credited', 'or to pay'
 );
 
+-- Tiny credits don't round their way past the invoice's GST: each note's
+-- GST is the rounded GST on everything credited so far, less earlier notes'.
+select lives_ok(
+  $$ select public.issue_credit_note('ce222222-0000-0000-0000-000000000002', 6, 'Rounding'),
+       public.issue_credit_note('ce222222-0000-0000-0000-000000000002', 6, 'Rounding'),
+       public.issue_credit_note('ce222222-0000-0000-0000-000000000002', 10988, 'The rest') $$,
+  'small credits, then the rest'
+);
+select results_eq(
+  $$ select array_agg(gst_cents order by created_at, number), sum(gst_cents)::int
+     from public.credit_notes where invoice_id = 'ce222222-0000-0000-0000-000000000002' $$,
+  $$ values (array[1, 0, 999], 1000) $$,
+  'their GST adds up to the invoice''s, however it''s split'
+);
+
 -- The business sees its own credit notes; another business sees none.
 select set_config('request.jwt.claims', '{"sub": "c6111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
 select is(
   (select count(*)::int from public.credit_notes),
-  2,
+  5,
   'the business sees its credit notes'
 );
 select set_config('request.jwt.claims', '{"sub": "c6555555-5555-5555-5555-555555555555", "role": "authenticated"}', true);

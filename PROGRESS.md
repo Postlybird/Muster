@@ -1,12 +1,14 @@
 # Progress
 
-_Last updated: 02/11/2026_
+_Last updated: 03/11/2026_
 
 ## Status
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. The site is live on Vercel at https://www.shifta.com.au (01/11/2026; first at https://muster-two-mauve.vercel.app, which still works).
 
 **Phase 1: Run real shifts, built** (28/10/2026). All 17 steps are done, and the Phase 1 acceptance run passes: 3 businesses and 10 workers sign up and are approved, 20 shifts are filled and worked, and the payroll file and invoices are made, all through the app (the run only fast-forwards the week). Before real shifts, the owner items under Next are needed (hosting, scheduled jobs, the payroll template, our company details, and a lawyer's check of the documents). The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+
+**Going live: stage 1 built** (03/11/2026). Real email (Resend), texts (Twilio), address search (Google Maps) and a bot check (Cloudflare Turnstile) are ready behind their adapters, waiting only for the accounts and keys. The live site's own database, sign-in settings and release workflow are ready, and invoicing gained overdue reminders, credit notes and a sales and GST report. The demo stays as it is, and moves to demo.shifta.com.au at the switch-over. Next is stage 2: the owner opens the accounts, one at a time (`docs/launch.md`).
 
 ## Done
 
@@ -393,13 +395,26 @@ _Last updated: 02/11/2026_
   - **The website** shows only the four industries. The home page lists only work that can be booked now, and its pictures and example pay use a restoration technician ($35.46 an hour, and about $170 for a four-hour call-out). The demo businesses, workers and jobs moved onto these work types too.
   - Tests: 490 pgTAP, 446 unit and 258 browser tests, plus the acceptance run.
 
+- **Going live, stage 1** (03/11/2026, the owner: "OK keep the demo, start stage 1"):
+  - **Real email (Resend):** every email from the app, with invoices and credit notes attached, goes through Resend once it's switched on. On the live site, sign-in emails go through Resend's mail server too, in our own words ("Your sign-in code").
+  - **Real texts (Twilio):** call-outs, reminders and mobile codes, from the sender name "Shifta". The name has to be registered on the ACMA Sender ID Register through Twilio, or texts show as "Unverified".
+  - **Real address search (Google Maps):** site addresses and workers' suburbs anywhere in Australia, through the Places API (New), charged per search.
+  - **A bot check (Cloudflare Turnstile, free)** before a sign-in or sign-up code is sent, so bots can't run up text and email costs. People don't see it unless Cloudflare is unsure. Cloudflare is blocked from our build environment, so it's tried first in the live run-through.
+  - **Safety checks:** the live site won't build if a real service is missing or set to pretend.
+  - **The live database and releases:** the live site gets its own Supabase project with only the real setup (settings, work types, checked rates and tickets) and never demo data; company and bank details start blank for you to enter. The live site changes only when you say "release": its database is updated first, then the site. A workflow makes your account the first admin.
+  - **Overdue reminders:** the day after an invoice falls due, then every 7 days (a setting) while it's unpaid, up to 4 times, the business's accounts email gets a reminder with the invoice attached, asking for what's still owed. The invoice page shows how many were sent.
+  - **Credit notes:** to correct an invoice that's gone out, our team issues a credit note for an amount and a reason. It's numbered (from CN-1001), takes its share of the GST, is emailed to the business as an adjustment note (PDF), and lowers what's owed; an unpaid invoice credited in full is closed. Businesses see their credit notes with the invoice.
+  - **Sales and GST** (Admin → Sales and GST): for a month, BAS quarter, financial year or any dates, the sales and the GST on them (invoices less credit notes) and the payments received, with a spreadsheet to download for the accountant.
+  - Tests: 512 pgTAP and 492 unit tests passing; the full browser run and the acceptance run are being repeated before this goes further.
+
 ## Next
 
 - **Owner: the warehouse award's pay guide.** Pick-packers, storepersons and forklift drivers come under the Storage Services and Wholesale Award [MA000084]. As with the others:
   1. Download that award's pay guide from the Fair Work Ombudsman website and send it to me.
   2. I'll add it to the rates sheet for your accountant to check.
   3. Once they approve it, I'll load the rates, and the three work types can be posted.
-- **Proposed for launch, waiting for the owner's OK** (03/11/2026, as invoicing stays in Shifta): a reminder email to a business when its invoice is overdue; credit notes, to correct an invoice that's already gone out; and a sales and GST report for any month or quarter, to download for the accountant and the BAS.
+- **Owner: stage 2, the accounts.** One service at a time, starting with Twilio, I'll send click-by-click steps; you type the keys into Vercel and GitHub, never into chat. The full list is in `docs/launch.md`: Twilio, Resend, Google Cloud, Cloudflare Turnstile, the ABN Lookup GUID, Supabase Pro with a new `shifta-live` project in Sydney, and Vercel Pro with a second project for the live site.
+- **Owner: Employment Hero's timesheet import template**, once you have it from them, so the payroll file matches it exactly.
 - **Owner: two choices about restoration** (no rush; they can change any time):
   - Every restoration job asks for a White Card, and an IICRC ticket only when the business ticks it. If you'd rather every restoration job needed the IICRC WRT, it's one tick in Admin → Catalogues → Work types → Restoration technician.
   - Restoration labouring is now charged at the technician rate. If you'd rather charge it less, we can bring back "Restoration labourer" (its rates are already checked).
@@ -552,13 +567,16 @@ _Last updated: 02/11/2026_
 | 02/11/2026 | Restoration technician covers all restoration work: it needs a White Card, and a business asks for IICRC tickets on the jobs that need them. Workers who chose the other restoration roles have it added; trades assistants have general labourer added. | The owner: restoration technician "covers everything with resto". Requiring the WRT on every job would rule out strip-out and pack-out workers. |
 | 02/11/2026 | A work type can be posted only once it has a rate card; placeholder rates of work types without checked ones are archived. Work waiting for rates shows as "coming soon" on the website and greyed out when posting. | Nothing priced below the award, and businesses find out before filling in a shift rather than at the last step. |
 | 03/11/2026 | Invoices are issued and tracked in Shifta, and Xero isn't part of the process; Employment Hero pays the workers (owner's choice). | One place for shifts, hours and invoices. The accountant works from Shifta's and Employment Hero's reports and the bank statements. |
+| 03/11/2026 | The live site runs next to the demo, with its own Supabase and Vercel projects, real services and no demo data; the demo moves to demo.shifta.com.au (owner: "keep the demo"). The live site changes only when the owner says "release". | Changes are tried on the demo first, and real people's details never mix with demo data. |
+| 03/11/2026 | Texts through Twilio (owner's choice), email through Resend, addresses through Google Maps Places, and Cloudflare Turnstile as the bot check. | Twilio registers the sender names Australian networks now require; Resend and Turnstile are simple and cheap or free; Google's addresses are the most complete. Each sits behind an adapter, so it can be swapped. |
+| 03/11/2026 | An invoice that's gone out is never changed: a credit note corrects it, with its share of the GST, and an invoice's credit notes never add up to more than it. | That's how GST corrections work (adjustment notes); changing a sent invoice would leave the business's books and ours out of step. |
+| 03/11/2026 | The sales report counts sales by the day invoices and credit notes were issued, and payments by the day an invoice was marked paid, for what was owed that day. | It covers both ways of doing the BAS (accruals and cash); the accountant chooses. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
 
 - **Opening a state.** We're the employer, so before you open a state (Admin → States and licences), you need workers' compensation cover there (each state has its own scheme, like icare in NSW and WorkSafe in Victoria), and in QLD, VIC, SA and the ACT a labour hire licence. NSW has no licence scheme today, but the government has promised one; we'll update its settings if it passes. Tell us which state you'd like next.
 - **Public holiday dates for other states.** We can load each state's 2026 and 2027 public holidays for you if you allow the state government websites in the cloud environment's network settings (for example vic.gov.au, qld.gov.au and wa.gov.au), or your team can enter them in Admin from each state's official list.
-- **A real address lookup.** The demo knows about 150 suburbs, so a business elsewhere can't add its site yet. Going national needs a real address service. The brief names Google Maps Places, which is a paid service (with a free monthly allowance); there are other options, such as the free national address file (G-NAF). We'll ask before adding one.
 - **Industries that need a licence.** Security, aged care and disability support (NDIS), childcare and licensed trades (like electricians) are left out: the business would need its own licence or registration first. Tell us if you want any of them.
 - **Contact phone number.** The contact page and messages show only the email until we have a number.
 - **The 10 questions in `docs/plan.md`.** Phase 1 uses our recommendations. Tell us if any should change.
@@ -589,14 +607,10 @@ _Last updated: 02/11/2026_
 
 **Details and our part:**
 
-- A production Supabase project, separate from `muster-dev`, with `DEMO_MODE=false`; demo data stays in the dev project.
-- Create the first real admin account (sign in once, then set its role to admin in the database). Every other admin can be managed from the app after that.
-- Point the Supabase Auth SMS and email hooks at our adapters (Twilio, Resend). These are paid services: ask the owner first. Only mock email, SMS and address lookup adapters exist today; the real ones get built once the owner approves them.
-- Turn on CAPTCHA for code requests (Cloudflare Turnstile is free) to stop SMS-pumping fraud once real texts cost money.
+- Ready (03/11/2026): the live site's own Supabase project and sign-in settings, the release workflow, the real setup without demo data, and making the first admin; and Resend, Twilio, Google Maps and Turnstile, each waiting for its account and keys. The steps are in `docs/launch.md`.
 - Upgrade to Vercel Pro and Supabase Pro (commercial use, backups, no pausing). Ask the owner first.
 - Have a lawyer check the privacy policy, terms of use, casual employment contract, information statements and the labour hire services agreement. The public pages are marked as drafts until then.
 - Set real pay rates and minimum engagements for any work type before we offer it. The focus work types have real rates (01/11/2026), apart from the three warehouse ones waiting for the Storage Services and Wholesale Award's; the archived ones (02/11/2026) span other awards (for example Hospitality, General Retail, Clerks and Manufacturing) and have none until they come back.
-- The production project needs the reference data without the demo data: work types, the launch rate cards, public holidays and agreements. Either run the seed's reference steps there, or enter them in Admin.
 - Before we pass about 1,000 active workers, or 1,000 shifts in a week: the matching engine and the weekly pay run read at most 1,000 rows at a time, so they need to read in pages, as the expiry checks already do.
 
 ## Owner setup checklist

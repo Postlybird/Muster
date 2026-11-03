@@ -706,7 +706,7 @@ export const TEMPLATES = {
       questions: "Questions about it? Contact us at accounts@example.com.",
     },
     title: "Reminder: invoice {{number}} is overdue",
-    body: "{{greeting}}\n\nOur invoice {{number}} for {{total}} was due on {{due}}, and we haven't received the payment yet. If you've paid it in the last few days, thank you, and please ignore this.\n\nPlease pay by bank transfer to:\nAccount name: {{account_name}}\nBSB: {{bsb}}\nAccount number: {{account_number}}\nReference: {{number}}\n\nThe invoice is attached, and you can see it at {{link}}\n\n{{questions}}\n\n{{brand}}",
+    body: "{{greeting}}\n\nOur invoice {{number}} was due on {{due}}, and we haven't received the {{total}} owing yet. If you've paid it in the last few days, thank you, and please ignore this.\n\nPlease pay by bank transfer to:\nAccount name: {{account_name}}\nBSB: {{bsb}}\nAccount number: {{account_number}}\nReference: {{number}}\n\nThe invoice is attached, and you can see it at {{link}}\n\n{{questions}}\n\n{{brand}}",
   }),
 
   // Our team
