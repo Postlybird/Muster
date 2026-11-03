@@ -22,6 +22,11 @@ export type GeocodedAddress = {
 export type SuggestOptions = {
   /** "suburb" for a worker's home suburb; "address" (default) for sites. */
   kind?: "address" | "suburb";
+  /**
+   * The picker's search session: the suggestions while someone types and
+   * the place they pick are billed together (Google).
+   */
+  session?: string | null;
 };
 
 export interface Geocoder {

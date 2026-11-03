@@ -1,6 +1,7 @@
 import "server-only";
 
 import { providerFor } from "../provider";
+import { GooglePlacesGeocoder } from "./google";
 import { MockGeocoder } from "./mock";
 import type { Geocoder } from "./types";
 
@@ -12,6 +13,7 @@ export type {
 } from "./types";
 
 export function getGeocoder(): Geocoder {
-  providerFor("GEOCODER_PROVIDER", ["mock"]);
-  return new MockGeocoder();
+  return providerFor("GEOCODER_PROVIDER", ["mock", "google"]) === "google"
+    ? new GooglePlacesGeocoder()
+    : new MockGeocoder();
 }

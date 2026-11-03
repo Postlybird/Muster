@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const query = (params.get("q") ?? "").slice(0, 120);
   const kind = params.get("kind") === "suburb" ? "suburb" : "address";
-  const suggestions = await getGeocoder().suggest(query, { kind });
+  const session = params.get("session");
+  const suggestions = await getGeocoder().suggest(query, { kind, session });
   return NextResponse.json(
     { suggestions },
     { headers: { "Cache-Control": "private, no-store" } },

@@ -39,6 +39,9 @@ export function PlacePicker({
   const [active, setActive] = useState(-1);
   const [loading, setLoading] = useState(false);
   const latest = useRef(0);
+  // One search session from the first letter typed to the pick, so the
+  // address service bills them together. A new search starts a new one.
+  const session = useRef<string | null>(null);
 
   const query = text.trim();
   const searching = !chosen && query.length >= 2 && query !== defaultLabel;
@@ -46,11 +49,12 @@ export function PlacePicker({
   useEffect(() => {
     if (!searching) return;
     const request = ++latest.current;
+    session.current ??= crypto.randomUUID();
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `/api/places?kind=${kind}&q=${encodeURIComponent(query)}`,
+          `/api/places?kind=${kind}&q=${encodeURIComponent(query)}&session=${session.current}`,
         );
         const body = response.ok
           ? ((await response.json()) as { suggestions: Suggestion[] })
@@ -70,6 +74,7 @@ export function PlacePicker({
   }, [searching, query, kind]);
 
   function choose(suggestion: Suggestion) {
+    session.current = null;
     setChosen(suggestion);
     setText(suggestion.label);
     setSuggestions([]);
