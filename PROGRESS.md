@@ -410,7 +410,7 @@ _Last updated: 03/11/2026_
     - The payroll file could have carried a spreadsheet formula in a business's trading name or a worker's name, which a spreadsheet would run when opened. Text that people type can't start a formula now, there or in the sales report.
     - The live site's GitHub workflows run only from the released version (`main`), and its secrets should be locked to it with your approval (steps in `docs/launch.md`). The first admin's email no longer shows in the public log.
     - For you in stage 2: Twilio set to text Australia only, with SMS pumping protection; a daily cap and a budget alert on Google's address search; and a new cron secret for the live site, not the demo's.
-  - Tests: 508 unit tests passing; the database, browser and acceptance runs are being repeated on the final version.
+  - Tests: 516 pgTAP, 508 unit and 264 browser tests, plus the acceptance run.
 
 ## Next
 
