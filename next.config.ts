@@ -1,4 +1,7 @@
 import type { NextConfig } from "next";
+import { PHASE_PRODUCTION_BUILD } from "next/constants";
+
+import { isLiveBuild, liveSetupProblems } from "./src/lib/live-setup";
 
 const nextConfig: NextConfig = {
   // Cache Components is off on purpose: almost every page is per-user and
@@ -39,4 +42,19 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/**
+ * The live site won't build with anything pretend or missing (owner,
+ * 03/11/2026), so a deployment that isn't set up fails and the last good
+ * one stays up. The demo, previews and local builds aren't checked.
+ */
+export default function config(phase: string): NextConfig {
+  if (phase === PHASE_PRODUCTION_BUILD && isLiveBuild(process.env)) {
+    const problems = liveSetupProblems(process.env);
+    if (problems.length > 0) {
+      throw new Error(
+        `The live site isn't set up yet. Set these in Vercel: ${problems.join("; ")}. See .env.example.`,
+      );
+    }
+  }
+  return nextConfig;
+}
