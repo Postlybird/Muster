@@ -399,6 +399,7 @@ _Last updated: 02/11/2026_
   1. Download that award's pay guide from the Fair Work Ombudsman website and send it to me.
   2. I'll add it to the rates sheet for your accountant to check.
   3. Once they approve it, I'll load the rates, and the three work types can be posted.
+- **Proposed for launch, waiting for the owner's OK** (03/11/2026, as invoicing stays in Shifta): a reminder email to a business when its invoice is overdue; credit notes, to correct an invoice that's already gone out; and a sales and GST report for any month or quarter, to download for the accountant and the BAS.
 - **Owner: two choices about restoration** (no rush; they can change any time):
   - Every restoration job asks for a White Card, and an IICRC ticket only when the business ticks it. If you'd rather every restoration job needed the IICRC WRT, it's one tick in Admin → Catalogues → Work types → Restoration technician.
   - Restoration labouring is now charged at the technician rate. If you'd rather charge it less, we can bring back "Restoration labourer" (its rates are already checked).
@@ -550,6 +551,7 @@ _Last updated: 02/11/2026_
 | 02/11/2026 | We offer four industries and eight work types: general labourers, commercial and builders cleaners, restoration technicians, pick-packers, storepersons, forklift drivers and removalist offsiders. The rest are archived, never deleted (owner's request). | A smaller offer to launch and build from, centred on the owner's restoration and cleaning contacts. |
 | 02/11/2026 | Restoration technician covers all restoration work: it needs a White Card, and a business asks for IICRC tickets on the jobs that need them. Workers who chose the other restoration roles have it added; trades assistants have general labourer added. | The owner: restoration technician "covers everything with resto". Requiring the WRT on every job would rule out strip-out and pack-out workers. |
 | 02/11/2026 | A work type can be posted only once it has a rate card; placeholder rates of work types without checked ones are archived. Work waiting for rates shows as "coming soon" on the website and greyed out when posting. | Nothing priced below the award, and businesses find out before filling in a shift rather than at the last step. |
+| 03/11/2026 | Invoices are issued and tracked in Shifta, and Xero isn't part of the process; Employment Hero pays the workers (owner's choice). | One place for shifts, hours and invoices. The accountant works from Shifta's and Employment Hero's reports and the bank statements. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
@@ -569,7 +571,7 @@ _Last updated: 02/11/2026_
 - **Early starts and late finishes.** Paid time starts at the rostered start even if a worker clocks in early, and a late finish is paid as clocked unless the business changes it. Is that the rule you want, or should both follow the roster unless the business approves extra time?
 - **Changing a posted job.** For now a business can't edit a job once it's posted, because workers decide on what they were shown. From step 1.9 they'll be able to cancel and post again. Should they be able to change small things, like the instructions or who to report to, after posting?
 - **Allowances** (01/11/2026). The building award's fares and travel allowance ($22.41 a day worked, for general labourers) and the road transport award's furniture carter allowance ($27.39 a week, if it applies to offsiders) aren't in pay or bills yet. Should we add daily and weekly allowances to rate cards? The payroll provider pays them correctly either way; this is about our estimates and invoices.
-- **Invoice and pricing extras** (30/10/2026). On offer, waiting for your choice: a Xero-ready invoice file; a PO or reference number on jobs and invoice lines; the award and level on invoice lines; separate invoices per branch; and leaving super off overtime when pricing (super isn't owed on overtime).
+- **Invoice and pricing extras** (30/10/2026). On offer, waiting for your choice: a PO or reference number on jobs and invoice lines; the award and level on invoice lines; separate invoices per branch; and leaving super off overtime when pricing (super isn't owed on overtime).
 
 ## Before launch (not now)
 
@@ -580,7 +582,7 @@ _Last updated: 02/11/2026_
 3. **Lawyer:** the documents listed below.
 4. **Payroll professional:** pay rates, minimum engagements, overtime rules and on-costs for each work type we launch with. Done for the nine launch work types (01/11/2026), apart from the points under Next; workers' comp and insurance on-costs are still placeholders until the policies are in.
 5. **Employment Hero Payroll:** set up the company, awards, super and Single Touch Payroll, and send us its timesheet import template.
-6. **Xero** (or similar) for the books, connected to Employment Hero.
+6. **The books** (owner, 03/11/2026: no Xero; Shifta issues and tracks the invoices): agree with the accountant how they'll do the BAS and tax return from Shifta's invoices and reports, Employment Hero's payroll reports and the bank statements.
 7. **Website and services:** connect the domain and support email (owner setup checklist below); approve and sign up for texts (Twilio), email (Resend), an address lookup, and the Vercel and Supabase paid plans; get the free ABN Lookup GUID and Cloudflare Turnstile keys.
 8. **Admin setup on the real site:** company and bank details, settings, work types (archive any we won't offer yet), rate cards, public holidays, the lawyer-approved agreements, and message templates.
 9. **A test week** with one or two friendly businesses and a few workers, through to workers paid in Employment Hero and an invoice paid.
