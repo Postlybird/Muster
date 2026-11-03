@@ -86,9 +86,33 @@ export function costTimesheet(
   hoursRules: HoursRules,
   costRules: CostRules,
   prior?: PriorHours,
+  bookedFinish?: Date,
 ): { minutes: MinutesByType; cost: ShiftCost } {
   const minutes = timesheetMinutes(hours, hoursRules, costRules.card, prior);
-  return { minutes, cost: costShift(minutes, costRules) };
+  return {
+    minutes,
+    cost: costShift(minutes, costRules, {
+      lateOvertimeMinutes: lateOvertimeMinutes(minutes, hours, bookedFinish),
+    }),
+  };
+}
+
+/**
+ * Overtime worked after the booked finish (owner, 03/11/2026): hours nobody
+ * asked for the day before, which some allowances depend on. It's the
+ * overtime, up to the time past the booked finish.
+ */
+export function lateOvertimeMinutes(
+  minutes: MinutesByType,
+  hours: TimesheetHours,
+  bookedFinish: Date | undefined,
+): number {
+  if (!bookedFinish) return 0;
+  const late = Math.max(
+    0,
+    Math.floor((hours.finish.getTime() - bookedFinish.getTime()) / 60_000),
+  );
+  return Math.min(late, minutes.overtime + minutes.overtime_after);
 }
 
 /**

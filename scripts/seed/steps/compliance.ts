@@ -1,3 +1,4 @@
+import { allowancesToRow } from "../../../src/domain/rates";
 import { check, type SeedClient } from "../client";
 import { AGREEMENT_VERSION, AGREEMENTS } from "../data/agreements";
 import { JURISDICTIONS } from "../data/compliance";
@@ -161,6 +162,7 @@ export async function seedCompliance(
           level: card.level,
           base_rate_cents: card.baseRateCents,
           ...card.columns,
+          allowances: allowancesToRow(card.allowances ?? []),
           effective_from: AWARD_RATE_CARDS_EFFECTIVE_FROM,
           checked_by: AWARD_RATE_CARDS_CHECKED.by,
           checked_on: AWARD_RATE_CARDS_CHECKED.on,

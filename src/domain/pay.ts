@@ -4,6 +4,7 @@ import {
   DEFAULT_SUPER_FREE_TYPES,
   hourlyPayCents,
   multiplierFor,
+  type AllowanceTrigger,
   type AwardDayType,
   type CoreDayType,
   type DayType,
@@ -437,6 +438,20 @@ export function billRuleFromRow(
   return { method: "markup", marginPct: Number(row.margin_pct ?? 0) };
 }
 
+/**
+ * A rate card's allowance as a booking was priced (owner, 03/11/2026): the
+ * pay, and the charge with on-costs (no super: allowances aren't ordinary
+ * time earnings) and the margin.
+ */
+export type PricedAllowance = {
+  name: string;
+  when: AllowanceTrigger;
+  afterMinutes: number;
+  payCents: number;
+  /** Excluding GST. */
+  billCents: number;
+};
+
 export type CostRules = {
   card: RateCard;
   billRule: BillRule;
@@ -453,6 +468,21 @@ export type CostRules = {
   /** Urgent call-out loadings, or null for an ordinary shift (plan question 7). */
   urgent: { payPct: number; billPct: number } | null;
   gstPct: number;
+  /** Absent on rates kept with bookings made before allowances. */
+  allowances?: PricedAllowance[];
+};
+
+/** An allowance a shift earned. */
+export type CostAllowance = {
+  name: string;
+  payCents: number;
+  billCents: number;
+};
+
+/** What a shift's allowances depend on, beyond its hours. */
+export type ShiftFacts = {
+  /** Overtime worked after the booked finish: nobody asked for it ahead. */
+  lateOvertimeMinutes?: number;
 };
 
 export type CostLine = {
@@ -474,6 +504,8 @@ export type ShiftCost = {
   /** Urgent call-out allowance, paid on top of the hours. */
   urgentPayCents: number;
   urgentBillCents: number;
+  /** The card's allowances this shift earned. Absent on costs saved before. */
+  allowances?: CostAllowance[];
   /** Hours plus allowances. */
   payCents: number;
   onCostCents: number;
@@ -535,6 +567,37 @@ export function onCostPctFor(
     : rules.onCostPct;
 }
 
+/** An allowance's charge: its pay, with on-costs less super, and the margin. */
+export function allowanceBillCents(
+  payCents: number,
+  onCostPct: number,
+  superPct: number,
+  marginPct: number,
+): number {
+  return roundCents(
+    (payCents *
+      (10_000 + basisPoints(onCostPct) - basisPoints(superPct)) *
+      (10_000 + basisPoints(marginPct))) /
+      100_000_000,
+  );
+}
+
+/** The allowances a shift earns: those for each shift, and late overtime's. */
+export function shiftAllowances(
+  rules: Pick<CostRules, "allowances">,
+  paidMinutes: number,
+  facts: ShiftFacts = {},
+): CostAllowance[] {
+  if (paidMinutes <= 0) return [];
+  return (rules.allowances ?? [])
+    .filter(
+      (a) =>
+        a.when === "each_shift" ||
+        (facts.lateOvertimeMinutes ?? 0) > a.afterMinutes,
+    )
+    .map(({ name, payCents, billCents }) => ({ name, payCents, billCents }));
+}
+
 /** The hourly bill rate (excluding GST) for a rate type. */
 export function hourlyBillCents(
   card: RateCard,
@@ -574,7 +637,11 @@ export function mainType(minutes: MinutesByType): DayType {
  * shorter than the minimum engagement is topped up at the rate that covered
  * most of it.
  */
-export function costShift(minutes: MinutesByType, rules: CostRules): ShiftCost {
+export function costShift(
+  minutes: MinutesByType,
+  rules: CostRules,
+  facts: ShiftFacts = {},
+): ShiftCost {
   const workedMinutes = totalMinutes(minutes);
   const line = (
     type: DayType,
@@ -613,17 +680,22 @@ export function costShift(minutes: MinutesByType, rules: CostRules): ShiftCost {
   const urgentBillCents = rules.urgent
     ? percentOf(hoursBill, rules.urgent.billPct)
     : 0;
-  const payCents = hoursPay + urgentPayCents;
-  // Less super on the overtime hours (none for rates kept from before).
-  const superFreePay = lines
-    .filter((l) => onCostPctFor(rules, l.type) !== rules.onCostPct)
-    .reduce((sum, l) => sum + l.payCents, 0);
+  const allowances = shiftAllowances(rules, workedMinutes + topUp, facts);
+  const allowancePay = allowances.reduce((sum, a) => sum + a.payCents, 0);
+  const allowanceBill = allowances.reduce((sum, a) => sum + a.billCents, 0);
+  const payCents = hoursPay + urgentPayCents + allowancePay;
+  // Less super on the overtime hours and allowances (none for rates kept
+  // from before).
+  const superFreePay =
+    lines
+      .filter((l) => onCostPctFor(rules, l.type) !== rules.onCostPct)
+      .reduce((sum, l) => sum + l.payCents, 0) + allowancePay;
   const onCostCents =
     percentOf(payCents, rules.onCostPct) -
     (rules.superPct === undefined
       ? 0
       : percentOf(superFreePay, rules.superPct));
-  const billCents = hoursBill + urgentBillCents;
+  const billCents = hoursBill + urgentBillCents + allowanceBill;
   const gstCents = percentOf(billCents, rules.gstPct);
   return {
     workedMinutes,
@@ -631,6 +703,7 @@ export function costShift(minutes: MinutesByType, rules: CostRules): ShiftCost {
     lines,
     urgentPayCents,
     urgentBillCents,
+    allowances,
     payCents,
     onCostCents,
     billCents,

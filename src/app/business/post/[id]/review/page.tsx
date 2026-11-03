@@ -205,6 +205,20 @@ export default async function ReviewStepPage({
                           </TableCell>
                         </TableRow>
                       ))}
+                      {breakdown.allowances.map((allowance) => (
+                        <TableRow key={allowance.name}>
+                          <TableCell>{allowance.name}</TableCell>
+                          <TableCell className="text-right">
+                            {allowance.count === 1
+                              ? "1 shift"
+                              : `${allowance.count} shifts`}
+                          </TableCell>
+                          <TableCell />
+                          <TableCell className="text-right">
+                            {formatCents(allowance.billCents)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
                       {breakdown.urgentBillCents > 0 ? (
                         <TableRow>
                           <TableCell>Urgent call-out loading</TableCell>
@@ -229,7 +243,9 @@ export default async function ReviewStepPage({
                   </Table>
                   <p className="text-sm text-muted-foreground">
                     Weekend, public holiday, night and overtime rates are
-                    included. We invoice weekly for the hours actually worked.
+                    included, as are allowances the award pays on every shift.
+                    We invoice weekly for the hours actually worked, with any
+                    allowances they earn.
                   </p>
                 </div>
               </details>

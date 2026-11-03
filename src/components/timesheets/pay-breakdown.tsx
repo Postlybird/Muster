@@ -4,7 +4,10 @@ import { formatCents, formatHours } from "@/lib/format";
 /** A line of a worker's pay for one shift, from `my_timesheet_pay()`. */
 export type PayLine = {
   rate_type: string;
-  /** "worked", "minimum" (the top-up to the minimum shift) or "loading". */
+  /**
+   * "worked", "minimum" (the top-up to the minimum shift), "loading" (the
+   * call-out loading) or "allowance" (named in rate_type).
+   */
   kind: string;
   minutes: number | null;
   rate_cents: number | null;
@@ -19,6 +22,7 @@ const WORKER_NAMES: Partial<Record<DayType, string>> = {
 
 function lineName(line: PayLine): string {
   if (line.kind === "loading") return "Call-out loading";
+  if (line.kind === "allowance") return line.rate_type;
   if (line.kind === "minimum") return "Top-up to the minimum shift";
   const type = (DAY_TYPES as readonly string[]).includes(line.rate_type)
     ? (line.rate_type as DayType)
@@ -29,7 +33,7 @@ function lineName(line: PayLine): string {
 
 /**
  * How a worker's pay for a shift adds up (owner, 01/11/2026): the hours at
- * each rate, overtime included, then any call-out loading.
+ * each rate, overtime included, then any call-out loading and allowances.
  */
 export function PayBreakdown({ lines }: { lines: PayLine[] }) {
   return (

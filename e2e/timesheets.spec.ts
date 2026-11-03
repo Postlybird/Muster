@@ -176,6 +176,76 @@ test("a worker sees how their pay adds up, overtime included", async ({
   await expectAccessible(page);
 });
 
+test("a cleaner who stays well past the booked finish gets the meal allowance", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  // Booked 7 am to 2:30 pm, but worked until 5:30 pm with a 30-minute
+  // break: 10 hours, so 2.4 of overtime, all after the booked finish and so
+  // nobody asked for it the day before. Over 2 hours, the cleaning award
+  // pays a meal allowance (owner, 03/11/2026).
+  const job = await postTestJob({
+    business: "Westside Cleaning",
+    site: "Blacktown office tower",
+    category: "Commercial cleaner",
+    fillMode: "auto",
+  });
+  posted.push(job.jobId);
+  const { workerId } = await bookTestWorker(job.shiftId, "Hannah Schmidt");
+  const day = aWednesdayAgo();
+  const start = fromSydneyTime(day, "07:00").toISOString();
+  const service = serviceClient();
+  await service
+    .from("shifts")
+    .update({
+      starts_at: start,
+      ends_at: fromSydneyTime(day, "14:30").toISOString(),
+      break_minutes: 30,
+    })
+    .eq("id", job.shiftId);
+  const { data: booking } = await service
+    .from("assignments")
+    .select("id")
+    .eq("shift_id", job.shiftId)
+    .eq("worker_id", workerId)
+    .single();
+  const { error } = await service.from("attendance_events").insert(
+    [
+      { kind: "clock_in", occurred_at: start },
+      {
+        kind: "clock_out",
+        occurred_at: fromSydneyTime(day, "17:30").toISOString(),
+      },
+    ].map((event) => ({
+      ...event,
+      assignment_id: booking!.id,
+      inside_geofence: true,
+      distance_m: 0,
+    })),
+  );
+  expect(error).toBeNull();
+  const sheet = await timesheetFor(booking!.id);
+
+  await signInAsDemo(page, "Sofia Rossi");
+  await page.goto(`/business/timesheets/${sheet!.id}`);
+  await page.getByRole("button", { name: "Approve these hours" }).click();
+  await expect(page.getByText("Hours approved")).toBeVisible();
+
+  await page.context().clearCookies();
+  await signInAsDemo(page, "Hannah Schmidt");
+  await page.goto(`/worker/timesheets/${sheet!.id}`);
+  const items = page
+    .getByRole("list")
+    .filter({ hasText: "Ordinary hours" })
+    .getByRole("listitem");
+  await expect(items).toHaveCount(4);
+  await expect(
+    items.nth(3).getByText("Meal allowance", { exact: true }),
+  ).toBeVisible();
+  await expect(items.nth(3)).toContainText("$17.53");
+  await expectAccessible(page);
+});
+
 test("the business approves workers' hours in one go", async ({ page }) => {
   test.setTimeout(90_000);
   const shift = await workedShift([

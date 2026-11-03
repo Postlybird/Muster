@@ -113,6 +113,62 @@ export const DEFAULT_SUPER_FREE_TYPES: readonly SuperFreeType[] = [
   "overtime_after",
 ];
 
+/**
+ * When an award's allowance is paid (owner, 03/11/2026), as data on the
+ * rate card: on every shift worked (like the building award's fares and
+ * travel, a day worked), or when the worker stays more than some hours past
+ * the booked finish in overtime: overtime nobody asked for the day before,
+ * which is when, for example, the cleaning award pays a meal allowance.
+ */
+export const ALLOWANCE_TRIGGERS = ["each_shift", "late_overtime"] as const;
+export type AllowanceTrigger = (typeof ALLOWANCE_TRIGGERS)[number];
+
+export type Allowance = {
+  name: string;
+  /** Paid to the worker each time. */
+  payCents: number;
+  when: AllowanceTrigger;
+  /** late_overtime: paid once that overtime is more than this. */
+  afterMinutes: number;
+};
+
+/** Allowances as saved on a card (snake case), keeping only complete ones. */
+export function allowancesFrom(value: unknown): Allowance[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item): Allowance[] => {
+    if (typeof item !== "object" || item === null) return [];
+    const row = item as Record<string, unknown>;
+    const name = typeof row.name === "string" ? row.name.trim() : "";
+    const payCents = Number(row.pay_cents);
+    const when = ALLOWANCE_TRIGGERS.find((trigger) => trigger === row.when);
+    const afterHours = Number(row.after_hours ?? 0);
+    if (!name || !when || !Number.isInteger(payCents) || payCents <= 0) {
+      return [];
+    }
+    return [
+      {
+        name,
+        payCents,
+        when,
+        afterMinutes:
+          when === "late_overtime" && Number.isFinite(afterHours)
+            ? Math.round(Math.max(0, afterHours) * 60)
+            : 0,
+      },
+    ];
+  });
+}
+
+/** Allowances to save on a card. */
+export function allowancesToRow(allowances: readonly Allowance[]) {
+  return allowances.map((a) => ({
+    name: a.name,
+    pay_cents: a.payCents,
+    when: a.when,
+    after_hours: a.when === "late_overtime" ? a.afterMinutes / 60 : null,
+  }));
+}
+
 export type RateCard = {
   baseRateCents: number;
   multipliers: Multipliers;
@@ -123,6 +179,8 @@ export type RateCard = {
    * (owner, 03/11/2026). Absent on rates kept with bookings made before.
    */
   superFreeTypes?: SuperFreeType[];
+  /** The award's allowances (owner, 03/11/2026). */
+  allowances?: Allowance[];
 };
 
 /** A saved list of rate types, keeping only the ones super can be left off. */
@@ -277,6 +335,7 @@ export function rateCardFromRow(row: {
   early_late_finishes_after?: string | null;
   night_shift_finishes_by?: string | null;
   super_free_types?: string[] | null;
+  allowances?: unknown;
 }): RateCard {
   const multipliers: Multipliers = {
     ordinary: Number(row.ordinary_multiplier),
@@ -327,6 +386,7 @@ export function rateCardFromRow(row: {
       row.super_free_types === undefined || row.super_free_types === null
         ? [...DEFAULT_SUPER_FREE_TYPES]
         : superFreeTypesFrom(row.super_free_types),
+    allowances: allowancesFrom(row.allowances),
   };
 }
 

@@ -31,7 +31,7 @@ import {
 import { formatCents } from "@/lib/format";
 
 import { saveRateCard } from "../actions";
-import type { AwardRuleValues } from "./award-rule-values";
+import type { AllowanceRowValues, AwardRuleValues } from "./award-rule-values";
 
 export type RateCardFormValues = {
   id: string | null;
@@ -44,6 +44,8 @@ export type RateCardFormValues = {
   award: AwardRuleValues;
   /** Rate types the award makes overtime, priced without super. */
   super_free_types: SuperFreeType[];
+  /** The award's allowances, with blank rows to fill. */
+  allowances: AllowanceRowValues[];
   effective_from: string;
   effective_to: string;
   checked_by: string;
@@ -447,6 +449,81 @@ export function RateCardForm({
             </div>
           ))}
         </div>
+      </fieldset>
+
+      <fieldset className="space-y-4 rounded-xl border bg-card p-4">
+        <legend className="px-1 text-sm font-medium">Allowances</legend>
+        <p className="text-sm text-muted-foreground">
+          The award&apos;s allowances, paid to the worker and charged to the
+          business (without super). For example, a fares and travel allowance on
+          every shift worked, or a meal allowance when someone stays more than 2
+          hours past the booked finish in overtime. Leave a row blank if it
+          isn&apos;t needed.
+        </p>
+        {values.allowances.map((row, i) => (
+          <div
+            key={i}
+            className="grid gap-3 border-t pt-4 first-of-type:border-t-0 first-of-type:pt-0 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)]"
+          >
+            <FormField
+              id={`allowance_name_${i}`}
+              label={`Allowance ${i + 1}`}
+              error={fieldErrors?.[`allowance_name_${i}`]}
+            >
+              {(props) => (
+                <Input
+                  {...props}
+                  name={`allowance_name_${i}`}
+                  defaultValue={row.name}
+                  maxLength={80}
+                />
+              )}
+            </FormField>
+            <FormField
+              id={`allowance_amount_${i}`}
+              label="Amount ($)"
+              error={fieldErrors?.[`allowance_amount_${i}`]}
+            >
+              {(props) => (
+                <Input
+                  {...props}
+                  name={`allowance_amount_${i}`}
+                  defaultValue={row.amount}
+                  inputMode="decimal"
+                />
+              )}
+            </FormField>
+            <FormField id={`allowance_when_${i}`} label="Paid">
+              {(props) => (
+                <NativeSelect
+                  {...props}
+                  name={`allowance_when_${i}`}
+                  defaultValue={row.when}
+                >
+                  <option value="each_shift">On every shift worked</option>
+                  <option value="late_overtime">
+                    For overtime past the booked finish
+                  </option>
+                </NativeSelect>
+              )}
+            </FormField>
+            <FormField
+              id={`allowance_after_${i}`}
+              label="After (hours)"
+              hint="For overtime past the booked finish."
+              error={fieldErrors?.[`allowance_after_${i}`]}
+            >
+              {(props) => (
+                <Input
+                  {...props}
+                  name={`allowance_after_${i}`}
+                  defaultValue={row.after_hours}
+                  inputMode="decimal"
+                />
+              )}
+            </FormField>
+          </div>
+        ))}
       </fieldset>
 
       <div className="grid gap-6 sm:grid-cols-2">

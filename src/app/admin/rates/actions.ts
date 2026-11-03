@@ -5,10 +5,13 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import {
+  ALLOWANCE_TRIGGERS,
+  allowancesToRow,
   CORE_DAY_TYPES,
   DAY_TYPES,
   SUPER_FREE_CHOICES,
   superFreeTypesFrom,
+  type Allowance,
 } from "@/domain/rates";
 import { requireAdmin } from "@/lib/auth";
 import {
@@ -21,6 +24,8 @@ import {
   type ActionState,
 } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
+
+import { ALLOWANCE_ROWS } from "./rate-cards/award-rule-values";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a date");
 const optionalDate = isoDate.nullable();
@@ -172,6 +177,55 @@ const AWARD_RULE_FIELDS = [
   "night_shift_finishes_by",
 ] as const;
 
+/**
+ * The allowance rows on the rate card form: a name, the amount paid, and
+ * when (each shift worked, or late overtime past some hours).
+ */
+function readAllowances(formData: FormData): {
+  allowances: Allowance[];
+  errors: Record<string, string[]>;
+} {
+  const allowances: Allowance[] = [];
+  const errors: Record<string, string[]> = {};
+  for (let i = 0; i < ALLOWANCE_ROWS; i++) {
+    const name = String(formData.get(`allowance_name_${i}`) ?? "").trim();
+    const amount = String(formData.get(`allowance_amount_${i}`) ?? "").trim();
+    if (!name && !amount) continue;
+    if (!name || name.length > 80) {
+      errors[`allowance_name_${i}`] = [
+        name ? "Keep it to 80 characters" : "Name it, like Meal allowance",
+      ];
+      continue;
+    }
+    const cents = dollarsToCents(amount);
+    if (
+      cents === null ||
+      Number.isNaN(cents) ||
+      cents <= 0 ||
+      cents > 100_000
+    ) {
+      errors[`allowance_amount_${i}`] = ["Enter the amount, like 17.53"];
+      continue;
+    }
+    const when =
+      ALLOWANCE_TRIGGERS.find(
+        (trigger) => trigger === formData.get(`allowance_when_${i}`),
+      ) ?? "each_shift";
+    let afterMinutes = 0;
+    if (when === "late_overtime") {
+      const text = String(formData.get(`allowance_after_${i}`) ?? "").trim();
+      const hours = Number(text);
+      if (!text || !Number.isFinite(hours) || hours < 0 || hours > 12) {
+        errors[`allowance_after_${i}`] = ["Enter the hours, like 2"];
+        continue;
+      }
+      afterMinutes = Math.round(hours * 60);
+    }
+    allowances.push({ name, payCents: cents, when, afterMinutes });
+  }
+  return { allowances, errors };
+}
+
 export async function saveRateCard(
   id: string | null,
   _prev: ActionState,
@@ -202,14 +256,22 @@ export async function saveRateCard(
     checked_on: optionalText(formData.get("checked_on")),
     notes: formData.get("notes") ?? "",
   });
+  const { allowances, errors: allowanceErrors } = readAllowances(formData);
   if (!parsed.success) {
     const state = invalid(parsed.error);
     // Field name in the form is base_rate (dollars).
     if (state.status === "error" && state.fieldErrors?.base_rate_cents) {
       state.fieldErrors.base_rate = state.fieldErrors.base_rate_cents;
     }
+    if (state.status === "error") {
+      state.fieldErrors = { ...state.fieldErrors, ...allowanceErrors };
+    }
     return state;
   }
+  if (Object.keys(allowanceErrors).length > 0) {
+    return failure("Check the highlighted fields.", allowanceErrors);
+  }
+  const card = { ...parsed.data, allowances: allowancesToRow(allowances) };
 
   const supabase = await createClient();
   const duplicate = parsed.data.business_id
@@ -218,7 +280,7 @@ export async function saveRateCard(
   if (id) {
     const { error } = await supabase
       .from("rate_cards")
-      .update(parsed.data)
+      .update(card)
       .eq("id", id);
     if (error) return failure(friendlyDbError(error, duplicate));
     revalidatePath("/admin/rates/rate-cards");
@@ -227,7 +289,7 @@ export async function saveRateCard(
   }
   const { data, error } = await supabase
     .from("rate_cards")
-    .insert({ ...parsed.data, created_by: user.id })
+    .insert({ ...card, created_by: user.id })
     .select("id")
     .single();
   if (error) return failure(friendlyDbError(error, duplicate));

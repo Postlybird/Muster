@@ -412,6 +412,12 @@ _Last updated: 03/11/2026_
     - For you in stage 2: Twilio set to text Australia only, with SMS pumping protection; a daily cap and a budget alert on Google's address search; and a new cron secret for the live site, not the demo's.
   - Tests: 516 pgTAP, 508 unit and 264 browser tests, plus the acceptance run.
 
+- **Pricing and terms** (03/11/2026, the owner's OK after comparing another agency's rates and terms):
+  - **Overtime without super.** Super isn't owed on overtime, so overtime hours are now charged without it, about 11% less than before at the same margin. Each rate card says which rate types are overtime: overtime at both rates by default. Your accountant can tick weekend or holiday rates where the award makes that work overtime (Admin → Rates → the card → "Priced without super"). Bookings priced before keep their prices.
+  - **Allowances on rate cards,** paid to the worker and charged to the business (with on-costs but no super, plus the margin). Each is paid on every shift worked, or when the worker stays more than some hours past the booked finish in overtime. From the July 2026 pay guides: general labourers get the building award's fares and travel allowance ($22.41 a shift), and cleaners and restoration technicians the cleaning award's meal allowance ($17.53, after more than 2 hours' overtime past the booked finish). They show on estimates, invoices, the payroll file and the worker's pay. Admins change them in Admin → Rates.
+  - **A fee for hiring our workers directly,** in a new draft of the services agreement for the lawyer: 15% of the first year's pay, plus GST, within 180 days of the worker's last shift. On the demo it's waiting unpublished in Admin → Agreements, so nobody is asked to sign again until it's final.
+  - Tests: TESTS_LINE
+
 ## Next
 
 - **Owner: the warehouse award's pay guide.** Pick-packers, storepersons and forklift drivers come under the Storage Services and Wholesale Award [MA000084]. As with the others:
@@ -577,6 +583,9 @@ _Last updated: 03/11/2026_
 | 03/11/2026 | An invoice that's gone out is never changed: a credit note corrects it, with its share of the GST, and an invoice's credit notes never add up to more than it. | That's how GST corrections work (adjustment notes); changing a sent invoice would leave the business's books and ours out of step. |
 | 03/11/2026 | The sales report counts sales by the day invoices and credit notes were issued, and payments by the day an invoice was marked paid, for what was owed that day. | It covers both ways of doing the BAS (accruals and cash); the accountant chooses. |
 | 03/11/2026 | On the live site, Supabase hands every sign-in code to our app, which sends sign-in codes by email and texts only to confirm a new Australian mobile, at most five a day per person; nobody signs in by text or changes their email address there (our security review). | Supabase's bot check doesn't cover a signed-in person's own changes, which could otherwise send texts and emails anywhere, at our cost. |
+| 03/11/2026 | Overtime is priced without super, and each rate card lists the rate types its award makes overtime (owner's OK). | Super is only owed on ordinary time earnings, so adding it to overtime overcharged by about 11%; other agencies price it this way. |
+| 03/11/2026 | Allowances live on rate cards as data, paid on every shift or for overtime past the booked finish, and are charged with on-costs but no super, at the margin (owner's OK). | Awards require them (general labourers' fares and travel, cleaners' meal allowance); data keeps them out of code and lets the accountant check them. Overtime past the booked finish stands for overtime nobody asked for the day before. |
+| 03/11/2026 | The services agreement's next draft adds a placement fee for hiring our workers directly: 15% of the first year's pay within 180 days (owner's OK), for the lawyer to finalise. The fee is in the agreement's text, not a setting. | It protects the business from clients hiring away workers they found through us. A setting could drift from what each business signed. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
@@ -594,8 +603,8 @@ _Last updated: 03/11/2026_
 - **Late cancellations by a business.** Each booking is charged 3 hours for now (a placeholder setting). Should the worker also be paid those hours if they hadn't arrived yet? (Workers who have arrived are always paid at least the minimum engagement, brief §4.5.) The setting is off for now.
 - **Early starts and late finishes.** Paid time starts at the rostered start even if a worker clocks in early, and a late finish is paid as clocked unless the business changes it. Is that the rule you want, or should both follow the roster unless the business approves extra time?
 - **Changing a posted job.** For now a business can't edit a job once it's posted, because workers decide on what they were shown. From step 1.9 they'll be able to cancel and post again. Should they be able to change small things, like the instructions or who to report to, after posting?
-- **Allowances** (01/11/2026). The building award's fares and travel allowance ($22.41 a day worked, for general labourers) and the road transport award's furniture carter allowance ($27.39 a week, if it applies to offsiders) aren't in pay or bills yet. Should we add daily and weekly allowances to rate cards? The payroll provider pays them correctly either way; this is about our estimates and invoices.
-- **Invoice and pricing extras** (30/10/2026). On offer, waiting for your choice: a PO or reference number on jobs and invoice lines; the award and level on invoice lines; separate invoices per branch; and leaving super off overtime when pricing (super isn't owed on overtime).
+- **Weekly allowances** (03/11/2026). Rate cards now pay allowances on each shift or for late overtime (see Done). A weekly one, like the road transport award's furniture carter allowance ($27.39 a week, if it applies to offsiders), isn't supported yet: ask the accountant whether it applies, and we'll add it if so.
+- **Invoice and pricing extras** (30/10/2026). On offer, waiting for your choice: a PO or reference number on jobs and invoice lines; the award and level on invoice lines; and separate invoices per branch. (Overtime is now priced without super: see Done.)
 
 ## Before launch (not now)
 

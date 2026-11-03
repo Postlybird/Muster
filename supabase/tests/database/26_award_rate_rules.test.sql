@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(12);
+select plan(14);
 
 insert into public.categories (id, code, name) values
   ('a1111111-0000-0000-0000-000000000001', 'pgtap_award_cleaner', 'PGTAP award cleaner');
@@ -26,6 +26,16 @@ select is(
   array['overtime', 'overtime_after'],
   'Overtime is priced without super unless a card says otherwise (owner, 03/11/2026)'
 );
+select is(
+  (select allowances from public.rate_cards
+   where category_id = 'a1111111-0000-0000-0000-000000000001' and effective_from = '2026-01-01'),
+  '[]'::jsonb,
+  'A card has no allowances until they''re added (owner, 03/11/2026)'
+);
+select throws_ok($$
+  update public.rate_cards set allowances = '{"name": "Meal allowance"}'::jsonb
+  where category_id = 'a1111111-0000-0000-0000-000000000001' and effective_from = '2026-01-01'
+$$, '23514', null, 'Allowances are a list');
 select throws_ok($$
   update public.rate_cards set super_free_types = array['overtime', 'ordinary']
   where category_id = 'a1111111-0000-0000-0000-000000000001' and effective_from = '2026-01-01'

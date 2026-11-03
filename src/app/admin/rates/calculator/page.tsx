@@ -282,6 +282,20 @@ export default async function RateCalculatorPage({
                   </TableCell>
                 </TableRow>
               ))}
+              {(result.cost.allowances ?? []).map((allowance) => (
+                <TableRow key={allowance.name}>
+                  <TableCell>{allowance.name}</TableCell>
+                  <TableCell />
+                  <TableCell />
+                  <TableCell className="text-right">
+                    {formatCents(allowance.payCents)}
+                  </TableCell>
+                  <TableCell />
+                  <TableCell className="text-right">
+                    {formatCents(allowance.billCents)}
+                  </TableCell>
+                </TableRow>
+              ))}
               {result.cost.urgentPayCents || result.cost.urgentBillCents ? (
                 <TableRow>
                   <TableCell>Urgent call-out loading</TableCell>

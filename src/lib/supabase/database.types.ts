@@ -2438,6 +2438,7 @@ export type Database = {
       };
       rate_cards: {
         Row: {
+          allowances: NonNullable<Json>;
           archived_at: string | null;
           base_rate_cents: number;
           business_id: string | null;
@@ -2474,6 +2475,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          allowances?: NonNullable<Json>;
           archived_at?: string | null;
           base_rate_cents: number;
           business_id?: string | null;
@@ -2509,6 +2511,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          allowances?: NonNullable<Json>;
           archived_at?: string | null;
           base_rate_cents?: number;
           business_id?: string | null;

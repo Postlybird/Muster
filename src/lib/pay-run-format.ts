@@ -55,6 +55,9 @@ function chargeDetail(cost: ShiftCost): string {
   if (cost.urgentBillCents > 0) {
     parts.push(`urgent call-out loading ${formatCents(cost.urgentBillCents)}`);
   }
+  for (const allowance of cost.allowances ?? []) {
+    parts.push(`${allowance.name} ${formatCents(allowance.billCents)}`);
+  }
   return parts.join(", ");
 }
 

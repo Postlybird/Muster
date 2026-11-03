@@ -2,6 +2,7 @@ import { fromZonedTime } from "date-fns-tz";
 import { describe, expect, it } from "vitest";
 
 import {
+  allowanceBillCents,
   billRuleFromRow,
   costShift,
   emptyMinutes,
@@ -592,6 +593,70 @@ describe("super on overtime (owner, 03/11/2026)", () => {
     expect(
       cost.lines.find((line) => line.type === "overtime")!.billRateCents,
     ).toBe(7005);
+  });
+});
+
+describe("allowances (owner, 03/11/2026)", () => {
+  const fares = {
+    name: "Fares and travel allowance",
+    when: "each_shift" as const,
+    afterMinutes: 0,
+    payCents: 2241,
+    billCents: allowanceBillCents(2241, 23.45, 12, 18),
+  };
+  const meal = {
+    name: "Meal allowance",
+    when: "late_overtime" as const,
+    afterMinutes: 120,
+    payCents: 1753,
+    billCents: allowanceBillCents(1753, 23.45, 12, 18),
+  };
+  const rules: CostRules = {
+    ...costRules,
+    card: cleaner,
+    superPct: 12,
+    allowances: [fares, meal],
+  };
+  const eightHours: MinutesByType = { ...emptyMinutes(), ordinary: 480 };
+
+  it("are charged with on-costs but no super, and the margin", () => {
+    // $22.41, plus 11.45% and 18%.
+    expect(allowanceBillCents(2241, 23.45, 12, 18)).toBe(2947);
+  });
+
+  it("are paid on every shift worked, and added to the pay and charge", () => {
+    const without = costShift(eightHours, { ...rules, allowances: [] });
+    const cost = costShift(eightHours, rules);
+    expect(cost.allowances).toEqual([
+      { name: "Fares and travel allowance", payCents: 2241, billCents: 2947 },
+    ]);
+    expect(cost.payCents).toBe(without.payCents + 2241);
+    expect(cost.billCents).toBe(without.billCents + 2947);
+    expect(cost.onCostCents).toBe(
+      percentOf(cost.payCents, 23.45) - percentOf(2241, 12),
+    );
+  });
+
+  it("for late overtime, once it's more than the hours set", () => {
+    const names = (late: number) =>
+      (
+        costShift(eightHours, rules, { lateOvertimeMinutes: late })
+          .allowances ?? []
+      ).map((a) => a.name);
+    expect(names(0)).toEqual(["Fares and travel allowance"]);
+    expect(names(120)).toEqual(["Fares and travel allowance"]);
+    expect(names(121)).toEqual([
+      "Fares and travel allowance",
+      "Meal allowance",
+    ]);
+  });
+
+  it("aren't paid on a shift with no hours, or kept from before", () => {
+    expect(
+      costShift(emptyMinutes(), { ...rules, minEngagementMinutes: 0 })
+        .allowances,
+    ).toEqual([]);
+    expect(costShift(eightHours, costRules).allowances).toEqual([]);
   });
 });
 

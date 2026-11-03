@@ -27,7 +27,7 @@ function batches<T>(items: readonly T[]): T[][] {
 }
 
 const SELECT =
-  "id, worker_id, assignment_id, start_at, finish_at, break_minutes, assignments(shift_id, created_at, shifts(starts_at), assignment_rates(cost_rules)), jobs(sites(state)), pay_run_lines(id)";
+  "id, worker_id, assignment_id, start_at, finish_at, break_minutes, assignments(shift_id, created_at, shifts(starts_at, ends_at), assignment_rates(cost_rules)), jobs(sites(state)), pay_run_lines(id)";
 
 async function loadPayable(
   client: Client,
@@ -189,6 +189,9 @@ export async function costTimesheetsWith(
       },
       rules,
       prior,
+      row.assignments.shifts
+        ? new Date(row.assignments.shifts.ends_at)
+        : undefined,
     );
     return [
       {

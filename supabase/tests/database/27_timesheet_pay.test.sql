@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(8);
+select plan(10);
 
 insert into public.jurisdictions (code, name) values ('NSW', 'New South Wales')
 on conflict (code) do nothing;
@@ -113,6 +113,27 @@ select is_empty(
 select is_empty(
   $$ select * from public.my_timesheet_pay('73333333-0000-0000-0000-000000000003') $$,
   'Nothing while changed hours wait to be costed again'
+);
+
+-- The card's allowances (owner, 03/11/2026) come last, by name.
+reset role;
+update public.timesheet_costs
+set cost = cost || '{"allowances": [{"name": "Meal allowance", "payCents": 1753, "billCents": 2300}]}'::jsonb,
+  pay_cents = pay_cents + 1753
+where timesheet_id = '71111111-0000-0000-0000-000000000001';
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
+select results_eq(
+  $$ select rate_type, kind, pay_cents
+     from public.my_timesheet_pay('71111111-0000-0000-0000-000000000001')
+     where kind in ('loading', 'allowance') $$,
+  $$ values ('callout', 'loading', 7639), ('Meal allowance', 'allowance', 1753) $$,
+  'Then each allowance the shift earned, by name'
+);
+select is(
+  (select sum(pay_cents)::integer from public.my_timesheet_pay('71111111-0000-0000-0000-000000000001')),
+  (select pay_cents from public.my_timesheets('71111111-0000-0000-0000-000000000001')),
+  'Still adding up to the pay on the timesheet'
 );
 
 select set_config('request.jwt.claims', '{"sub": "22222222-2222-2222-2222-222222222222", "role": "authenticated"}', true);

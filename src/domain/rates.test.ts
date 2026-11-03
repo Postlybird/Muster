@@ -5,6 +5,8 @@ import {
   hourlyPayTable,
   pickBillRule,
   pickRateCard,
+  allowancesFrom,
+  allowancesToRow,
   rateCardFromRow,
   type RateCard,
 } from "./rates";
@@ -79,6 +81,7 @@ describe("hourly pay", () => {
         nightShiftFinishesBy: null,
       },
       superFreeTypes: ["overtime", "overtime_after"],
+      allowances: [],
     });
   });
 
@@ -174,6 +177,64 @@ describe("rate types priced without super", () => {
         super_free_types: ["ordinary", "night_shift", "saturday"],
       }).superFreeTypes,
     ).toEqual(["saturday"]);
+  });
+});
+
+describe("allowances on a rate card", () => {
+  it("are read from the card, keeping only complete ones", () => {
+    expect(
+      allowancesFrom([
+        {
+          name: "Fares and travel allowance",
+          pay_cents: 2241,
+          when: "each_shift",
+        },
+        {
+          name: "Meal allowance",
+          pay_cents: 1753,
+          when: "late_overtime",
+          after_hours: 2,
+        },
+        { name: "", pay_cents: 100, when: "each_shift" },
+        { name: "No amount", when: "each_shift" },
+        { name: "Unknown", pay_cents: 100, when: "weekly" },
+        "not an allowance",
+      ]),
+    ).toEqual([
+      {
+        name: "Fares and travel allowance",
+        payCents: 2241,
+        when: "each_shift",
+        afterMinutes: 0,
+      },
+      {
+        name: "Meal allowance",
+        payCents: 1753,
+        when: "late_overtime",
+        afterMinutes: 120,
+      },
+    ]);
+    expect(allowancesFrom(null)).toEqual([]);
+  });
+
+  it("are saved the way they're read", () => {
+    const allowances = allowancesFrom([
+      {
+        name: "Meal allowance",
+        pay_cents: 1753,
+        when: "late_overtime",
+        after_hours: 2.5,
+      },
+    ]);
+    expect(allowancesFrom(allowancesToRow(allowances))).toEqual(allowances);
+    expect(allowancesToRow(allowances)).toEqual([
+      {
+        name: "Meal allowance",
+        pay_cents: 1753,
+        when: "late_overtime",
+        after_hours: 2.5,
+      },
+    ]);
   });
 });
 

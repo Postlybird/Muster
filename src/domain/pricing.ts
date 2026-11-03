@@ -7,6 +7,7 @@ import {
   STATE_TIME_ZONES,
   sumCosts,
   totalOnCostPct,
+  allowanceBillCents,
   type CostRules,
   type CostTotals,
   type MinutesByType,
@@ -48,6 +49,8 @@ export type RateCardRow = Dated & {
   early_late_starts_before?: string | null;
   early_late_finishes_after?: string | null;
   night_shift_finishes_by?: string | null;
+  super_free_types?: string[] | null;
+  allowances?: unknown;
 };
 
 export type BillRuleRow = Dated & {
@@ -183,16 +186,30 @@ export function makePricer(scope: PricingScope, data: PricingData) {
           error instanceof RangeError ? error.message : "Check the times.",
       };
     }
+    const billRule = billRuleFromRow(rule, settings.margin_pct);
+    const onCostPct = totalOnCostPct(
+      settings.on_costs_pct,
+      data.category.workers_comp_pct === null
+        ? null
+        : Number(data.category.workers_comp_pct),
+    );
     const rules: CostRules = {
       card: rateCard,
-      billRule: billRuleFromRow(rule, settings.margin_pct),
-      onCostPct: totalOnCostPct(
-        settings.on_costs_pct,
-        data.category.workers_comp_pct === null
-          ? null
-          : Number(data.category.workers_comp_pct),
-      ),
+      billRule,
+      onCostPct,
       superPct: settings.on_costs_pct.super,
+      // Charged at the business's margin, or ours for fixed rates.
+      allowances: (rateCard.allowances ?? []).map((allowance) => ({
+        ...allowance,
+        billCents: allowanceBillCents(
+          allowance.payCents,
+          onCostPct,
+          settings.on_costs_pct.super,
+          billRule.method === "markup"
+            ? billRule.marginPct
+            : settings.margin_pct,
+        ),
+      })),
       minEngagementMinutes: Math.round(
         Number(data.category.min_engagement_hours) * 60,
       ),
@@ -265,18 +282,44 @@ export type EstimateLine = {
   billRateCents: number | null;
 };
 
+/** An allowance in an estimate, across every shift and worker. */
+export type EstimateAllowance = {
+  name: string;
+  /** How many times it's charged. */
+  count: number;
+  billCents: number;
+};
+
 /**
  * An estimate's bill broken down by rate type, across every shift and
- * worker, for "how we worked this out".
+ * worker, for "how we worked this out", with any allowances.
  */
 export function estimateLines(
   costs: readonly ShiftCost[],
   workers: number,
-): { lines: EstimateLine[]; urgentBillCents: number } {
+): {
+  lines: EstimateLine[];
+  urgentBillCents: number;
+  allowances: EstimateAllowance[];
+} {
   const lines = new Map<string, EstimateLine>();
+  const allowances = new Map<string, EstimateAllowance>();
   let urgentBillCents = 0;
   for (const cost of costs) {
     urgentBillCents += cost.urgentBillCents * workers;
+    for (const allowance of cost.allowances ?? []) {
+      const existing = allowances.get(allowance.name);
+      if (existing) {
+        existing.count += workers;
+        existing.billCents += allowance.billCents * workers;
+      } else {
+        allowances.set(allowance.name, {
+          name: allowance.name,
+          count: workers,
+          billCents: allowance.billCents * workers,
+        });
+      }
+    }
     for (const line of cost.lines) {
       const key = `${line.type}:${line.kind}`;
       const existing = lines.get(key);
@@ -297,5 +340,9 @@ export function estimateLines(
       }
     }
   }
-  return { lines: [...lines.values()], urgentBillCents };
+  return {
+    lines: [...lines.values()],
+    urgentBillCents,
+    allowances: [...allowances.values()],
+  };
 }

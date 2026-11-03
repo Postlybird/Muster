@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { emptyMinutes, type CostRules, type HoursRules } from "./pay";
 import {
   costTimesheet,
+  lateOvertimeMinutes,
   enteredHours,
   isLateArrival,
   isPayable,
@@ -110,6 +111,80 @@ describe("costing a timesheet", () => {
     expect(cost.workedMinutes).toBe(60);
     expect(cost.paidMinutes).toBe(180);
     expect(cost.payCents).toBe(11_250);
+  });
+});
+
+describe("overtime past the booked finish (owner, 03/11/2026)", () => {
+  const hours = {
+    start: sydney("2026-11-04T07:00"),
+    finish: sydney("2026-11-04T18:00"),
+    breakMinutes: 30,
+  };
+  const minutes = {
+    ...emptyMinutes(),
+    ordinary: 456,
+    overtime: 120,
+    overtime_after: 54,
+  };
+
+  it("is the overtime, up to the time past the booked finish", () => {
+    expect(
+      lateOvertimeMinutes(minutes, hours, sydney("2026-11-04T15:30")),
+    ).toBe(150);
+    expect(
+      lateOvertimeMinutes(minutes, hours, sydney("2026-11-04T17:00")),
+    ).toBe(60);
+    // Booked for all of it: none was late.
+    expect(
+      lateOvertimeMinutes(minutes, hours, sydney("2026-11-04T18:00")),
+    ).toBe(0);
+    expect(lateOvertimeMinutes(minutes, hours, undefined)).toBe(0);
+    // Stayed late, but not into overtime.
+    expect(
+      lateOvertimeMinutes(
+        { ...emptyMinutes(), ordinary: 240 },
+        { ...hours, finish: sydney("2026-11-04T11:30") },
+        sydney("2026-11-04T10:00"),
+      ),
+    ).toBe(0);
+  });
+
+  it("pays an allowance for it when the card has one", () => {
+    const withMeal: CostRules = {
+      ...costRules,
+      allowances: [
+        {
+          name: "Meal allowance",
+          when: "late_overtime",
+          afterMinutes: 120,
+          payCents: 1753,
+          billCents: 2300,
+        },
+      ],
+    };
+    const day = {
+      start: sydney("2026-11-04T07:00"),
+      finish: sydney("2026-11-04T18:00"),
+      breakMinutes: 30,
+    };
+    const late = costTimesheet(
+      day,
+      hoursRules,
+      withMeal,
+      undefined,
+      sydney("2026-11-04T15:30"),
+    );
+    expect(late.cost.allowances?.map((a) => a.name)).toEqual([
+      "Meal allowance",
+    ]);
+    const booked = costTimesheet(
+      day,
+      hoursRules,
+      withMeal,
+      undefined,
+      sydney("2026-11-04T18:00"),
+    );
+    expect(booked.cost.allowances).toEqual([]);
   });
 });
 

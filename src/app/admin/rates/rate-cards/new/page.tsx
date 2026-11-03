@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { businessOptions } from "@/server/businesses";
 
-import { emptyAwardRules } from "../award-rule-values";
+import { allowanceRowsFrom, emptyAwardRules } from "../award-rule-values";
 import { RateCardForm } from "../rate-card-form";
 
 export const metadata: Metadata = { title: "Add a rate card" };
@@ -52,6 +52,7 @@ export default async function NewRateCardPage({
           },
           award: emptyAwardRules,
           super_free_types: [...DEFAULT_SUPER_FREE_TYPES],
+          allowances: allowanceRowsFrom([]),
           effective_from: "",
           effective_to: "",
           checked_by: "",

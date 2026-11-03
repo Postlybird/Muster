@@ -110,10 +110,11 @@ export function costCancellation(
     Math.max(Math.round((hours ?? 0) * 60), engagement);
   const billMinutes = minutesOf(cancellation.chargeHours);
   const payMinutes = minutesOf(cancellation.payHours);
+  // Not worked, so no allowances.
   const at = (minutes: number) =>
     costShift(
       { ...emptyMinutes(), [type]: minutes },
-      { ...costRules, minEngagementMinutes: 0 },
+      { ...costRules, minEngagementMinutes: 0, allowances: [] },
     );
   return {
     type,

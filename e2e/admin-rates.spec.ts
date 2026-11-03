@@ -81,6 +81,20 @@ test.describe("admin rates", () => {
       "12:00",
     );
     await expect(page.getByText("$64.89 an hour").first()).toBeVisible();
+    // Its allowance (owner, 03/11/2026): fares and travel, every shift.
+    await expect(page.getByLabel("Allowance 1")).toHaveValue(
+      "Fares and travel allowance",
+    );
+    await expect(
+      page.getByRole("textbox", { name: "Amount ($)" }).first(),
+    ).toHaveValue("22.41");
+    // Overtime is priced without super unless the award says more.
+    await expect(
+      page.getByRole("checkbox", { name: "Overtime", exact: true }),
+    ).toBeChecked();
+    await expect(
+      page.getByRole("checkbox", { name: "Saturday", exact: true }),
+    ).not.toBeChecked();
     await expectAccessible(page);
 
     // A shift loading needs the times it applies to; nothing is saved.

@@ -90,6 +90,84 @@ describe("pricing shifts from loaded data", () => {
   });
 });
 
+describe("allowances when pricing (owner, 03/11/2026)", () => {
+  const withFares: PricingData = {
+    ...data,
+    cards: [
+      {
+        ...card,
+        allowances: [
+          {
+            name: "Fares and travel allowance",
+            pay_cents: 2241,
+            when: "each_shift",
+          },
+        ],
+      },
+    ],
+  };
+  const quote = (pricing: PricingData) => {
+    const result = makePricer(
+      { businessId: "b", categoryId: "cleaner", level: 1, state: "NSW" },
+      pricing,
+    ).quote({
+      start: sydney("2026-11-04T07:00"),
+      end: sydney("2026-11-04T11:00"),
+      breakMinutes: 0,
+      urgent: false,
+    });
+    if (!result.ok) throw new Error(result.problem);
+    return result;
+  };
+
+  it("prices the card's allowances into the booking's terms", () => {
+    const result = quote(withFares);
+    expect(result.rules.superPct).toBe(12);
+    expect(result.rules.allowances).toEqual([
+      {
+        name: "Fares and travel allowance",
+        when: "each_shift",
+        afterMinutes: 0,
+        payCents: 2241,
+        billCents: 2947,
+      },
+    ]);
+    expect(result.cost.allowances).toHaveLength(1);
+  });
+
+  it("charges them at our margin when a business has fixed rates", () => {
+    const fixed = quote({
+      ...withFares,
+      rules: [
+        {
+          id: "fixed",
+          business_id: "b",
+          category_id: null,
+          method: "fixed",
+          margin_pct: null,
+          fixed_ordinary_cents: 6000,
+          fixed_saturday_cents: 8000,
+          fixed_sunday_cents: 9000,
+          fixed_public_holiday_cents: 11000,
+          fixed_overtime_cents: 9000,
+          fixed_night_cents: 7000,
+          effective_from: "2026-01-01",
+          effective_to: null,
+        },
+      ],
+    } as PricingData);
+    expect(fixed.rules.allowances?.[0]?.billCents).toBe(2947);
+  });
+
+  it("lists them in the estimate", () => {
+    const result = quote(withFares);
+    const { allowances } = estimateLines([result.cost, result.cost], 2);
+    expect(allowances).toEqual([
+      { name: "Fares and travel allowance", count: 4, billCents: 2947 * 4 },
+    ]);
+  });
+});
+
 describe("an estimate's breakdown", () => {
   it("adds up each rate type across shifts and workers", () => {
     const shift = (local: string, end: string) => ({

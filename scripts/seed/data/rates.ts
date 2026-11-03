@@ -1,3 +1,5 @@
+import type { Allowance } from "../../../src/domain/rates";
+
 /** NSW public holidays. Check against the NSW Government list each year. */
 export const NSW_PUBLIC_HOLIDAYS: { date: string; name: string }[] = [
   { date: "2026-01-01", name: "New Year's Day" },
@@ -76,7 +78,17 @@ export type AwardRateCard = {
   level: number;
   baseRateCents: number;
   columns: AwardColumns;
+  /** The award's allowances (owner, 03/11/2026), from the same pay guide. */
+  allowances?: Allowance[];
   notes: string;
+};
+
+/** Cleaning Services Award: more than 2 hours of overtime without notice the day before. */
+const CLEANING_MEAL_ALLOWANCE: Allowance = {
+  name: "Meal allowance",
+  payCents: 1753,
+  when: "late_overtime",
+  afterMinutes: 120,
 };
 
 /**
@@ -169,6 +181,7 @@ export const AWARD_RATE_CARDS: AwardRateCard[] = [
     level: 1,
     baseRateCents: 2748,
     columns: CLEANING_AWARD,
+    allowances: [CLEANING_MEAL_ALLOWANCE],
     notes:
       "Cleaning Services Award 2020 [MA000022], cleaning service employee level 1, casual: pay guide effective 01/07/2026, plus $0.50 an hour. Overtime after 7.6 hours a day: 1.75 for the first 2 hours, then 2.25. Early or late shift: Monday to Friday, starting before 6 am or finishing after 6 pm. Night shift: finishing after midnight and by 8 am. To confirm with the accountant: overtime after 7.6 hours a day for casuals.",
   },
@@ -177,6 +190,7 @@ export const AWARD_RATE_CARDS: AwardRateCard[] = [
     level: 1,
     baseRateCents: 2837,
     columns: CLEANING_AWARD,
+    allowances: [CLEANING_MEAL_ALLOWANCE],
     notes:
       "Cleaning Services Award 2020 [MA000022], cleaning service employee level 2 (certified technician), casual: pay guide effective 01/07/2026, plus $0.50 an hour. Rules as for the level 1 cleaning card. To confirm with the accountant: overtime after 7.6 hours a day for casuals.",
   },
@@ -185,8 +199,16 @@ export const AWARD_RATE_CARDS: AwardRateCard[] = [
     level: 1,
     baseRateCents: 2884,
     columns: BUILDING_AWARD,
+    allowances: [
+      {
+        name: "Fares and travel allowance",
+        payCents: 2241,
+        when: "each_shift",
+        afterMinutes: 0,
+      },
+    ],
     notes:
-      "Building and Construction General On-site Award 2020 [MA000020], CW/ECW 1 (level a), general building and construction (not residential), casual, including the industry allowance: pay guide effective 01/07/2026, plus $0.50 an hour. Saturday: first 2 hours before noon at 1.75, then 2.25. Day work: hours outside 7 am to 6 pm on weekdays, or after 8 hours, are overtime (higher than the shift rates). Not in these rates: fares and travel allowance, $22.41 a day worked. To confirm with the accountant: ordinary hours 7 am to 6 pm, and overtime after 8 hours a day for casuals.",
+      "Building and Construction General On-site Award 2020 [MA000020], CW/ECW 1 (level a), general building and construction (not residential), casual, including the industry allowance: pay guide effective 01/07/2026, plus $0.50 an hour. Saturday: first 2 hours before noon at 1.75, then 2.25. Day work: hours outside 7 am to 6 pm on weekdays, or after 8 hours, are overtime (higher than the shift rates). Fares and travel allowance, $22.41 a day worked: an allowance on every shift. To confirm with the accountant: ordinary hours 7 am to 6 pm, and overtime after 8 hours a day for casuals.",
   },
   {
     codes: ["removalist_offsider"],

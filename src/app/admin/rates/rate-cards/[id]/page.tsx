@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { Button } from "@/components/ui/button";
 import {
+  allowancesFrom,
   CORE_DAY_TYPES,
   superFreeTypesFrom,
   type CoreDayType,
@@ -15,7 +16,10 @@ import { createClient } from "@/lib/supabase/server";
 import { businessOptions } from "@/server/businesses";
 
 import { setRateArchived } from "../../actions";
-import { awardRuleValuesFromRow } from "../award-rule-values";
+import {
+  allowanceRowsFrom,
+  awardRuleValuesFromRow,
+} from "../award-rule-values";
 import { RateCardForm } from "../rate-card-form";
 
 export const metadata: Metadata = { title: "Edit rate card" };
@@ -92,6 +96,7 @@ export default async function EditRateCardPage({
           ) as Record<CoreDayType, number>,
           award: awardRuleValuesFromRow(card),
           super_free_types: superFreeTypesFrom(card.super_free_types),
+          allowances: allowanceRowsFrom(allowancesFrom(card.allowances)),
           effective_from: card.effective_from,
           effective_to: card.effective_to ?? "",
           checked_by: card.checked_by ?? "",

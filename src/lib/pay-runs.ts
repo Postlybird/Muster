@@ -396,6 +396,10 @@ export function payrollLines(
     site_name: string;
     allowance_cents: number;
     pay_cents: number;
+    /** The hours' costing, for the rate card's allowances by name. */
+    timesheets?: {
+      timesheet_costs: { cost: unknown } | null;
+    } | null;
     workers: {
       legal_first_name: string | null;
       legal_last_name: string | null;
@@ -438,15 +442,20 @@ export function payrollLines(
         breakMinutes: row.break_minutes ?? 0,
         workType: row.work_type,
         location: business ? `${business} – ${row.site_name}` : row.site_name,
-        allowances:
-          row.allowance_cents > 0
+        allowances: [
+          ...(row.allowance_cents > 0
             ? [
                 {
                   name: "Urgent call-out loading",
                   amountCents: row.allowance_cents,
                 },
               ]
-            : [],
+            : []),
+          ...(
+            (row.timesheets?.timesheet_costs?.cost as ShiftCost | undefined)
+              ?.allowances ?? []
+          ).map((a) => ({ name: a.name, amountCents: a.payCents })),
+        ],
         notes,
       },
     ];

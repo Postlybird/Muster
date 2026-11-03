@@ -1,3 +1,4 @@
+import type { Allowance, AllowanceTrigger } from "@/domain/rates";
 import type { Tables } from "@/lib/supabase/database.types";
 
 /**
@@ -77,4 +78,32 @@ export function awardRuleValuesFromRow(
     night_shift_multiplier: numberText(row.night_shift_multiplier),
     night_shift_finishes_by: timeText(row.night_shift_finishes_by),
   };
+}
+
+/** Allowance rows on the rate card form (owner, 03/11/2026); blank rows are left out. */
+export const ALLOWANCE_ROWS = 4;
+
+export type AllowanceRowValues = {
+  name: string;
+  /** Dollars, as typed. */
+  amount: string;
+  when: AllowanceTrigger;
+  /** Hours, for late overtime. */
+  after_hours: string;
+};
+
+/** A card's allowances as form rows, with blank rows to fill. */
+export function allowanceRowsFrom(
+  allowances: readonly Allowance[],
+): AllowanceRowValues[] {
+  const rows: AllowanceRowValues[] = allowances.map((a) => ({
+    name: a.name,
+    amount: (a.payCents / 100).toFixed(2),
+    when: a.when,
+    after_hours: a.when === "late_overtime" ? String(a.afterMinutes / 60) : "",
+  }));
+  while (rows.length < ALLOWANCE_ROWS) {
+    rows.push({ name: "", amount: "", when: "each_shift", after_hours: "" });
+  }
+  return rows;
 }
