@@ -3611,6 +3611,24 @@ export type Database = {
           workers_worked: number;
         }[];
       };
+      admin_sales_lines: {
+        Args: { p_from: string; p_to: string };
+        Returns: {
+          abn: string;
+          business_name: string;
+          gst_cents: number;
+          invoice_id: string;
+          invoice_number: string;
+          kind: string;
+          note: string;
+          number: string;
+          on_date: string;
+          seq: number;
+          status: string;
+          subtotal_cents: number;
+          total_cents: number;
+        }[];
+      };
       admin_shift_board: {
         Args: { p_from: string; p_to: string };
         Returns: {

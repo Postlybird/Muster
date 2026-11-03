@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { FormField } from "@/components/forms/form-field";
 import { PageHeader } from "@/components/page-header";
+import { StatTile } from "@/components/reports/stat-tile";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,24 +48,6 @@ type Line = {
   cost_cents: number;
   margin_cents: number;
 };
-
-function StatTile({
-  label,
-  value,
-  detail,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-}) {
-  return (
-    <div className="rounded-xl border bg-card p-4">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-3xl font-semibold">{value}</dd>
-      <dd className="mt-1 text-sm text-muted-foreground">{detail}</dd>
-    </div>
-  );
-}
 
 function marginLabel(line: Pick<Line, "margin_cents" | "bill_cents">) {
   const share = percent(line.margin_cents, line.bill_cents);

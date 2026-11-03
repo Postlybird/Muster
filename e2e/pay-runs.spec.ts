@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
 import { addDays, lastFullWeek } from "../src/domain/pay-runs";
+import { salesPeriodOf } from "../src/domain/sales";
 import {
   formatCalendarDate,
   formatCents,
@@ -362,5 +363,113 @@ test("an admin credits an invoice, and the business gets the credit note", async
   );
   expect(notes!.reduce((sum, n) => sum + n.gst_cents, 0)).toBe(
     before!.gst_cents,
+  );
+});
+
+test("the sales and GST report adds up invoices, credit notes and payments", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await hoursLastWeek("Fatima Al-Sayed");
+  await signInAsDemo(page, "Alex Morgan");
+  await page.goto("/admin/pay-runs");
+  await page.getByRole("button", { name: "Run pay and invoices" }).click();
+  await page.getByRole("button", { name: "Run it" }).click();
+  await expect(
+    page.getByText(/^Done\. Each invoice has been emailed/),
+  ).toBeVisible({ timeout: 30_000 });
+  const invoice = page
+    .getByRole("row")
+    .filter({ hasText: "Westside Cleaning" })
+    .getByRole("link");
+  const number = await invoice.innerText();
+  await invoice.click();
+
+  // $11.00 is credited, then the rest is paid.
+  await page.getByLabel("Amount to credit, including GST").fill("11.00");
+  await page.getByLabel("Reason").fill("Charged for a break that was taken.");
+  await page.getByRole("button", { name: "Issue credit note" }).click();
+  const issued = page.getByText(/^Credit note CN-\d+ for \$11\.00 issued/);
+  await expect(issued).toBeVisible();
+  const note = (await issued.innerText()).split(" ")[2]!;
+  await page.getByLabel("Payment reference (optional)").fill("EFT 5150");
+  await page.getByRole("button", { name: "Mark paid" }).click();
+  await expect(
+    page.getByText(/, reference EFT 5150\. Marked by/),
+  ).toBeVisible();
+  const { data: billed } = await serviceClient()
+    .from("invoices")
+    .select("subtotal_cents, gst_cents, total_cents")
+    .eq("number", number)
+    .single();
+
+  // This month: the invoice, less the credit note, and the payment.
+  await page.goto("/admin/sales");
+  await expect(
+    page.getByRole("heading", { name: "Sales and GST" }),
+  ).toBeVisible();
+  const issuedLines = page.getByRole("region", {
+    name: "Invoices and credit notes issued",
+  });
+  await expect(
+    issuedLines.getByRole("row").filter({
+      has: page.getByRole("link", { name: number, exact: true }),
+    }),
+  ).toContainText(formatCents(billed!.total_cents));
+  await expect(
+    issuedLines.getByRole("row").filter({
+      has: page.getByRole("link", { name: note, exact: true }),
+    }),
+  ).toContainText("-$11.00");
+  // The run invoiced other businesses too.
+  const today = sydneyDateKey(new Date());
+  const month = salesPeriodOf("this_month", today);
+  const { data: invoiced } = await serviceClient()
+    .from("invoices")
+    .select("gst_cents")
+    .gte("issued_on", month.from)
+    .lte("issued_on", month.to);
+  const invoicedGst = invoiced!.reduce((sum, i) => sum + i.gst_cents, 0);
+  await expect(
+    page.getByText(`${formatCents(invoicedGst)} invoiced, less $1.00 credited`),
+  ).toBeVisible();
+  await expect(
+    page.getByText(formatCents(invoicedGst - 100), { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Payments received" }).getByRole("row", {
+      name: new RegExp(number),
+    }),
+  ).toContainText(formatCents(billed!.total_cents - 1_100));
+  await expectAccessible(page);
+
+  const [csv] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("link", { name: "Spreadsheet (CSV)" }).click(),
+  ]);
+  expect(csv.suggestedFilename()).toBe(`sales-${month.from}_${month.to}.csv`);
+  const rows = readFileSync((await csv.path())!, "utf8").split("\r\n");
+  const date = formatCalendarDate(today);
+  const money = (cents: number) => (cents / 100).toFixed(2);
+  expect(rows).toContainEqual(
+    expect.stringMatching(
+      new RegExp(
+        `^Invoice,${date},${number},${number},.*,${money(billed!.subtotal_cents)},${money(billed!.gst_cents)},${money(billed!.total_cents)},Paid$`,
+      ),
+    ),
+  );
+  expect(rows).toContainEqual(
+    expect.stringMatching(
+      new RegExp(
+        `^Credit note,${date},${note},${number},.*,-10\\.00,-1\\.00,-11\\.00,Charged for a break that was taken\\.$`,
+      ),
+    ),
+  );
+  expect(rows).toContainEqual(
+    expect.stringMatching(
+      new RegExp(
+        `^Payment,${date},${number},${number},.*,${money(billed!.total_cents - 1_100)},Reference EFT 5150$`,
+      ),
+    ),
   );
 });
