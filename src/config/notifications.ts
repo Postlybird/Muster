@@ -670,6 +670,26 @@ export const TEMPLATES = {
     title: "Tax invoice {{number}} from {{brand}}",
     body: "{{greeting}}\n\nYour invoice {{number}} for work up to {{period_end}} is attached.\n\nAmount due: {{total}} (including GST of {{gst}}), by {{due}}.\n\nPlease pay by bank transfer to:\nAccount name: {{account_name}}\nBSB: {{bsb}}\nAccount number: {{account_number}}\nReference: {{number}}\n\nYou can see each line of it at {{link}}\n\n{{questions}}\n\n{{brand}}",
   }),
+  invoice_overdue: define({
+    audience: "business",
+    category: "account",
+    label: "Invoice overdue",
+    when: "An invoice is still unpaid after its due date (to the accounts email, with the PDF): the day after, then as often as Settings says, up to 4 times.",
+    values: {
+      greeting: "Hi Mark Davies,",
+      number: "INV-1001",
+      period_end: "25/10/2026",
+      total: "$429.39",
+      gst: "$39.04",
+      due: "12/11/2026",
+      account_name: "Shifta Labour Hire",
+      bsb: "062-000",
+      account_number: "12345678",
+      questions: "Questions about it? Contact us at accounts@example.com.",
+    },
+    title: "Reminder: invoice {{number}} is overdue",
+    body: "{{greeting}}\n\nOur invoice {{number}} for {{total}} was due on {{due}}, and we haven't received the payment yet. If you've paid it in the last few days, thank you, and please ignore this.\n\nPlease pay by bank transfer to:\nAccount name: {{account_name}}\nBSB: {{bsb}}\nAccount number: {{account_number}}\nReference: {{number}}\n\nThe invoice is attached, and you can see it at {{link}}\n\n{{questions}}\n\n{{brand}}",
+  }),
 
   // Our team
   safety_report: define({

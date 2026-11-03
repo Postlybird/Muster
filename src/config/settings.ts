@@ -460,6 +460,15 @@ export const SETTINGS = {
     isPublic: false,
     placeholder: true,
   }),
+  invoice_reminder_days: define({
+    label: "Overdue invoice reminders",
+    help: "Days between reminder emails to a business whose invoice is overdue, starting the day after it falls due, up to 4 reminders. 0 turns them off.",
+    group: "money",
+    schema: z.number().int().min(0).max(60),
+    defaultValue: 7,
+    input: { kind: "number", unit: "days", min: 0, max: 60 },
+    isPublic: false,
+  }),
 };
 
 export type SettingKey = keyof typeof SETTINGS;

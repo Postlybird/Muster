@@ -173,3 +173,35 @@ export function isOverdue(
 ): boolean {
   return invoice.status === "issued" && invoice.due_on < today;
 }
+
+/** Overdue reminders an invoice gets at most. */
+export const MAX_INVOICE_REMINDERS = 4;
+
+/** Whole days from one yyyy-mm-dd date to another. */
+function daysFrom(from: string, to: string): number {
+  return Math.round(
+    (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) /
+      86_400_000,
+  );
+}
+
+/**
+ * Whether an unpaid invoice is due an overdue reminder today (Sydney
+ * date): the day after it falls due, then every `everyDays` days while
+ * it's unpaid, up to MAX_INVOICE_REMINDERS. 0 days turns reminders off.
+ */
+export function reminderDue(
+  invoice: {
+    status: string;
+    due_on: string;
+    reminders_sent: number;
+    last_reminder_on: string | null;
+  },
+  today: string,
+  everyDays: number,
+): boolean {
+  if (everyDays <= 0 || !isOverdue(invoice, today)) return false;
+  if (invoice.reminders_sent >= MAX_INVOICE_REMINDERS) return false;
+  if (!invoice.last_reminder_on) return true;
+  return daysFrom(invoice.last_reminder_on, today) >= everyDays;
+}

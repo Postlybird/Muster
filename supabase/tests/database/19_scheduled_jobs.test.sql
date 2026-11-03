@@ -17,6 +17,7 @@ select set_eq(
     'compliance 15 * * * *',
     'callouts 1-59/5 * * * *',
     'pay-run 5 19,20,21 * * *',
+    'invoice-reminders 5 22,23 * * *',
     'tidy-scheduler-log 30 17 * * *'
   ],
   'every job is on its schedule'

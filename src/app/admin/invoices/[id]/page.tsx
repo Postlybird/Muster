@@ -44,7 +44,7 @@ export default async function AdminInvoicePage({
     supabase
       .from("invoices")
       .select(
-        "id, number, issued_on, due_on, subtotal_cents, gst_cents, total_cents, status, pdf_path, emailed_to, emailed_at, paid_on, payment_reference, pay_run_id, pay_runs(period_start, period_end), businesses(id, legal_name, trading_name, abn, accounts_email), profiles(full_name)",
+        "id, number, issued_on, due_on, subtotal_cents, gst_cents, total_cents, status, pdf_path, emailed_to, emailed_at, reminders_sent, last_reminder_on, paid_on, payment_reference, pay_run_id, pay_runs(period_start, period_end), businesses(id, legal_name, trading_name, abn, accounts_email), profiles(full_name)",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -118,6 +118,14 @@ export default async function AdminInvoicePage({
             invoice.emailed_at
               ? `${invoice.emailed_to}, ${formatDateTime(invoice.emailed_at)}`
               : "Not yet"
+          }
+        />
+        <Detail
+          label="Overdue reminders"
+          value={
+            invoice.reminders_sent > 0 && invoice.last_reminder_on
+              ? `${invoice.reminders_sent} sent, the last on ${formatCalendarDate(invoice.last_reminder_on)}`
+              : "None sent"
           }
         />
       </dl>

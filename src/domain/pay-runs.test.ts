@@ -8,6 +8,8 @@ import {
   isOverdue,
   isRunDay,
   lastFullWeek,
+  MAX_INVOICE_REMINDERS,
+  reminderDue,
   weekEndsAt,
   weekOf,
 } from "./pay-runs";
@@ -184,5 +186,48 @@ describe("invoices", () => {
     expect(isOverdue({ status: "paid", due_on: "2026-10-01" }, today)).toBe(
       false,
     );
+  });
+});
+
+describe("overdue reminders", () => {
+  const invoice = {
+    status: "issued",
+    due_on: "2026-11-10",
+    reminders_sent: 0,
+    last_reminder_on: null as string | null,
+  };
+
+  it("start the day after the invoice falls due", () => {
+    expect(reminderDue(invoice, "2026-11-10", 7)).toBe(false);
+    expect(reminderDue(invoice, "2026-11-11", 7)).toBe(true);
+  });
+
+  it("come again every few days while it's unpaid", () => {
+    const reminded = {
+      ...invoice,
+      reminders_sent: 1,
+      last_reminder_on: "2026-11-11",
+    };
+    expect(reminderDue(reminded, "2026-11-11", 7)).toBe(false);
+    expect(reminderDue(reminded, "2026-11-17", 7)).toBe(false);
+    expect(reminderDue(reminded, "2026-11-18", 7)).toBe(true);
+  });
+
+  it("stop once it's paid, after the last one, or when turned off", () => {
+    expect(reminderDue({ ...invoice, status: "paid" }, "2026-11-20", 7)).toBe(
+      false,
+    );
+    expect(
+      reminderDue(
+        {
+          ...invoice,
+          reminders_sent: MAX_INVOICE_REMINDERS,
+          last_reminder_on: "2026-11-01",
+        },
+        "2026-12-30",
+        7,
+      ),
+    ).toBe(false);
+    expect(reminderDue(invoice, "2026-11-20", 0)).toBe(false);
   });
 });

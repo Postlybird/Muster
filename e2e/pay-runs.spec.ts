@@ -180,3 +180,63 @@ test("site supervisors don't see invoices", async ({ page }) => {
     page.getByText("Your owner or managers look after invoices."),
   ).toBeVisible();
 });
+
+test("a business with an overdue invoice is reminded, once a day, with the invoice attached", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(180_000);
+  await hoursLastWeek("Fatima Al-Sayed");
+  await signInAsDemo(page, "Alex Morgan");
+  await page.goto("/admin/pay-runs");
+  await page.getByRole("button", { name: "Run pay and invoices" }).click();
+  await page.getByRole("button", { name: "Run it" }).click();
+  await expect(
+    page.getByText(/^Done\. Each invoice has been emailed/),
+  ).toBeVisible({ timeout: 30_000 });
+  const invoice = page
+    .getByRole("row")
+    .filter({ hasText: "Westside Cleaning" })
+    .getByRole("link");
+  const number = await invoice.innerText();
+
+  // It fell due yesterday.
+  const service = serviceClient();
+  const today = sydneyDateKey(new Date());
+  const { error } = await service
+    .from("invoices")
+    .update({ due_on: addDays(today, -1) })
+    .eq("number", number);
+  expect(error).toBeNull();
+  const { data: westside } = await service
+    .from("businesses")
+    .select("accounts_email")
+    .eq("trading_name", "Westside Cleaning")
+    .single();
+  const since = new Date().toISOString();
+  const runReminders = async () => {
+    const response = await request.get("/api/cron/invoice-reminders", {
+      headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+    });
+    expect(response.status()).toBe(200);
+  };
+  await runReminders();
+  await runReminders();
+
+  const { data: emails } = await service
+    .from("dev_outbox")
+    .select("subject, body, meta")
+    .eq("channel", "email")
+    .eq("recipient", westside!.accounts_email)
+    .eq("subject", `Reminder: invoice ${number} is overdue`)
+    .gte("created_at", since);
+  expect(emails).toHaveLength(1);
+  expect(emails![0]!.body).toContain(`Reference: ${number}`);
+  expect(emails![0]!.meta).toMatchObject({ attachments: [`${number}.pdf`] });
+
+  await invoice.click();
+  await expect(
+    page.getByText(`1 sent, the last on ${formatCalendarDate(today)}`),
+  ).toBeVisible();
+  await expectAccessible(page);
+});

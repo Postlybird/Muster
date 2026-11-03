@@ -6,7 +6,7 @@ import { checkAttendance } from "@/server/attendance";
 import { checkCallouts } from "@/server/callouts";
 import { runCompliance } from "@/server/compliance";
 import { sendDueNotifications } from "@/server/notifications";
-import { scheduledPayRun } from "@/server/pay-runs";
+import { scheduledPayRun, sendInvoiceReminders } from "@/server/pay-runs";
 import { finishShifts } from "@/server/reliability";
 import { sendReminders } from "@/server/reminders";
 import { runTimesheets } from "@/server/timesheets";
@@ -21,6 +21,7 @@ const JOBS: Record<string, () => Promise<unknown>> = {
   attendance: () => checkAttendance(),
   timesheets: () => runTimesheets(),
   "pay-run": () => scheduledPayRun(),
+  "invoice-reminders": () => sendInvoiceReminders(),
   notifications: () => sendDueNotifications(),
   compliance: () => runCompliance(),
   callouts: () => checkCallouts(),

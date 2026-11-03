@@ -1,7 +1,13 @@
 import "server-only";
 
 import type { SettingsValues } from "@/config/settings";
-import { isRunDay, lastFullWeek, type Week } from "@/domain/pay-runs";
+import {
+  isRunDay,
+  lastFullWeek,
+  MAX_INVOICE_REMINDERS,
+  reminderDue,
+  type Week,
+} from "@/domain/pay-runs";
 import { formatCalendarDate, formatCents, sydneyDateKey } from "@/lib/format";
 import { renderInvoicePdf, type InvoicePdfData } from "@/lib/invoice-pdf";
 import {
@@ -348,4 +354,74 @@ export async function finishInvoices(runId: string) {
     }
   }
   return { made, emailed, failed };
+}
+
+/**
+ * Overdue reminders (the "invoice-reminders" job, each morning): emails each
+ * business whose invoice is unpaid after its due date, with the invoice
+ * attached, the day after it falls due and then every few days, up to
+ * MAX_INVOICE_REMINDERS (reminderDue() in src/domain/pay-runs.ts). Each
+ * invoice is claimed before its email goes, so a second call that morning
+ * can't send it again; if the email fails, the claim is undone.
+ */
+export async function sendInvoiceReminders() {
+  const admin = createAdminClient();
+  const settings = await getAllSettings();
+  const everyDays = settings.invoice_reminder_days;
+  if (everyDays <= 0) return { skipped: "Reminders are off" };
+  const today = sydneyDateKey(new Date());
+  const { data: invoices, error } = await admin
+    .from("invoices")
+    .select(
+      "id, status, due_on, pdf_path, reminders_sent, last_reminder_on, businesses(accounts_email)",
+    )
+    .eq("status", "issued")
+    .lt("due_on", today)
+    .lt("reminders_sent", MAX_INVOICE_REMINDERS)
+    .order("due_on");
+  if (error) throw new Error(`Couldn't load invoices: ${error.message}`);
+  let sent = 0;
+  let failed = 0;
+  for (const invoice of invoices ?? []) {
+    const to = invoice.businesses?.accounts_email;
+    if (!to || !invoice.pdf_path || !reminderDue(invoice, today, everyDays)) {
+      continue;
+    }
+    const { data: claimed } = await admin
+      .from("invoices")
+      .update({
+        reminders_sent: invoice.reminders_sent + 1,
+        last_reminder_on: today,
+      })
+      .eq("id", invoice.id)
+      .eq("reminders_sent", invoice.reminders_sent)
+      .eq("status", "issued")
+      .select("id");
+    if (!claimed?.length) continue;
+    try {
+      const stored = await storedInvoicePdf(admin, invoice.id, settings);
+      await emailTemplate("invoice_overdue", to, invoiceValues(stored.data), {
+        url: `/business/invoices/${invoice.id}`,
+        attachments: [
+          {
+            filename: `${stored.data.number}.pdf`,
+            contentType: "application/pdf",
+            content: stored.pdf.toString("base64"),
+          },
+        ],
+      });
+      sent++;
+    } catch (problem) {
+      console.error(`Couldn't remind about invoice ${invoice.id}`, problem);
+      await admin
+        .from("invoices")
+        .update({
+          reminders_sent: invoice.reminders_sent,
+          last_reminder_on: invoice.last_reminder_on,
+        })
+        .eq("id", invoice.id);
+      failed++;
+    }
+  }
+  return { sent, failed };
 }
