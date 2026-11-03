@@ -48,8 +48,10 @@ export async function sendEmailCode({
   next?: string;
 }): Promise<EmailCodeResult> {
   const supabase = await createClient();
+  // The link always carries a query, so the live site's sign-in email
+  // (deploy/shifta-live/supabase/templates) can add the token with "&".
   const confirmUrl = new URL("/auth/confirm", await requestOrigin());
-  if (next) confirmUrl.searchParams.set("next", safeNextPath(next, "/"));
+  confirmUrl.searchParams.set("next", next ? safeNextPath(next, "/") : "");
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {

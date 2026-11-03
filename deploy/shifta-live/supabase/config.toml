@@ -1,0 +1,92 @@
+# Sign-in settings for the live project, shifta-live. The live workflow
+# (.github/workflows/live-deploy.yml) pushes them with `supabase config push`,
+# which changes only what this file declares.
+#
+# Unlike the demo (deploy/muster-dev), codes are really sent: emails through
+# Resend's mail server and texts through Twilio, sent as the registered
+# sender name. Cloudflare Turnstile guards code requests from bots. Secrets
+# and addresses come from the workflow's environment, never this file.
+#
+# Local development uses supabase/config.toml; keep the shared settings
+# (codes, their length and expiry, confirmations) in step with it.
+project_id = "shifta-live"
+
+[auth]
+site_url = "https://www.shifta.com.au"
+additional_redirect_urls = [
+  "https://shifta.com.au/**",
+  "https://www.shifta.com.au/**",
+]
+
+[auth.rate_limit]
+# Sign-in and confirmation emails sent an hour, across everyone.
+email_sent = 100
+# Mobile confirmation texts sent an hour, across everyone: each costs money.
+sms_sent = 60
+
+[auth.captcha]
+enabled = true
+provider = "turnstile"
+secret = "env(TURNSTILE_SECRET_KEY)"
+
+[auth.email]
+enable_signup = true
+# Sign-in by code confirms the address anyway; this also makes a changed
+# address need a code.
+enable_confirmations = true
+double_confirm_changes = true
+otp_length = 6
+# The sign-in page says codes last 15 minutes.
+otp_expiry = 900
+
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "env(AUTH_EMAIL_FROM_ADDRESS)"
+sender_name = "env(AUTH_EMAIL_SENDER_NAME)"
+
+[auth.email.template.magic_link]
+subject = "Your sign-in code"
+content_path = "./supabase/templates/sign-in.html"
+
+[auth.email.template.confirmation]
+subject = "Your sign-in code"
+content_path = "./supabase/templates/sign-in.html"
+
+[auth.email.template.email_change]
+subject = "Confirm your email address"
+content_path = "./supabase/templates/email-change.html"
+
+[auth.sms]
+# There's no sign-in by mobile in the app; the provider must be on for
+# workers to confirm their mobile. The bot check and the rate limit above
+# guard it.
+enable_signup = true
+# Must be on: otherwise anyone could put someone else's number on their
+# account without a code.
+enable_confirmations = true
+template = "Your code to confirm this mobile number is {{ .Code }}. It expires in 15 minutes."
+otp_length = 6
+otp_expiry = 900
+
+[auth.sms.twilio]
+enabled = true
+account_sid = "env(TWILIO_ACCOUNT_SID)"
+message_service_sid = "env(TWILIO_MESSAGING_SERVICE_SID)"
+auth_token = "env(TWILIO_AUTH_TOKEN)"
+
+# Admins sign in with an authenticator app as well (requireAdmin()).
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+# The demo's hooks write codes to the outbox instead of sending them; the
+# live site sends them.
+[auth.hook.send_sms]
+enabled = false
+
+[auth.hook.send_email]
+enabled = false
