@@ -216,6 +216,13 @@ export async function pageLoaded(page: Page) {
 /** Fails the test with a readable list if the page breaks WCAG 2.1 AA rules. */
 export async function expectAccessible(page: Page) {
   await pageLoaded(page);
+  // A page swapped in by a link gets its title a moment later. If one never
+  // comes, the check below reports it.
+  await page
+    .waitForFunction(() => document.title.trim() !== "", undefined, {
+      timeout: 5_000,
+    })
+    .catch(() => undefined);
   // Let fades finish: a toast that's still appearing is partly transparent.
   await page.waitForFunction(() =>
     document.getAnimations().every((a) => a.playState !== "running"),

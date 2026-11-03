@@ -48,6 +48,8 @@ export function liveSetupProblems(
   need("ABN_LOOKUP_GUID", "checking businesses' ABNs");
   // The live sign-in settings refuse code requests without the bot check.
   need("NEXT_PUBLIC_TURNSTILE_SITE_KEY", "the bot check on sign-in");
+  // Supabase hands every sign-in code to the app, signed with this.
+  need("AUTH_HOOK_SECRET", "sending sign-in codes");
   return problems;
 }
 

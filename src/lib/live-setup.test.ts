@@ -22,6 +22,7 @@ const READY = {
   VAPID_PRIVATE_KEY: "private",
   ABN_LOOKUP_GUID: "guid",
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: "site",
+  AUTH_HOOK_SECRET: "hook",
 };
 
 describe("liveSetupProblems", () => {

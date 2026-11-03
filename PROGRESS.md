@@ -396,7 +396,7 @@ _Last updated: 03/11/2026_
   - Tests: 490 pgTAP, 446 unit and 258 browser tests, plus the acceptance run.
 
 - **Going live, stage 1** (03/11/2026, the owner: "OK keep the demo, start stage 1"):
-  - **Real email (Resend):** every email from the app, with invoices and credit notes attached, goes through Resend once it's switched on. On the live site, sign-in emails go through Resend's mail server too, in our own words ("Your sign-in code").
+  - **Real email (Resend):** every email from the app, with invoices and credit notes attached, goes through Resend once it's switched on, sign-in codes included ("Your sign-in code").
   - **Real texts (Twilio):** call-outs, reminders and mobile codes, from the sender name "Shifta". The name has to be registered on the ACMA Sender ID Register through Twilio, or texts show as "Unverified".
   - **Real address search (Google Maps):** site addresses and workers' suburbs anywhere in Australia, through the Places API (New), charged per search.
   - **A bot check (Cloudflare Turnstile, free)** before a sign-in or sign-up code is sent, so bots can't run up text and email costs. People don't see it unless Cloudflare is unsure. Cloudflare is blocked from our build environment, so it's tried first in the live run-through.
@@ -405,7 +405,12 @@ _Last updated: 03/11/2026_
   - **Overdue reminders:** the day after an invoice falls due, then every 7 days (a setting) while it's unpaid, up to 4 times, the business's accounts email gets a reminder with the invoice attached, asking for what's still owed. The invoice page shows how many were sent.
   - **Credit notes:** to correct an invoice that's gone out, our team issues a credit note for an amount and a reason. It's numbered (from CN-1001), takes its share of the GST, is emailed to the business as an adjustment note (PDF), and lowers what's owed; an unpaid invoice credited in full is closed. Businesses see their credit notes with the invoice.
   - **Sales and GST** (Admin → Sales and GST): for a month, BAS quarter, financial year or any dates, the sales and the GST on them (invoices less credit notes) and the payments received, with a spreadsheet to download for the accountant.
-  - Tests: 512 pgTAP and 492 unit tests passing; the full browser run and the acceptance run are being repeated before this goes further.
+  - **Our security review** found nothing serious in the new invoicing, reports or address search, and these, now fixed:
+    - Supabase's bot check doesn't cover a signed-in person changing their mobile or email, so one account could have texted any number in the world every minute, or emailed anyone, and run up costs or used up the hourly limits for everyone. Now Supabase hands every code to the live site, which only emails sign-in codes and only texts a new Australian mobile, five times a day per person. There's no sign-in by text (your decision of 31/10/2026) and no changing an email address on the live site.
+    - The payroll file could have carried a spreadsheet formula in a business's trading name or a worker's name, which a spreadsheet would run when opened. Text that people type can't start a formula now, there or in the sales report.
+    - The live site's GitHub workflows run only from the released version (`main`), and its secrets should be locked to it with your approval (steps in `docs/launch.md`). The first admin's email no longer shows in the public log.
+    - For you in stage 2: Twilio set to text Australia only, with SMS pumping protection; a daily cap and a budget alert on Google's address search; and a new cron secret for the live site, not the demo's.
+  - Tests: 508 unit tests passing; the database, browser and acceptance runs are being repeated on the final version.
 
 ## Next
 
@@ -571,6 +576,7 @@ _Last updated: 03/11/2026_
 | 03/11/2026 | Texts through Twilio (owner's choice), email through Resend, addresses through Google Maps Places, and Cloudflare Turnstile as the bot check. | Twilio registers the sender names Australian networks now require; Resend and Turnstile are simple and cheap or free; Google's addresses are the most complete. Each sits behind an adapter, so it can be swapped. |
 | 03/11/2026 | An invoice that's gone out is never changed: a credit note corrects it, with its share of the GST, and an invoice's credit notes never add up to more than it. | That's how GST corrections work (adjustment notes); changing a sent invoice would leave the business's books and ours out of step. |
 | 03/11/2026 | The sales report counts sales by the day invoices and credit notes were issued, and payments by the day an invoice was marked paid, for what was owed that day. | It covers both ways of doing the BAS (accruals and cash); the accountant chooses. |
+| 03/11/2026 | On the live site, Supabase hands every sign-in code to our app, which sends sign-in codes by email and texts only to confirm a new Australian mobile, at most five a day per person; nobody signs in by text or changes their email address there (our security review). | Supabase's bot check doesn't cover a signed-in person's own changes, which could otherwise send texts and emails anywhere, at our cost. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner

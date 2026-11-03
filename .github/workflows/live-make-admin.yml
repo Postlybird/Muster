@@ -3,7 +3,9 @@ name: Make an admin on the live site
 # Run by hand (Actions → "Make an admin on the live site" → Run workflow)
 # with the email of an account that has signed in on the live site once.
 # Nobody can become an admin by signing up; after the first, admins are
-# managed in Admin → Team.
+# managed in Admin → Team. It runs only from main. This repository's logs
+# are public, so the address is read from the run itself and hidden, never
+# put in a step's settings (which the log prints).
 
 on:
   workflow_dispatch:
@@ -21,6 +23,7 @@ jobs:
     name: Make the account an admin
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    if: github.ref == 'refs/heads/main'
     environment: live
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +36,8 @@ jobs:
         env:
           LIVE_SUPABASE_PROJECT_ID: ${{ secrets.LIVE_SUPABASE_PROJECT_ID }}
           SUPABASE_SECRET_KEY: ${{ secrets.LIVE_SUPABASE_SECRET_KEY }}
-          EMAIL: ${{ inputs.email }}
         run: |
+          email=$(jq -r '.inputs.email // ""' "$GITHUB_EVENT_PATH")
+          if [ -n "$email" ]; then echo "::add-mask::$email"; fi
           export NEXT_PUBLIC_SUPABASE_URL="https://$LIVE_SUPABASE_PROJECT_ID.supabase.co"
-          npx tsx scripts/make-admin.ts "$EMAIL"
+          npx tsx scripts/make-admin.ts "$email"

@@ -6,6 +6,8 @@
  * The columns below are a working draft until we have the owner's
  * Employment Hero timesheet import template (see PROGRESS.md).
  */
+import { csvText } from "@/lib/csv";
+
 export type PayrollTimesheetLine = {
   payrollEmployeeId: string;
   workerName: string;
@@ -34,10 +36,14 @@ export interface PayrollExporter {
   export(lines: PayrollTimesheetLine[], periodLabel: string): PayrollExport;
 }
 
-/** Quotes a CSV field when it contains a comma, quote or line break. */
+/**
+ * A CSV field: quoted when it holds a comma, quote or line break. Text
+ * (names, work types, places and notes, some typed by workers and
+ * businesses) can't start a spreadsheet formula (csvText()); numbers are
+ * written as they are.
+ */
 export function csvField(value: string | number): string {
-  const text = String(value);
-  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  return typeof value === "number" ? String(value) : csvText(value);
 }
 
 /** dd/mm/yyyy, as Australian payroll systems expect. */

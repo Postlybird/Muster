@@ -8,7 +8,9 @@ name: Deploy the live site
 # Vercel deploy hook (vercel.json stops Vercel building main by itself).
 #
 # Its secrets are in the GitHub environment "live", named LIVE_* and so on,
-# so they can't be mixed up with the demo's (db-deploy.yml).
+# so they can't be mixed up with the demo's (db-deploy.yml). It runs only
+# from main, and the environment itself should allow only main and need the
+# owner's approval (docs/launch.md).
 
 on:
   push:
@@ -27,6 +29,7 @@ jobs:
     name: Live database, sign-in settings and real setup, then the site
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    if: github.ref == 'refs/heads/main'
     environment: live
     steps:
       - uses: actions/checkout@v4
@@ -43,20 +46,18 @@ jobs:
           LIVE_SUPABASE_PROJECT_ID: ${{ secrets.LIVE_SUPABASE_PROJECT_ID }}
           LIVE_SUPABASE_SECRET_KEY: ${{ secrets.LIVE_SUPABASE_SECRET_KEY }}
           LIVE_CRON_SECRET: ${{ secrets.LIVE_CRON_SECRET }}
+          LIVE_AUTH_HOOK_SECRET: ${{ secrets.LIVE_AUTH_HOOK_SECRET }}
           LIVE_RESEND_API_KEY: ${{ secrets.LIVE_RESEND_API_KEY }}
-          LIVE_TWILIO_ACCOUNT_SID: ${{ secrets.LIVE_TWILIO_ACCOUNT_SID }}
-          LIVE_TWILIO_AUTH_TOKEN: ${{ secrets.LIVE_TWILIO_AUTH_TOKEN }}
-          LIVE_TWILIO_MESSAGING_SERVICE_SID: ${{ secrets.LIVE_TWILIO_MESSAGING_SERVICE_SID }}
           LIVE_TURNSTILE_SECRET_KEY: ${{ secrets.LIVE_TURNSTILE_SECRET_KEY }}
           LIVE_VERCEL_DEPLOY_HOOK: ${{ secrets.LIVE_VERCEL_DEPLOY_HOOK }}
           LIVE_EMAIL_FROM_ADDRESS: ${{ vars.LIVE_EMAIL_FROM_ADDRESS }}
           DEMO_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+          DEMO_CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           missing=0
           for name in LIVE_SUPABASE_ACCESS_TOKEN LIVE_SUPABASE_DB_PASSWORD \
             LIVE_SUPABASE_PROJECT_ID LIVE_SUPABASE_SECRET_KEY LIVE_CRON_SECRET \
-            LIVE_RESEND_API_KEY LIVE_TWILIO_ACCOUNT_SID LIVE_TWILIO_AUTH_TOKEN \
-            LIVE_TWILIO_MESSAGING_SERVICE_SID LIVE_TURNSTILE_SECRET_KEY \
+            LIVE_AUTH_HOOK_SECRET LIVE_RESEND_API_KEY LIVE_TURNSTILE_SECRET_KEY \
             LIVE_VERCEL_DEPLOY_HOOK LIVE_EMAIL_FROM_ADDRESS; do
             if [ -z "${!name}" ]; then
               echo "::error::$name isn't set in the GitHub environment \"live\""
@@ -65,6 +66,12 @@ jobs:
           done
           if [ -n "$DEMO_PROJECT_ID" ] && [ "$LIVE_SUPABASE_PROJECT_ID" = "$DEMO_PROJECT_ID" ]; then
             echo "::error::LIVE_SUPABASE_PROJECT_ID is the demo's project. The live site needs its own."
+            missing=1
+          fi
+          # The demo's scheduled jobs keep calling the live address until the
+          # switch-over is finished; with its own secret, the live site ignores them.
+          if [ -n "$DEMO_CRON_SECRET" ] && [ "$LIVE_CRON_SECRET" = "$DEMO_CRON_SECRET" ]; then
+            echo "::error::LIVE_CRON_SECRET is the demo's CRON_SECRET. Make a new one for the live site."
             missing=1
           fi
           exit $missing
@@ -83,47 +90,51 @@ jobs:
         run: npx supabase db push --linked --yes
 
       # Only what deploy/shifta-live/supabase/config.toml declares changes.
-      # The sender's name comes from src/config/brand.ts.
+      # The send hooks' secret is Supabase's form of LIVE_AUTH_HOOK_SECRET
+      # (src/lib/webhook-signature.ts). The sender's name comes from
+      # src/config/brand.ts.
       - name: Push the sign-in settings
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.LIVE_SUPABASE_ACCESS_TOKEN }}
           LIVE_SUPABASE_PROJECT_ID: ${{ secrets.LIVE_SUPABASE_PROJECT_ID }}
+          LIVE_AUTH_HOOK_SECRET: ${{ secrets.LIVE_AUTH_HOOK_SECRET }}
           RESEND_API_KEY: ${{ secrets.LIVE_RESEND_API_KEY }}
-          TWILIO_ACCOUNT_SID: ${{ secrets.LIVE_TWILIO_ACCOUNT_SID }}
-          TWILIO_AUTH_TOKEN: ${{ secrets.LIVE_TWILIO_AUTH_TOKEN }}
-          TWILIO_MESSAGING_SERVICE_SID: ${{ secrets.LIVE_TWILIO_MESSAGING_SERVICE_SID }}
           TURNSTILE_SECRET_KEY: ${{ secrets.LIVE_TURNSTILE_SECRET_KEY }}
           AUTH_EMAIL_FROM_ADDRESS: ${{ vars.LIVE_EMAIL_FROM_ADDRESS }}
         run: |
+          AUTH_HOOK_SECRETS="v1,whsec_$(printf '%s' "$LIVE_AUTH_HOOK_SECRET" | openssl dgst -sha256 -binary | base64 -w0)"
+          echo "::add-mask::$AUTH_HOOK_SECRETS"
           AUTH_EMAIL_SENDER_NAME=$(grep -m1 '^  name: "' src/config/brand.ts | cut -d'"' -f2)
-          export AUTH_EMAIL_SENDER_NAME
+          export AUTH_HOOK_SECRETS AUTH_EMAIL_SENDER_NAME
           npx supabase config push --workdir deploy/shifta-live --project-ref "$LIVE_SUPABASE_PROJECT_ID" --yes
 
-      # Reads the settings back: sign-in emails carry the code and go through
-      # Resend, texts go through Twilio, the bot check is on, and the demo's
-      # outbox hooks are off.
-      - name: Check codes are really sent
+      # Reads the settings back: every code goes to the live site's send
+      # hooks (which send through Resend and Twilio, within their limits),
+      # and the bot check is on.
+      - name: Check codes go through the live site
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.LIVE_SUPABASE_ACCESS_TOKEN }}
           LIVE_SUPABASE_PROJECT_ID: ${{ secrets.LIVE_SUPABASE_PROJECT_ID }}
         run: |
+          site=$(grep -m1 '^site_url' deploy/shifta-live/supabase/config.toml | cut -d'"' -f2)
           config=$(curl -fsS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
             "https://api.supabase.com/v1/projects/$LIVE_SUPABASE_PROJECT_ID/config/auth")
-          if ! jq -e '
-            ((.mailer_templates_magic_link_content // "") | contains("{{ .Token }}"))
-            and ((.mailer_templates_confirmation_content // "") | contains("{{ .Token }}"))
-            and .smtp_host == "smtp.resend.com"
-            and .sms_provider == "twilio"
+          if ! jq -e --arg site "$site" '
+            .hook_send_email_enabled == true
+            and .hook_send_email_uri == ($site + "/api/auth/hooks/email")
+            and .hook_send_sms_enabled == true
+            and .hook_send_sms_uri == ($site + "/api/auth/hooks/sms")
             and .security_captcha_enabled == true
             and .security_captcha_provider == "turnstile"
-            and (.hook_send_email_enabled | not)
-            and (.hook_send_sms_enabled | not)
           ' <<< "$config" > /dev/null; then
             echo "::error::The live sign-in settings didn't take:"
-            jq '{smtp_host, sms_provider, security_captcha_enabled, security_captcha_provider, hook_send_email_enabled, hook_send_sms_enabled}' <<< "$config"
+            jq '{hook_send_email_enabled, hook_send_email_uri, hook_send_sms_enabled, hook_send_sms_uri, security_captcha_enabled, security_captcha_provider}' <<< "$config"
             exit 1
           fi
-          echo "Sign-in codes go out by email (Resend) and text (Twilio), behind the bot check."
+          if ! jq -e '(.rate_limit_email_sent // 0) >= 500' <<< "$config" > /dev/null; then
+            echo "::warning::The hourly email limit is $(jq -r '.rate_limit_email_sent' <<< "$config"), not 500: sign-in codes could stop on a busy hour."
+          fi
+          echo "Sign-in codes go through $site, behind the bot check."
 
       - name: Load the real setup (no demo data)
         env:

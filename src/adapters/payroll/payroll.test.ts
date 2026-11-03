@@ -7,6 +7,14 @@ describe("payroll CSV", () => {
     expect(csvField("plain")).toBe("plain");
     expect(csvField('Say "hi"')).toBe('"Say ""hi"""');
     expect(csvField("Smith, Jo")).toBe('"Smith, Jo"');
+    expect(csvField(30)).toBe("30");
+  });
+
+  it("never lets typed text run as a formula", () => {
+    expect(csvField('=HYPERLINK("https://example.test","Acme")')).toBe(
+      '"\'=HYPERLINK(""https://example.test"",""Acme"")"',
+    );
+    expect(csvField("@SUM(A1)")).toBe("'@SUM(A1)");
   });
 
   it("writes a header and one row per shift, with Australian dates", () => {

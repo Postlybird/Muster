@@ -528,6 +528,25 @@ export type Database = {
         };
         Relationships: [];
       };
+      auth_texts: {
+        Row: {
+          id: number;
+          sent_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          id?: never;
+          sent_at?: string;
+          user_id: string;
+        };
+        Update: {
+          id?: never;
+          sent_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       availability_blocks: {
         Row: {
           created_at: string;

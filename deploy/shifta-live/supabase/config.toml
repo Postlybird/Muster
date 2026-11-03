@@ -2,10 +2,14 @@
 # (.github/workflows/live-deploy.yml) pushes them with `supabase config push`,
 # which changes only what this file declares.
 #
-# Unlike the demo (deploy/muster-dev), codes are really sent: emails through
-# Resend's mail server and texts through Twilio, sent as the registered
-# sender name. Cloudflare Turnstile guards code requests from bots. Secrets
-# and addresses come from the workflow's environment, never this file.
+# Unlike the demo (deploy/muster-dev), codes are really sent. Supabase hands
+# every code it texts or emails to the live site (the send hooks below,
+# signed with AUTH_HOOK_SECRET), which sends what src/domain/auth-messages.ts
+# allows through Twilio and Resend: sign-in codes by email, and texts only to
+# confirm a new Australian mobile, a few a day per person (security review,
+# 03/11/2026: Supabase's bot check doesn't cover a signed-in person changing
+# their mobile or email). Cloudflare Turnstile guards signing in and up.
+# Secrets and addresses come from the workflow's environment, never this file.
 #
 # Local development uses supabase/config.toml; keep the shared settings
 # (codes, their length and expiry, confirmations) in step with it.
@@ -19,9 +23,12 @@ additional_redirect_urls = [
 ]
 
 [auth.rate_limit]
-# Sign-in and confirmation emails sent an hour, across everyone.
-email_sent = 100
-# Mobile confirmation texts sent an hour, across everyone: each costs money.
+# Code emails sent an hour, across everyone. They're only sign-in codes,
+# behind the bot check, so this is set well above a busy hour: low enough to
+# stop a flood, too high to be a way of locking everyone out.
+email_sent = 500
+# Code texts sent an hour, across everyone: each costs money. The send hook
+# also stops each person at a few a day.
 sms_sent = 60
 
 [auth.captcha]
@@ -32,13 +39,16 @@ secret = "env(TURNSTILE_SECRET_KEY)"
 [auth.email]
 enable_signup = true
 # Sign-in by code confirms the address anyway; this also makes a changed
-# address need a code.
+# address need a code (the send hook refuses address changes on the live
+# site, as everyone registers with their email).
 enable_confirmations = true
 double_confirm_changes = true
 otp_length = 6
 # The sign-in page says codes last 15 minutes.
 otp_expiry = 900
 
+# Every email goes through the send hook. Supabase lets the email limit
+# above be changed only with a mail server set, so Resend's is set too.
 [auth.email.smtp]
 enabled = true
 host = "smtp.resend.com"
@@ -48,22 +58,9 @@ pass = "env(RESEND_API_KEY)"
 admin_email = "env(AUTH_EMAIL_FROM_ADDRESS)"
 sender_name = "env(AUTH_EMAIL_SENDER_NAME)"
 
-[auth.email.template.magic_link]
-subject = "Your sign-in code"
-content_path = "./supabase/templates/sign-in.html"
-
-[auth.email.template.confirmation]
-subject = "Your sign-in code"
-content_path = "./supabase/templates/sign-in.html"
-
-[auth.email.template.email_change]
-subject = "Confirm your email address"
-content_path = "./supabase/templates/email-change.html"
-
 [auth.sms]
-# There's no sign-in by mobile in the app; the provider must be on for
-# workers to confirm their mobile. The bot check and the rate limit above
-# guard it.
+# There's no sign-in by mobile (owner, 31/10/2026): the send hook refuses
+# it. The provider must be on for workers to confirm their mobile.
 enable_signup = true
 # Must be on: otherwise anyone could put someone else's number on their
 # account without a code.
@@ -72,21 +69,29 @@ template = "Your code to confirm this mobile number is {{ .Code }}. It expires i
 otp_length = 6
 otp_expiry = 900
 
+# Texts need a provider switched on, but every one goes through the send
+# hook, which texts through the app's Twilio account, so these placeholder
+# values are never used (as in the demo).
 [auth.sms.twilio]
 enabled = true
-account_sid = "env(TWILIO_ACCOUNT_SID)"
-message_service_sid = "env(TWILIO_MESSAGING_SERVICE_SID)"
-auth_token = "env(TWILIO_AUTH_TOKEN)"
+account_sid = "AC00000000000000000000000000000000"
+message_service_sid = "MG00000000000000000000000000000000"
+auth_token = "placeholder-sms-goes-through-hook"
 
 # Admins sign in with an authenticator app as well (requireAdmin()).
 [auth.mfa.totp]
 enroll_enabled = true
 verify_enabled = true
 
-# The demo's hooks write codes to the outbox instead of sending them; the
-# live site sends them.
+# src/app/api/auth/hooks/[kind]/route.ts. AUTH_HOOK_SECRETS is
+# "v1,whsec_<base64>" of the SHA-256 of AUTH_HOOK_SECRET, made by the
+# workflow (src/lib/webhook-signature.ts does the same).
 [auth.hook.send_sms]
-enabled = false
+enabled = true
+uri = "https://www.shifta.com.au/api/auth/hooks/sms"
+secrets = "env(AUTH_HOOK_SECRETS)"
 
 [auth.hook.send_email]
-enabled = false
+enabled = true
+uri = "https://www.shifta.com.au/api/auth/hooks/email"
+secrets = "env(AUTH_HOOK_SECRETS)"
