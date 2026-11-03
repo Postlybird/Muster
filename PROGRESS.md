@@ -416,7 +416,7 @@ _Last updated: 03/11/2026_
   - **Overtime without super.** Super isn't owed on overtime, so overtime hours are now charged without it, about 11% less than before at the same margin. Each rate card says which rate types are overtime: overtime at both rates by default. Your accountant can tick weekend or holiday rates where the award makes that work overtime (Admin → Rates → the card → "Priced without super"). Bookings priced before keep their prices.
   - **Allowances on rate cards,** paid to the worker and charged to the business (with on-costs but no super, plus the margin). Each is paid on every shift worked, or when the worker stays more than some hours past the booked finish in overtime. From the July 2026 pay guides: general labourers get the building award's fares and travel allowance ($22.41 a shift), and cleaners and restoration technicians the cleaning award's meal allowance ($17.53, after more than 2 hours' overtime past the booked finish). They show on estimates, invoices, the payroll file and the worker's pay. Admins change them in Admin → Rates.
   - **A fee for hiring our workers directly,** in a new draft of the services agreement for the lawyer: 15% of the first year's pay, plus GST, within 180 days of the worker's last shift. On the demo it's waiting unpublished in Admin → Agreements, so nobody is asked to sign again until it's final.
-  - Tests: 522 pgTAP and 528 unit tests passing, and the rate, timesheet, pay run and posting browser tests; the full browser and acceptance runs are being repeated.
+  - Tests: 522 pgTAP, 528 unit and 266 browser tests, plus the acceptance run.
 
 ## Next
 
