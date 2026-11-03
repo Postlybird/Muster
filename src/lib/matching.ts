@@ -12,6 +12,7 @@ import {
 import { weekStart, workedMinutes, type BookedHours } from "@/domain/overtime";
 import {
   hourlyBillCents,
+  onCostPctFor,
   STATE_TIME_ZONES,
   type CostRules,
   type StateCode,
@@ -539,7 +540,7 @@ async function saveShiftPay(
         bill_hourly_cents: hourlyBillCents(
           rules.card,
           rules.billRule,
-          rules.onCostPct,
+          onCostPctFor(rules, "ordinary"),
           "ordinary",
         ),
         estimate_bill_cents: cost.billCents,

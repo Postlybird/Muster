@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { DEFAULT_SUPER_FREE_TYPES } from "@/domain/rates";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { businessOptions } from "@/server/businesses";
@@ -50,6 +51,7 @@ export default async function NewRateCardPage({
             night: 1.4,
           },
           award: emptyAwardRules,
+          super_free_types: [...DEFAULT_SUPER_FREE_TYPES],
           effective_from: "",
           effective_to: "",
           checked_by: "",

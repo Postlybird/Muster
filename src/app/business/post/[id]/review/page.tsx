@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { POST_STEPS } from "@/domain/jobs";
-import { hourlyBillCents, type StateCode } from "@/domain/pay";
+import { hourlyBillCents, onCostPctFor, type StateCode } from "@/domain/pay";
 import { estimateLines } from "@/domain/pricing";
 import { dayTypeLabels } from "@/domain/rates";
 import { formatCents, formatHours } from "@/lib/format";
@@ -84,7 +84,7 @@ export default async function ReviewStepPage({
           rateCents: hourlyBillCents(
             firstQuote.rules.card,
             firstQuote.rules.billRule,
-            firstQuote.rules.onCostPct,
+            onCostPctFor(firstQuote.rules, "overtime"),
             "overtime",
           ),
           dailyHours:

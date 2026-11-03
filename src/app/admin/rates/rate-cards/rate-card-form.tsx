@@ -15,14 +15,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   CORE_DAY_TYPES,
   dayTypeLabels,
   hourlyPayCents,
+  SUPER_FREE_CHOICES,
   type CoreDayType,
   type DayType,
   type Multipliers,
+  type SuperFreeType,
 } from "@/domain/rates";
 import { formatCents } from "@/lib/format";
 
@@ -38,6 +42,8 @@ export type RateCardFormValues = {
   base_rate: string;
   multipliers: Record<CoreDayType, number>;
   award: AwardRuleValues;
+  /** Rate types the award makes overtime, priced without super. */
+  super_free_types: SuperFreeType[];
   effective_from: string;
   effective_to: string;
   checked_by: string;
@@ -413,6 +419,33 @@ export function RateCardForm({
               "Night: finishes after midnight and by",
             )}
           </div>
+        </div>
+      </fieldset>
+
+      <fieldset className="space-y-3 rounded-xl border bg-card p-4">
+        <legend className="px-1 text-sm font-medium">
+          Priced without super
+        </legend>
+        <p className="text-sm text-muted-foreground">
+          Super isn&apos;t owed on overtime, so these hours are charged without
+          it. Tick weekend or holiday rates too where this award makes that work
+          overtime, as it does for day workers&apos; weekends under some awards.
+          To be checked by a payroll professional.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {SUPER_FREE_CHOICES.map((type) => (
+            <div key={type} className="flex items-center gap-3">
+              <Checkbox
+                id={`super-free-${type}`}
+                name="super_free_types"
+                value={type}
+                defaultChecked={values.super_free_types.includes(type)}
+              />
+              <Label htmlFor={`super-free-${type}`} className="font-normal">
+                {dayTypeLabels[type]}
+              </Label>
+            </div>
+          ))}
         </div>
       </fieldset>
 

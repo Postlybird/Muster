@@ -1,6 +1,7 @@
 import { NO_PRIOR_HOURS, type PriorHours } from "./overtime";
 import {
   DAY_TYPES,
+  DEFAULT_SUPER_FREE_TYPES,
   hourlyPayCents,
   multiplierFor,
   type AwardDayType,
@@ -441,6 +442,12 @@ export type CostRules = {
   billRule: BillRule;
   /** Total on-costs as a percent of pay (super, workers' comp, payroll tax, insurance). */
   onCostPct: number;
+  /**
+   * Super's part of the on-costs, left off the hours the card's award makes
+   * overtime (owner, 03/11/2026: super isn't owed on overtime). Absent on
+   * rates kept with bookings made before, which add it to every hour.
+   */
+  superPct?: number;
   /** Shorter shifts are paid and billed up to this (brief §4.8). */
   minEngagementMinutes: number;
   /** Urgent call-out loadings, or null for an ordinary shift (plan question 7). */
@@ -512,6 +519,22 @@ export function totalOnCostPct(
   return bp / 100;
 }
 
+/**
+ * The on-costs on an hour of a rate type, as a percent of pay: all of them,
+ * less super on the hours that are overtime (the card's superFreeTypes).
+ */
+export function onCostPctFor(
+  rules: Pick<CostRules, "card" | "onCostPct" | "superPct">,
+  type: DayType,
+): number {
+  if (rules.superPct === undefined) return rules.onCostPct;
+  const superFree: readonly DayType[] =
+    rules.card.superFreeTypes ?? DEFAULT_SUPER_FREE_TYPES;
+  return superFree.includes(type)
+    ? (basisPoints(rules.onCostPct) - basisPoints(rules.superPct)) / 100
+    : rules.onCostPct;
+}
+
 /** The hourly bill rate (excluding GST) for a rate type. */
 export function hourlyBillCents(
   card: RateCard,
@@ -562,7 +585,7 @@ export function costShift(minutes: MinutesByType, rules: CostRules): ShiftCost {
     const billRateCents = hourlyBillCents(
       rules.card,
       rules.billRule,
-      rules.onCostPct,
+      onCostPctFor(rules, type),
       type,
     );
     return {
@@ -591,7 +614,15 @@ export function costShift(minutes: MinutesByType, rules: CostRules): ShiftCost {
     ? percentOf(hoursBill, rules.urgent.billPct)
     : 0;
   const payCents = hoursPay + urgentPayCents;
-  const onCostCents = percentOf(payCents, rules.onCostPct);
+  // Less super on the overtime hours (none for rates kept from before).
+  const superFreePay = lines
+    .filter((l) => onCostPctFor(rules, l.type) !== rules.onCostPct)
+    .reduce((sum, l) => sum + l.payCents, 0);
+  const onCostCents =
+    percentOf(payCents, rules.onCostPct) -
+    (rules.superPct === undefined
+      ? 0
+      : percentOf(superFreePay, rules.superPct));
   const billCents = hoursBill + urgentBillCents;
   const gstCents = percentOf(billCents, rules.gstPct);
   return {

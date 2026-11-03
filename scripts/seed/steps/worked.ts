@@ -3,6 +3,7 @@ import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { parseSetting, type SettingKey } from "../../../src/config/settings";
 import {
   hourlyBillCents,
+  onCostPctFor,
   STATE_TIME_ZONES,
   type StateCode,
 } from "../../../src/domain/pay";
@@ -184,7 +185,7 @@ export async function seedWorked(client: SeedClient) {
           bill_hourly_cents: hourlyBillCents(
             rules.card,
             rules.billRule,
-            rules.onCostPct,
+            onCostPctFor(rules, "ordinary"),
             "ordinary",
           ),
           estimate_pay_cents: cost.payCents,

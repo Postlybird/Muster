@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { CORE_DAY_TYPES, DAY_TYPES } from "@/domain/rates";
+import {
+  CORE_DAY_TYPES,
+  DAY_TYPES,
+  SUPER_FREE_CHOICES,
+  superFreeTypesFrom,
+} from "@/domain/rates";
 import { requireAdmin } from "@/lib/auth";
 import {
   dollarsToCents,
@@ -105,6 +110,8 @@ const rateCardSchema = z
     early_late_finishes_after: optionalTime,
     night_shift_multiplier: optionalMultiplier,
     night_shift_finishes_by: optionalTime,
+    // The rate types priced without super (owner, 03/11/2026).
+    super_free_types: z.array(z.enum(SUPER_FREE_CHOICES)),
     effective_from: isoDate,
     effective_to: optionalDate,
     checked_by: z.string().trim().max(120).nullable(),
@@ -185,6 +192,9 @@ export async function saveRateCard(
     ),
     ...Object.fromEntries(
       AWARD_RULE_FIELDS.map((field) => [field, formData.get(field)]),
+    ),
+    super_free_types: superFreeTypesFrom(
+      formData.getAll("super_free_types").map(String),
     ),
     effective_from: formData.get("effective_from"),
     effective_to: optionalText(formData.get("effective_to")),

@@ -192,6 +192,7 @@ export function makePricer(scope: PricingScope, data: PricingData) {
           ? null
           : Number(data.category.workers_comp_pct),
       ),
+      superPct: settings.on_costs_pct.super,
       minEngagementMinutes: Math.round(
         Number(data.category.min_engagement_hours) * 60,
       ),

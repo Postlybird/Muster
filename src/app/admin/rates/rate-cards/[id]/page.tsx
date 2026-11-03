@@ -5,7 +5,11 @@ import { notFound } from "next/navigation";
 
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { Button } from "@/components/ui/button";
-import { CORE_DAY_TYPES, type CoreDayType } from "@/domain/rates";
+import {
+  CORE_DAY_TYPES,
+  superFreeTypesFrom,
+  type CoreDayType,
+} from "@/domain/rates";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { businessOptions } from "@/server/businesses";
@@ -87,6 +91,7 @@ export default async function EditRateCardPage({
             ]),
           ) as Record<CoreDayType, number>,
           award: awardRuleValuesFromRow(card),
+          super_free_types: superFreeTypesFrom(card.super_free_types),
           effective_from: card.effective_from,
           effective_to: card.effective_to ?? "",
           checked_by: card.checked_by ?? "",

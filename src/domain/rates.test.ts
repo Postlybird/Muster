@@ -78,6 +78,7 @@ describe("hourly pay", () => {
         earlyLate: null,
         nightShiftFinishesBy: null,
       },
+      superFreeTypes: ["overtime", "overtime_after"],
     });
   });
 
@@ -138,6 +139,41 @@ describe("hourly pay", () => {
     });
     expect(fromRow.award?.earlyLate).toBeNull();
     expect(fromRow.award?.nightShiftFinishesBy).toBeNull();
+  });
+});
+
+describe("rate types priced without super", () => {
+  const row = {
+    base_rate_cents: 2748,
+    ordinary_multiplier: 1.25,
+    saturday_multiplier: 1.75,
+    sunday_multiplier: 2.25,
+    public_holiday_multiplier: 2.75,
+    overtime_multiplier: 1.75,
+    night_multiplier: 1.25,
+  };
+
+  it("are overtime unless the card says otherwise", () => {
+    expect(rateCardFromRow(row).superFreeTypes).toEqual([
+      "overtime",
+      "overtime_after",
+    ]);
+    expect(
+      rateCardFromRow({ ...row, super_free_types: ["sunday", "overtime"] })
+        .superFreeTypes,
+    ).toEqual(["overtime", "sunday"]);
+    expect(
+      rateCardFromRow({ ...row, super_free_types: [] }).superFreeTypes,
+    ).toEqual([]);
+  });
+
+  it("never include ordinary hours or shift loadings", () => {
+    expect(
+      rateCardFromRow({
+        ...row,
+        super_free_types: ["ordinary", "night_shift", "saturday"],
+      }).superFreeTypes,
+    ).toEqual(["saturday"]);
   });
 });
 

@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(10);
+select plan(12);
 
 insert into public.categories (id, code, name) values
   ('a1111111-0000-0000-0000-000000000001', 'pgtap_award_cleaner', 'PGTAP award cleaner');
@@ -20,6 +20,16 @@ select is(
   2.00::numeric(4, 2),
   'The first 2 hours of overtime are at the first rate unless a card says otherwise'
 );
+select is(
+  (select super_free_types from public.rate_cards
+   where category_id = 'a1111111-0000-0000-0000-000000000001' and effective_from = '2026-01-01'),
+  array['overtime', 'overtime_after'],
+  'Overtime is priced without super unless a card says otherwise (owner, 03/11/2026)'
+);
+select throws_ok($$
+  update public.rate_cards set super_free_types = array['overtime', 'ordinary']
+  where category_id = 'a1111111-0000-0000-0000-000000000001' and effective_from = '2026-01-01'
+$$, '23514', null, 'Ordinary hours always carry super');
 
 select lives_ok($$
   insert into public.rate_cards (

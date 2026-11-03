@@ -6,6 +6,7 @@ import {
   costShift,
   emptyMinutes,
   hourlyBillCents,
+  onCostPctFor,
   percentOf,
   splitShift,
   sumCosts,
@@ -510,6 +511,87 @@ describe("on-costs and rounding", () => {
     expect(percentOf(5, 10)).toBe(1);
     expect(percentOf(25, 10)).toBe(3);
     expect(percentOf(24, 10)).toBe(2);
+  });
+});
+
+describe("super on overtime (owner, 03/11/2026)", () => {
+  // Priced from now on: super's part of the on-costs is known.
+  const priced: CostRules = {
+    ...costRules,
+    card: cleaner,
+    superPct: 12,
+  };
+  const tenHours: MinutesByType = {
+    ...emptyMinutes(),
+    ordinary: 456,
+    overtime: 120,
+    overtime_after: 24,
+  };
+
+  it("leaves super off overtime, at both rates", () => {
+    expect(onCostPctFor(priced, "ordinary")).toBe(23.45);
+    expect(onCostPctFor(priced, "saturday")).toBe(23.45);
+    expect(onCostPctFor(priced, "overtime")).toBe(11.45);
+    expect(onCostPctFor(priced, "overtime_after")).toBe(11.45);
+    // $48.09 an hour of overtime, plus 11.45% and 18%.
+    expect(
+      hourlyBillCents(
+        cleaner,
+        priced.billRule,
+        onCostPctFor(priced, "overtime"),
+        "overtime",
+      ),
+    ).toBe(6324);
+    expect(
+      hourlyBillCents(
+        cleaner,
+        priced.billRule,
+        onCostPctFor(priced, "ordinary"),
+        "ordinary",
+      ),
+    ).toBe(5004);
+  });
+
+  it("works out the on-costs without super on the overtime hours", () => {
+    const cost = costShift(tenHours, priced);
+    const overtimePay = cost.lines
+      .filter((line) => line.type.startsWith("overtime"))
+      .reduce((sum, line) => sum + line.payCents, 0);
+    expect(cost.onCostCents).toBe(
+      percentOf(cost.payCents, 23.45) - percentOf(overtimePay, 12),
+    );
+    const overtime = cost.lines.find((line) => line.type === "overtime")!;
+    expect(overtime.billRateCents).toBe(6324);
+  });
+
+  it("follows the card where its award makes weekends overtime", () => {
+    const weekendsOvertime: CostRules = {
+      ...priced,
+      card: {
+        ...cleaner,
+        superFreeTypes: ["overtime", "overtime_after", "saturday", "sunday"],
+      },
+    };
+    expect(onCostPctFor(weekendsOvertime, "saturday")).toBe(11.45);
+    expect(onCostPctFor(weekendsOvertime, "sunday")).toBe(11.45);
+    expect(onCostPctFor(weekendsOvertime, "public_holiday")).toBe(23.45);
+    // A card that lists nothing charges super on every hour.
+    expect(
+      onCostPctFor(
+        { ...priced, card: { ...cleaner, superFreeTypes: [] } },
+        "overtime",
+      ),
+    ).toBe(23.45);
+  });
+
+  it("keeps super on every hour for bookings priced before", () => {
+    const before: CostRules = { ...costRules, card: cleaner };
+    expect(onCostPctFor(before, "overtime")).toBe(23.45);
+    const cost = costShift(tenHours, before);
+    expect(cost.onCostCents).toBe(percentOf(cost.payCents, 23.45));
+    expect(
+      cost.lines.find((line) => line.type === "overtime")!.billRateCents,
+    ).toBe(7005);
   });
 });
 

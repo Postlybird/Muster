@@ -91,12 +91,46 @@ export type AwardRules = {
   nightShiftFinishesBy: string | null;
 };
 
+/**
+ * Rate types an award can make overtime, which super isn't paid on (super
+ * is owed on ordinary time earnings). Shift loadings and ordinary hours
+ * always carry super, so they aren't among them.
+ */
+export const SUPER_FREE_CHOICES = [
+  "overtime",
+  "overtime_after",
+  "saturday",
+  "saturday_after",
+  "sunday",
+  "public_holiday",
+] as const satisfies readonly DayType[];
+
+export type SuperFreeType = (typeof SUPER_FREE_CHOICES)[number];
+
+/** Overtime, at either rate: every award's overtime is free of super. */
+export const DEFAULT_SUPER_FREE_TYPES: readonly SuperFreeType[] = [
+  "overtime",
+  "overtime_after",
+];
+
 export type RateCard = {
   baseRateCents: number;
   multipliers: Multipliers;
   /** Absent on rates kept with bookings made before award rules existed. */
   award?: AwardRules;
+  /**
+   * The rate types this card's award makes overtime, priced without super
+   * (owner, 03/11/2026). Absent on rates kept with bookings made before.
+   */
+  superFreeTypes?: SuperFreeType[];
 };
+
+/** A saved list of rate types, keeping only the ones super can be left off. */
+export function superFreeTypesFrom(
+  values: readonly string[] | null | undefined,
+): SuperFreeType[] {
+  return SUPER_FREE_CHOICES.filter((type) => values?.includes(type));
+}
 
 /** The multiplier for a rate type, falling back for a card that doesn't set it. */
 export function multiplierFor(card: RateCard, dayType: DayType): number {
@@ -242,6 +276,7 @@ export function rateCardFromRow(row: {
   early_late_starts_before?: string | null;
   early_late_finishes_after?: string | null;
   night_shift_finishes_by?: string | null;
+  super_free_types?: string[] | null;
 }): RateCard {
   const multipliers: Multipliers = {
     ordinary: Number(row.ordinary_multiplier),
@@ -288,6 +323,10 @@ export function rateCardFromRow(row: {
           ? hhmm(row.night_shift_finishes_by)
           : null,
     },
+    superFreeTypes:
+      row.super_free_types === undefined || row.super_free_types === null
+        ? [...DEFAULT_SUPER_FREE_TYPES]
+        : superFreeTypesFrom(row.super_free_types),
   };
 }
 

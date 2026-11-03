@@ -2468,6 +2468,7 @@ export type Database = {
           saturday_later_from: string | null;
           saturday_multiplier: number;
           sunday_multiplier: number;
+          super_free_types: string[];
           tier_hours: number;
           updated_at: string;
         };
@@ -2503,6 +2504,7 @@ export type Database = {
           saturday_later_from?: string | null;
           saturday_multiplier?: number;
           sunday_multiplier?: number;
+          super_free_types?: string[];
           tier_hours?: number;
           updated_at?: string;
         };
@@ -2537,6 +2539,7 @@ export type Database = {
           saturday_later_from?: string | null;
           saturday_multiplier?: number;
           sunday_multiplier?: number;
+          super_free_types?: string[];
           tier_hours?: number;
           updated_at?: string;
         };
