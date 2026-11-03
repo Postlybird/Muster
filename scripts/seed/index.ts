@@ -1,6 +1,11 @@
 /**
  * Demo data: `npm run seed`. Safe to run repeatedly; it only adds what's
  * missing. See scripts/seed/data for the people and catalogues.
+ *
+ * `npm run seed:reference` adds only the real setup, for the live site:
+ * settings, catalogues, the checked rate cards, public holidays, states and
+ * agreements. No demo people, businesses or jobs, and no placeholder rates.
+ * The live workflow sets SEED_TARGET=live, and then demo data is refused.
  */
 import { createSeedClient, loadEnv } from "./client";
 import { seedBookings } from "./steps/bookings";
@@ -16,17 +21,32 @@ import { seedWorkers } from "./steps/workers";
 
 async function main() {
   loadEnv();
+  const referenceOnly = process.argv.includes("--reference");
+  if (process.env.SEED_TARGET === "live" && !referenceOnly) {
+    throw new Error(
+      "Refusing to put demo data in the live database. Use npm run seed:reference.",
+    );
+  }
   const { client, url } = createSeedClient();
-  console.log(`Seeding demo data into ${url}`);
+  console.log(
+    `Seeding ${referenceOnly ? "the real setup (no demo data)" : "demo data"} into ${url}`,
+  );
 
-  const settings = await seedSettings(client);
+  const settings = await seedSettings(client, { demo: !referenceOnly });
   console.log("  settings added:", settings.settings);
 
   const catalogues = await seedCatalogues(client);
   console.log("  catalogues added:", catalogues);
 
-  const compliance = await seedCompliance(client);
+  const compliance = await seedCompliance(client, {
+    placeholderRates: !referenceOnly,
+  });
   console.log("  rates and compliance added:", compliance);
+
+  if (referenceOnly) {
+    console.log("Done.");
+    return;
+  }
 
   const users = await seedUsers(client);
   console.log(`  demo logins: ${users.users} (${users.newUsers} new)`);

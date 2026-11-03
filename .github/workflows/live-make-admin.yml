@@ -1,0 +1,39 @@
+name: Make an admin on the live site
+
+# Run by hand (Actions → "Make an admin on the live site" → Run workflow)
+# with the email of an account that has signed in on the live site once.
+# Nobody can become an admin by signing up; after the first, admins are
+# managed in Admin → Team.
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: The account's email address
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  make-admin:
+    name: Make the account an admin
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: live
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Make the admin
+        env:
+          LIVE_SUPABASE_PROJECT_ID: ${{ secrets.LIVE_SUPABASE_PROJECT_ID }}
+          SUPABASE_SECRET_KEY: ${{ secrets.LIVE_SUPABASE_SECRET_KEY }}
+          EMAIL: ${{ inputs.email }}
+        run: |
+          export NEXT_PUBLIC_SUPABASE_URL="https://$LIVE_SUPABASE_PROJECT_ID.supabase.co"
+          npx tsx scripts/make-admin.ts "$EMAIL"

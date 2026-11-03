@@ -5,8 +5,10 @@ name: Deploy database (muster-dev)
 # the live site. Production will get its own workflow without demo data.
 
 on:
+  # The demo only: the live site's database has its own workflow
+  # (live-deploy.yml), run from the main branch.
   push:
-    branches: [main, "claude/**"]
+    branches: ["claude/**"]
     paths:
       - "supabase/migrations/**"
       - "deploy/muster-dev/**"

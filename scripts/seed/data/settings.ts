@@ -25,16 +25,24 @@ const DEMO_VALUES: { [K in SettingKey]?: SettingValue<K> } = {
   },
 };
 
-/** Default policy settings, from the registry in src/config/settings.ts. */
-export const SEED_SETTINGS = settingKeys.map((key) => {
-  const definition = SETTINGS[key];
-  return {
-    key,
-    value: DEMO_VALUES[key] ?? definition.defaultValue,
-    isPublic: definition.isPublic,
-    description: `${definition.placeholder ? "PLACEHOLDER. " : ""}${definition.help}`,
-  };
-});
+/**
+ * Default policy settings, from the registry in src/config/settings.ts. The
+ * demo gets made-up company and bank details; the live site starts with
+ * them blank, so no invoice goes out until the owner enters the real ones.
+ */
+export function seedSettingValues({ demo }: { demo: boolean }) {
+  return settingKeys.map((key) => {
+    const definition = SETTINGS[key];
+    return {
+      key,
+      value: (demo ? DEMO_VALUES[key] : undefined) ?? definition.defaultValue,
+      isPublic: definition.isPublic,
+      description: `${definition.placeholder ? "PLACEHOLDER. " : ""}${definition.help}`,
+    };
+  });
+}
+
+export const SEED_SETTINGS = seedSettingValues({ demo: true });
 
 /**
  * Demo data only: lets the seeded @demo.test admins use admin screens

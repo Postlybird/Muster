@@ -1,0 +1,172 @@
+name: Deploy the live site
+
+# Releases (owner, 03/11/2026): the live site only changes when the owner
+# says "release", and the tested version is pushed to the main branch. This
+# workflow then updates the live database first (migrations, sign-in
+# settings and the real setup, never demo data), points the scheduled jobs
+# at the live site, and only then starts the live site's build through its
+# Vercel deploy hook (vercel.json stops Vercel building main by itself).
+#
+# Its secrets are in the GitHub environment "live", named LIVE_* and so on,
+# so they can't be mixed up with the demo's (db-deploy.yml).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: live-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Live database, sign-in settings and real setup, then the site
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: live
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Check the live secrets are set
+        env:
+          LIVE_SUPABASE_ACCESS_TOKEN: ${{ secrets.LIVE_SUPABASE_ACCESS_TOKEN }}
+          LIVE_SUPABASE_DB_PASSWORD: ${{ secrets.LIVE_SUPABASE_DB_PASSWORD }}
+          LIVE_SUPABASE_PROJECT_ID: ${{ secrets.LIVE_SUPABASE_PROJECT_ID }}
+          LIVE_SUPABASE_SECRET_KEY: ${{ secrets.LIVE_SUPABASE_SECRET_KEY }}
+          LIVE_CRON_SECRET: ${{ secrets.LIVE_CRON_SECRET }}
+          LIVE_RESEND_API_KEY: ${{ secrets.LIVE_RESEND_API_KEY }}
+          LIVE_TWILIO_ACCOUNT_SID: ${{ secrets.LIVE_TWILIO_ACCOUNT_SID }}
+          LIVE_TWILIO_AUTH_TOKEN: ${{ secrets.LIVE_TWILIO_AUTH_TOKEN }}
+          LIVE_TWILIO_MESSAGING_SERVICE_SID: ${{ secrets.LIVE_TWILIO_MESSAGING_SERVICE_SID }}
+          LIVE_TURNSTILE_SECRET_KEY: ${{ secrets.LIVE_TURNSTILE_SECRET_KEY }}
+          LIVE_VERCEL_DEPLOY_HOOK: ${{ secrets.LIVE_VERCEL_DEPLOY_HOOK }}
+          LIVE_EMAIL_FROM_ADDRESS: ${{ vars.LIVE_EMAIL_FROM_ADDRESS }}
+          DEMO_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          missing=0
+          for name in LIVE_SUPABASE_ACCESS_TOKEN LIVE_SUPABASE_DB_PASSWORD \
+            LIVE_SUPABASE_PROJECT_ID LIVE_SUPABASE_SECRET_KEY LIVE_CRON_SECRET \
+            LIVE_RESEND_API_KEY LIVE_TWILIO_ACCOUNT_SID LIVE_TWILIO_AUTH_TOKEN \
+            LIVE_TWILIO_MESSAGING_SERVICE_SID LIVE_TURNSTILE_SECRET_KEY \
+            LIVE_VERCEL_DEPLOY_HOOK LIVE_EMAIL_FROM_ADDRESS; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name isn't set in the GitHub environment \"live\""
+              missing=1
+            fi
+          done
+          if [ -n "$DEMO_PROJECT_ID" ] && [ "$LIVE_SUPABASE_PROJECT_ID" = "$DEMO_PROJECT_ID" ]; then
+            echo "::error::LIVE_SUPABASE_PROJECT_ID is the demo's project. The live site needs its own."
+            missing=1
+          fi
+          exit $missing
+
+      - name: Link the live project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.LIVE_SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.LIVE_SUPABASE_DB_PASSWORD }}
+          LIVE_SUPABASE_PROJECT_ID: ${{ secrets.LIVE_SUPABASE_PROJECT_ID }}
+        run: npx supabase link --project-ref "$LIVE_SUPABASE_PROJECT_ID"
+
+      - name: Apply new migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.LIVE_SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.LIVE_SUPABASE_DB_PASSWORD }}
+        run: npx supabase db push --linked --yes
+
+      # Only what deploy/shifta-live/supabase/config.toml declares changes.
+      # The sender's name comes from src/config/brand.ts.
+      - name: Push the sign-in settings
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.LIVE_SUPABASE_ACCESS_TOKEN }}
+          LIVE_SUPABASE_PROJECT_ID: ${{ secrets.LIVE_SUPABASE_PROJECT_ID }}
+          RESEND_API_KEY: ${{ secrets.LIVE_RESEND_API_KEY }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.LIVE_TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.LIVE_TWILIO_AUTH_TOKEN }}
+          TWILIO_MESSAGING_SERVICE_SID: ${{ secrets.LIVE_TWILIO_MESSAGING_SERVICE_SID }}
+          TURNSTILE_SECRET_KEY: ${{ secrets.LIVE_TURNSTILE_SECRET_KEY }}
+          AUTH_EMAIL_FROM_ADDRESS: ${{ vars.LIVE_EMAIL_FROM_ADDRESS }}
+        run: |
+          AUTH_EMAIL_SENDER_NAME=$(grep -m1 '^  name: "' src/config/brand.ts | cut -d'"' -f2)
+          export AUTH_EMAIL_SENDER_NAME
+          npx supabase config push --workdir deploy/shifta-live --project-ref "$LIVE_SUPABASE_PROJECT_ID" --yes
+
+      # Reads the settings back: sign-in emails carry the code and go through
+      # Resend, texts go through Twilio, the bot check is on, and the demo's
+      # outbox hooks are off.
+      - name: Check codes are really sent
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.LIVE_SUPABASE_ACCESS_TOKEN }}
+          LIVE_SUPABASE_PROJECT_ID: ${{ secrets.LIVE_SUPABASE_PROJECT_ID }}
+        run: |
+          config=$(curl -fsS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$LIVE_SUPABASE_PROJECT_ID/config/auth")
+          if ! jq -e '
+            ((.mailer_templates_magic_link_content // "") | contains("{{ .Token }}"))
+            and ((.mailer_templates_confirmation_content // "") | contains("{{ .Token }}"))
+            and .smtp_host == "smtp.resend.com"
+            and .sms_provider == "twilio"
+            and .security_captcha_enabled == true
+            and .security_captcha_provider == "turnstile"
+            and (.hook_send_email_enabled | not)
+            and (.hook_send_sms_enabled | not)
+          ' <<< "$config" > /dev/null; then
+            echo "::error::The live sign-in settings didn't take:"
+            jq '{smtp_host, sms_provider, security_captcha_enabled, security_captcha_provider, hook_send_email_enabled, hook_send_sms_enabled}' <<< "$config"
+            exit 1
+          fi
+          echo "Sign-in codes go out by email (Resend) and text (Twilio), behind the bot check."
+
+      - name: Load the real setup (no demo data)
+        env:
+          LIVE_SUPABASE_PROJECT_ID: ${{ secrets.LIVE_SUPABASE_PROJECT_ID }}
+          SUPABASE_SECRET_KEY: ${{ secrets.LIVE_SUPABASE_SECRET_KEY }}
+          SEED_ALLOW_REMOTE: "true"
+          SEED_TARGET: live
+        run: |
+          export NEXT_PUBLIC_SUPABASE_URL="https://$LIVE_SUPABASE_PROJECT_ID.supabase.co"
+          npm run seed:reference
+
+      # Saves the live site's address and the CRON_SECRET in the project's
+      # Vault, then runs one job to check the site accepts the secret. Until
+      # the live address points at the live site (the switch-over), the
+      # check only warns.
+      - name: Point the scheduled jobs at the live site
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.LIVE_SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.LIVE_SUPABASE_DB_PASSWORD }}
+          CRON_SECRET: ${{ secrets.LIVE_CRON_SECRET }}
+        run: |
+          site=$(grep -m1 '^site_url' deploy/shifta-live/supabase/config.toml | cut -d'"' -f2)
+          encoded=$(printf '%s' "$CRON_SECRET" | base64 -w0)
+          echo "::add-mask::$encoded"
+          query() { npx supabase db query --linked --agent no -o json "$1"; }
+
+          query "select public.set_scheduled_job_target('$site', convert_from(decode('$encoded', 'base64'), 'utf8'))" > /dev/null
+          id=$(query "select public.call_scheduled_job('notifications') as id" | jq -r '.[0].id')
+          reply=""
+          for attempt in $(seq 1 20); do
+            reply=$(query "select status_code, error_msg from net._http_response where id = $id" | jq -c '.[0] // empty')
+            [ -n "$reply" ] && break
+            sleep 3
+          done
+          case "$(jq -r '.status_code // empty' <<< "$reply")" in
+            200) echo "The scheduled jobs are on: $site ran the notifications job." ;;
+            *) echo "::warning::$site didn't run the job yet (${reply:-no reply}). Fine before the switch-over; after it, LIVE_CRON_SECRET must match CRON_SECRET in the live Vercel project." ;;
+          esac
+
+      # The database is ready, so the live site can be built.
+      - name: Build the live site
+        env:
+          LIVE_VERCEL_DEPLOY_HOOK: ${{ secrets.LIVE_VERCEL_DEPLOY_HOOK }}
+        run: |
+          curl -fsS -X POST "$LIVE_VERCEL_DEPLOY_HOOK" > /dev/null
+          echo "Vercel is building the live site; it goes live when the build passes its checks (next.config.ts)."

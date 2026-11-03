@@ -14,7 +14,18 @@ import {
  * Jurisdictions, public holidays, draft agreements, default rate cards and
  * the launch work types' award rate cards.
  */
-export async function seedCompliance(client: SeedClient) {
+export async function seedCompliance(
+  client: SeedClient,
+  {
+    placeholderRates = true,
+  }: {
+    /**
+     * The demo's placeholder rate cards, for shifts dated before the
+     * checked ones. The live site has only checked rates.
+     */
+    placeholderRates?: boolean;
+  } = {},
+) {
   const jurisdictions = check(
     await client
       .from("jurisdictions")
@@ -102,7 +113,12 @@ export async function seedCompliance(client: SeedClient) {
   );
   const withCard = new Set((cards ?? []).map((c) => c.category_id));
   const newCards = categories
-    .filter((c) => !withCard.has(c.id) && DEFAULT_BASE_RATES_CENTS[c.code])
+    .filter(
+      (c) =>
+        placeholderRates &&
+        !withCard.has(c.id) &&
+        DEFAULT_BASE_RATES_CENTS[c.code],
+    )
     .map((c) => ({
       category_id: c.id,
       level: 1,

@@ -13,6 +13,7 @@ project_id = "muster-dev"
 # address that doesn't redirect.
 site_url = "https://www.shifta.com.au"
 additional_redirect_urls = [
+  "https://demo.shifta.com.au/**",
   "https://muster-two-mauve.vercel.app/**",
   "https://shifta.com.au/**",
   "https://www.shifta.com.au/**",
