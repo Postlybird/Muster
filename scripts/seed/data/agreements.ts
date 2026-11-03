@@ -13,6 +13,8 @@ type SeedAgreement = {
     | "privacy_collection_notice"
     | "worker_supply_notice";
   jurisdiction?: string;
+  /** This document's own version, where it has moved on from AGREEMENT_VERSION. */
+  version?: string;
   title: string;
   body: string;
 };
@@ -25,6 +27,8 @@ export const AGREEMENT_VERSION = "0.1-draft";
 export const AGREEMENTS: SeedAgreement[] = [
   {
     kind: "labour_hire_services",
+    // 0.2 (owner, 03/11/2026): a placement fee for hiring our workers directly.
+    version: "0.2-draft",
     title: "Labour Hire Services Agreement (draft)",
     body: `${draftNote}
 
@@ -46,8 +50,11 @@ Cancelling within the late cancellation window is charged under our cancellation
 ## 6. Labour hire licensing
 Where a state requires a labour hire licence, our licence number appears on this agreement and our invoices.
 
-## 7. Ending this agreement
-Either of us can end this agreement by written notice. Work already completed is still payable.
+## 7. Hiring our workers yourself
+Our workers are our employees. If you employ a worker who has worked for you through us, or take them on through another agency or as a contractor, within 180 days after the last shift they worked for you, you'll pay us a placement fee of 15% of the pay you agree with them for their first year, plus GST. Talk to us first: we're happy to agree the fee before they start.
+
+## 8. Ending this agreement
+Either of us can end this agreement by written notice. Work already completed is still payable, and section 7 still applies for its 180 days.
 `,
   },
   {

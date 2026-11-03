@@ -73,7 +73,10 @@ export async function seedCompliance(
     ),
   );
   const missingAgreements = AGREEMENTS.filter(
-    (a) => !have.has(`${a.kind}|${a.jurisdiction ?? ""}|${AGREEMENT_VERSION}`),
+    (a) =>
+      !have.has(
+        `${a.kind}|${a.jurisdiction ?? ""}|${a.version ?? AGREEMENT_VERSION}`,
+      ),
   );
   for (const agreement of missingAgreements) {
     const current = check(
@@ -89,7 +92,7 @@ export async function seedCompliance(
       await client.from("agreements").insert({
         kind: agreement.kind,
         jurisdiction: agreement.jurisdiction ?? null,
-        version: AGREEMENT_VERSION,
+        version: agreement.version ?? AGREEMENT_VERSION,
         title: agreement.title,
         body_md: agreement.body,
         published_at: new Date().toISOString(),
