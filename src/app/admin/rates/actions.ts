@@ -119,6 +119,8 @@ const rateCardSchema = z
     super_free_types: z.array(z.enum(SUPER_FREE_CHOICES)),
     effective_from: isoDate,
     effective_to: optionalDate,
+    // The award and level, as invoices show it (owner, 04/11/2026).
+    award: z.string().trim().max(120, "Keep it to 120 characters").nullable(),
     checked_by: z.string().trim().max(120).nullable(),
     checked_on: optionalDate,
     notes: z.string().trim().max(1000),
@@ -252,6 +254,7 @@ export async function saveRateCard(
     ),
     effective_from: formData.get("effective_from"),
     effective_to: optionalText(formData.get("effective_to")),
+    award: optionalText(formData.get("award_label")),
     checked_by: optionalText(formData.get("checked_by")),
     checked_on: optionalText(formData.get("checked_on")),
     notes: formData.get("notes") ?? "",

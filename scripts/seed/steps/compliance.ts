@@ -163,6 +163,7 @@ export async function seedCompliance(
           base_rate_cents: card.baseRateCents,
           ...card.columns,
           allowances: allowancesToRow(card.allowances ?? []),
+          award: card.award,
           effective_from: AWARD_RATE_CARDS_EFFECTIVE_FROM,
           checked_by: AWARD_RATE_CARDS_CHECKED.by,
           checked_on: AWARD_RATE_CARDS_CHECKED.on,

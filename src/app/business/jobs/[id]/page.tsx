@@ -17,6 +17,7 @@ import {
   zoneOf,
 } from "@/lib/format";
 import { jobTitle, shiftHours, workersLabel } from "@/lib/job-format";
+import { poText } from "@/lib/pay-run-format";
 import { jobStatuses, shiftStatuses } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
 import { canManage, getMyBusiness } from "@/server/businesses";
@@ -27,6 +28,7 @@ import { repeatJob } from "../../post/actions";
 import { makeCallout } from "./actions";
 import { CancelWork } from "./cancel-work";
 import { Applicants, Booked } from "./people";
+import { PoNumberForm } from "./po-number-form";
 import { SaveTemplateForm } from "./save-template-form";
 
 export const metadata: Metadata = { title: "Job" };
@@ -152,10 +154,12 @@ export default async function JobPage({
           <StatusBadge status={jobStatuses[job.status]} />
         </div>
         <p className="text-sm text-muted-foreground">
+          {`Job ${job.number}`}
           {job.posted_at
-            ? `Posted ${formatDateTime(job.posted_at, siteZone)}`
+            ? ` · Posted ${formatDateTime(job.posted_at, siteZone)}`
             : null}
           {job.poster?.full_name ? ` by ${job.poster.full_name}` : null}
+          {!manager && job.po_number ? ` · ${poText(job.po_number)}` : null}
         </p>
       </div>
 
@@ -315,6 +319,18 @@ export default async function JobPage({
         </section>
       ) : null}
 
+      {manager ? (
+        <section
+          aria-labelledby="invoicing"
+          className="space-y-3 rounded-xl border bg-card p-5"
+        >
+          <h2 id="invoicing" className="text-lg font-semibold">
+            Invoicing
+          </h2>
+          <PoNumberForm jobId={job.id} poNumber={job.po_number} />
+        </section>
+      ) : null}
+
       <JobSummary job={job} details={details} listShifts={false} />
 
       {manager ? (
@@ -326,7 +342,7 @@ export default async function JobPage({
             Post it again
           </h2>
           <p className="text-sm text-muted-foreground">
-            Copy everything except the dates
+            Copy everything except the dates and PO number
             {template
               ? `, or use the "${template.name}" template from Post work`
               : ""}

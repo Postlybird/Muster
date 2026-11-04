@@ -80,6 +80,8 @@ export type AwardRateCard = {
   columns: AwardColumns;
   /** The award's allowances (owner, 03/11/2026), from the same pay guide. */
   allowances?: Allowance[];
+  /** The award and level, as invoices show it (owner, 04/11/2026). */
+  award: string;
   notes: string;
 };
 
@@ -182,6 +184,7 @@ export const AWARD_RATE_CARDS: AwardRateCard[] = [
     baseRateCents: 2748,
     columns: CLEANING_AWARD,
     allowances: [CLEANING_MEAL_ALLOWANCE],
+    award: "Cleaning Services Award 2020, level 1",
     notes:
       "Cleaning Services Award 2020 [MA000022], cleaning service employee level 1, casual: pay guide effective 01/07/2026, plus $0.50 an hour. Overtime after 7.6 hours a day: 1.75 for the first 2 hours, then 2.25. Early or late shift: Monday to Friday, starting before 6 am or finishing after 6 pm. Night shift: finishing after midnight and by 8 am. To confirm with the accountant: overtime after 7.6 hours a day for casuals.",
   },
@@ -191,6 +194,7 @@ export const AWARD_RATE_CARDS: AwardRateCard[] = [
     baseRateCents: 2837,
     columns: CLEANING_AWARD,
     allowances: [CLEANING_MEAL_ALLOWANCE],
+    award: "Cleaning Services Award 2020, level 2",
     notes:
       "Cleaning Services Award 2020 [MA000022], cleaning service employee level 2 (certified technician), casual: pay guide effective 01/07/2026, plus $0.50 an hour. Rules as for the level 1 cleaning card. To confirm with the accountant: overtime after 7.6 hours a day for casuals.",
   },
@@ -199,6 +203,7 @@ export const AWARD_RATE_CARDS: AwardRateCard[] = [
     level: 1,
     baseRateCents: 2884,
     columns: BUILDING_AWARD,
+    award: "Building and Construction General On-site Award 2020, CW/ECW 1",
     allowances: [
       {
         name: "Fares and travel allowance",
@@ -215,6 +220,7 @@ export const AWARD_RATE_CARDS: AwardRateCard[] = [
     level: 1,
     baseRateCents: 2727,
     columns: TRANSPORT_AWARD,
+    award: "Road Transport and Distribution Award 2020, grade 1",
     notes:
       "Road Transport and Distribution Award 2020 [MA000038], transport worker grade 1, casual: pay guide effective 01/07/2026, plus $0.50 an hour. Day work: hours outside 5:30 am to 6:30 pm on weekdays, or after 7.6 hours, are overtime (higher than the shift rates). Not in these rates: furniture carter allowance, $27.39 a week, if it applies. To confirm with the accountant: ordinary hours 5:30 am to 6:30 pm, and overtime after 7.6 hours a day for casuals.",
   },

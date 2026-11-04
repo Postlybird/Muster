@@ -29,6 +29,7 @@ export function ReviewForm({
   canPost,
   allowOvertime,
   overtime,
+  poNumber,
 }: {
   jobId: string;
   fillMode: string;
@@ -43,6 +44,7 @@ export function ReviewForm({
     dailyHours: number;
     weeklyHours: number;
   } | null;
+  poNumber: string | null;
 }) {
   const {
     state,
@@ -129,6 +131,22 @@ export function ReviewForm({
           )}
         </FormField>
       )}
+      <FormField
+        id="po_number"
+        label="PO or reference number (optional)"
+        hint="If your accounts team needs one, it goes on this job's invoice lines. You can add it later too."
+        error={errors?.po_number}
+      >
+        {(props) => (
+          <Input
+            {...props}
+            name="po_number"
+            defaultValue={poNumber ?? ""}
+            maxLength={50}
+            className="sm:w-80"
+          />
+        )}
+      </FormField>
       <div className="space-y-3">
         <div className="flex items-start gap-3">
           <Checkbox

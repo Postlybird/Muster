@@ -278,6 +278,7 @@ export default async function ReviewStepPage({
           urgent={job.type === "urgent"}
           canPost={canPost}
           allowOvertime={job.allow_overtime}
+          poNumber={job.po_number}
           overtime={overtime}
         />
       </div>

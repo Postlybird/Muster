@@ -21,6 +21,8 @@ const schema = z.object({
     ])
     .transform((value) => (value ? Number(value) : null)),
   template_name: z.string().trim().max(80, "Keep the name under 80 characters"),
+  // For the invoice lines (owner, 04/11/2026); it can change after posting.
+  po_number: z.string().trim().max(50, "Keep it to 50 characters"),
 });
 
 /** Saves how to fill the job, works out the estimate, and posts it (brief §4.3). */
@@ -39,6 +41,7 @@ export async function postJob(
     fill_mode: formData.get("fill_mode") ?? undefined,
     favourites_first_minutes: formData.get("favourites_first_minutes") ?? "",
     template_name: formData.get("template_name") ?? "",
+    po_number: formData.get("po_number") ?? "",
   });
   if (!parsed.success) {
     return failure(
@@ -116,6 +119,7 @@ export async function postJob(
         job.type === "urgent" ? null : parsed.data.favourites_first_minutes,
       estimate_cents: estimate.totals.billCents,
       estimate_gst_cents: estimate.totals.gstCents,
+      po_number: parsed.data.po_number || null,
     })
     .eq("id", job.id);
   if (error) return saveFailed(error);

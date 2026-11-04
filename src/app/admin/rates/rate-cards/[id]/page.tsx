@@ -99,6 +99,7 @@ export default async function EditRateCardPage({
           allowances: allowanceRowsFrom(allowancesFrom(card.allowances)),
           effective_from: card.effective_from,
           effective_to: card.effective_to ?? "",
+          award_label: card.award ?? "",
           checked_by: card.checked_by ?? "",
           checked_on: card.checked_on ?? "",
           notes: card.notes,

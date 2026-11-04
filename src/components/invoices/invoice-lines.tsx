@@ -1,12 +1,20 @@
 import { formatCalendarDate, formatCents } from "@/lib/format";
+import { invoicePartsFrom, poText } from "@/lib/pay-run-format";
+import type { Json } from "@/lib/supabase/database.types";
 
 export type InvoiceLine = {
   line_id: string;
   work_date: string;
   description: string;
+  /** When: the hours, or why a cancellation is charged. */
   detail: string | null;
   hours: number;
   bill_cents: number;
+  /** Lines from 04/11/2026 on: the job, PO, award and a row per rate. */
+  job_number?: number | null;
+  po_number?: string | null;
+  award?: string | null;
+  parts?: Json | null;
 };
 
 function hoursText(hours: number): string {
@@ -15,7 +23,8 @@ function hoursText(hours: number): string {
 
 /**
  * An invoice's lines and totals as a list, so it reads on a phone: a line
- * per worker per shift (brief §4.8), with what it was for.
+ * per worker per shift (brief §4.8), with the job, PO and award, and a row
+ * for each rate with its hours, rate and amount (owner, 04/11/2026).
  */
 export function InvoiceLines({
   lines,
@@ -31,33 +40,69 @@ export function InvoiceLines({
   return (
     <div className="space-y-4">
       <ul className="divide-y rounded-lg border bg-card">
-        {lines.map((line) => (
-          <li
-            key={line.line_id}
-            className="flex flex-col gap-1 p-3 sm:flex-row sm:justify-between sm:gap-4"
-          >
-            <div className="min-w-0 space-y-0.5">
-              <p className="text-sm text-muted-foreground">
-                {formatCalendarDate(line.work_date)}
-              </p>
-              <p className="font-medium [overflow-wrap:anywhere]">
-                {line.description}
-              </p>
-              {line.detail ? (
-                <p className="text-sm text-muted-foreground">{line.detail}</p>
+        {lines.map((line) => {
+          const parts = invoicePartsFrom(line.parts);
+          const facts = [
+            formatCalendarDate(line.work_date),
+            line.job_number ? `Job ${line.job_number}` : null,
+            line.po_number ? poText(line.po_number) : null,
+          ].filter(Boolean);
+          return (
+            <li key={line.line_id} className="space-y-2 p-3">
+              <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-4">
+                <div className="min-w-0 space-y-0.5">
+                  <p className="text-sm [overflow-wrap:anywhere] text-muted-foreground">
+                    {facts.join(" · ")}
+                  </p>
+                  <p className="font-medium [overflow-wrap:anywhere]">
+                    {line.description}
+                  </p>
+                  {line.award ? (
+                    <p className="text-sm text-muted-foreground">
+                      {line.award}
+                    </p>
+                  ) : null}
+                  {line.detail ? (
+                    <p className="text-sm text-muted-foreground">
+                      {line.detail}
+                    </p>
+                  ) : null}
+                </div>
+                <p className="shrink-0 sm:text-right">
+                  <span className="font-medium">
+                    {formatCents(line.bill_cents)}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {" "}
+                    for {hoursText(line.hours)}
+                  </span>
+                </p>
+              </div>
+              {parts?.length ? (
+                <ul
+                  aria-label={`Charges for ${formatCalendarDate(line.work_date)}`}
+                  className="space-y-1 rounded-md bg-muted/50 p-2 text-sm"
+                >
+                  {parts.map((part, index) => (
+                    <li key={index} className="flex justify-between gap-4">
+                      <span className="min-w-0 [overflow-wrap:anywhere]">
+                        {part.label}
+                        {part.minutes !== null && part.rate_cents !== null ? (
+                          <span className="text-muted-foreground">
+                            {`: ${hoursText(part.minutes / 60)} at ${formatCents(part.rate_cents)}/h`}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="shrink-0">
+                        {formatCents(part.amount_cents)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               ) : null}
-            </div>
-            <p className="shrink-0 sm:text-right">
-              <span className="font-medium">
-                {formatCents(line.bill_cents)}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                {" "}
-                for {hoursText(line.hours)}
-              </span>
-            </p>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
       <dl className="ml-auto max-w-xs space-y-1 text-sm">
         <div className="flex justify-between gap-4">

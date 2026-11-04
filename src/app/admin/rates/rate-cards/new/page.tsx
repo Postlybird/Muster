@@ -55,6 +55,7 @@ export default async function NewRateCardPage({
           allowances: allowanceRowsFrom([]),
           effective_from: "",
           effective_to: "",
+          award_label: "",
           checked_by: "",
           checked_on: "",
           notes: "",

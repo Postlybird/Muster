@@ -19,10 +19,12 @@ import {
 
 import { TIME_ZONE, dateKeyIn, zoneOf } from "./format";
 import {
-  cancellationDetail,
-  hoursDetail,
+  cancellationWhy,
+  hoursWhen,
+  invoiceParts,
   lineDescription,
   payrollWorkType,
+  type InvoicePart,
 } from "./pay-run-format";
 import type { Database, Json } from "./supabase/database.types";
 import { workerName } from "./timesheet-format";
@@ -52,7 +54,10 @@ export type PayRunLine = {
   /** Excluding GST. */
   bill_cents: number;
   description: string;
+  /** When: the hours worked, or why a cancellation is charged. */
   detail: string;
+  /** The charge by rate, adding up to `bill_cents` (owner, 04/11/2026). */
+  parts: InvoicePart[];
 };
 
 export type PayRunSettings = {
@@ -252,15 +257,15 @@ export async function planPayRunWith(
         allowance_cents: shiftCost.urgentPayCents ?? 0,
         pay_cents: cost.pay_cents,
         bill_cents: cost.bill_cents,
-        detail: hoursDetail(
+        detail: hoursWhen(
           {
             start: sheet.start_at,
             finish: sheet.finish_at,
             breakMinutes: sheet.break_minutes,
           },
-          shiftCost,
           timeZone,
         ),
+        parts: invoiceParts(shiftCost),
       };
     } else {
       const rules = booking.assignment_rates?.cost_rules as unknown as
@@ -304,12 +309,8 @@ export async function planPayRunWith(
         allowance_cents: cost.pay.urgentPayCents,
         pay_cents: cost.pay.payCents,
         bill_cents: cost.bill.billCents,
-        detail: cancellationDetail(
-          shift.starts_at,
-          cost.bill,
-          arrived,
-          timeZone,
-        ),
+        detail: cancellationWhy(shift.starts_at, arrived, timeZone),
+        parts: invoiceParts(cost.bill),
       };
     }
     lines.push(line);

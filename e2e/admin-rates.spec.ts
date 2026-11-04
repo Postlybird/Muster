@@ -38,7 +38,7 @@ test.describe("admin rates", () => {
       await page.goto("/admin/rates/rate-cards/new");
       await page.getByLabel("Work category").click();
       await page.getByRole("option", { name: "Commercial cleaner" }).click();
-      await page.getByLabel("Level").fill(level);
+      await page.getByLabel("Level", { exact: true }).fill(level);
       await page.getByLabel("Base rate").fill("28.00");
       await page.getByLabel("Applies from").fill(from);
     };

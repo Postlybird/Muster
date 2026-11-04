@@ -12,6 +12,7 @@ import { brand } from "@/config/brand";
 import type { Week } from "@/domain/pay-runs";
 
 import { formatCalendarDate, formatCents } from "./format";
+import { poText, type InvoicePart } from "./pay-run-format";
 import { pdfText } from "./pdf-text";
 
 /** Everything printed on a tax invoice (brief §4.8). */
@@ -39,9 +40,15 @@ export type InvoicePdfData = {
   lines: {
     date: string;
     description: string;
+    /** When: the hours, or why a cancellation is charged. */
     detail: string | null;
     hours: number;
     amountCents: number;
+    /** Lines from 04/11/2026 on: the job, PO, award and a row per rate. */
+    jobNumber?: number | null;
+    poNumber?: string | null;
+    award?: string | null;
+    parts?: InvoicePart[] | null;
   }[];
   subtotalCents: number;
   gstCents: number;
@@ -92,10 +99,16 @@ const styles = StyleSheet.create({
     borderBottomColor: "#1c1917",
     paddingBottom: 4,
   },
-  date: { width: 62 },
+  date: { width: 52, paddingRight: 4 },
+  job: { width: 58, paddingRight: 4 },
   what: { flex: 1, paddingRight: 8 },
-  hours: { width: 40, textAlign: "right" },
-  amount: { width: 70, textAlign: "right" },
+  // A row for each rate: what for, hours, hourly rate and amount.
+  parts: { width: 240 },
+  part: { flexDirection: "row" },
+  partLabel: { flex: 1, paddingRight: 4 },
+  hours: { width: 38, textAlign: "right" },
+  rate: { width: 50, textAlign: "right" },
+  amount: { width: 60, textAlign: "right" },
   detail: { color: MUTED, fontSize: 8, marginTop: 1 },
   totals: { marginTop: 10, alignSelf: "flex-end", width: 200 },
   totalRow: {
@@ -192,19 +205,59 @@ export function InvoiceDocument({ data }: { data: InvoicePdfData }) {
 
         <View style={styles.headRow}>
           <T style={[styles.date, styles.bold]}>Date</T>
+          <T style={[styles.job, styles.bold]}>Job and PO</T>
           <T style={[styles.what, styles.bold]}>Worker and work</T>
-          <T style={[styles.hours, styles.bold]}>Hours</T>
-          <T style={[styles.amount, styles.bold]}>Amount</T>
+          <View style={[styles.parts, styles.part]}>
+            <T style={[styles.partLabel, styles.bold]}>Charged for</T>
+            <T style={[styles.hours, styles.bold]}>Hours</T>
+            <T style={[styles.rate, styles.bold]}>Rate</T>
+            <T style={[styles.amount, styles.bold]}>Amount</T>
+          </View>
         </View>
         {data.lines.map((line, index) => (
           <View key={index} style={styles.row} wrap={false}>
             <T style={styles.date}>{formatCalendarDate(line.date)}</T>
+            <View style={styles.job}>
+              <T>{line.jobNumber ? `Job ${line.jobNumber}` : ""}</T>
+              {line.poNumber ? (
+                <T style={styles.detail}>{poText(line.poNumber)}</T>
+              ) : null}
+            </View>
             <View style={styles.what}>
               <T>{line.description}</T>
+              {line.award ? <T style={styles.detail}>{line.award}</T> : null}
               {line.detail ? <T style={styles.detail}>{line.detail}</T> : null}
             </View>
-            <T style={styles.hours}>{hoursText(line.hours)}</T>
-            <T style={styles.amount}>{formatCents(line.amountCents)}</T>
+            <View style={styles.parts}>
+              {line.parts?.length ? (
+                line.parts.map((part, partIndex) => (
+                  <View key={partIndex} style={styles.part}>
+                    <T style={styles.partLabel}>{part.label}</T>
+                    <T style={styles.hours}>
+                      {part.minutes === null
+                        ? ""
+                        : hoursText(part.minutes / 60)}
+                    </T>
+                    <T style={styles.rate}>
+                      {part.rate_cents === null
+                        ? ""
+                        : formatCents(part.rate_cents)}
+                    </T>
+                    <T style={styles.amount}>
+                      {formatCents(part.amount_cents)}
+                    </T>
+                  </View>
+                ))
+              ) : (
+                // Lines saved before rows per rate: their rates are in the detail.
+                <View style={styles.part}>
+                  <T style={styles.partLabel}>{""}</T>
+                  <T style={styles.hours}>{hoursText(line.hours)}</T>
+                  <T style={styles.rate}>{""}</T>
+                  <T style={styles.amount}>{formatCents(line.amountCents)}</T>
+                </View>
+              )}
+            </View>
           </View>
         ))}
 

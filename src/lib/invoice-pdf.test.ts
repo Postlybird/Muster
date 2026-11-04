@@ -29,16 +29,47 @@ const invoice: InvoicePdfData = {
   },
   lines: [
     {
+      // A line saved before rows per rate (04/11/2026).
       date: "2026-10-20",
       description: "Nguyễn An · Restoration labourer · Granville flood job",
       detail: "7:00 am to 3:30 pm, 30 min break. 8 h ordinary at $54.00/h.",
       hours: 8,
       amountCents: 43_200,
     },
+    {
+      date: "2026-10-21",
+      description: "Nguyễn An · Restoration labourer · Granville flood job",
+      detail: "7:00 am to 4:00 pm, 30 min break",
+      hours: 8.5,
+      amountCents: 47_583,
+      jobNumber: 1042,
+      poNumber: "PO-4471/B",
+      award: "Cleaning Services Award 2020, level 1",
+      parts: [
+        {
+          label: "Ordinary",
+          minutes: 456,
+          rate_cents: 5400,
+          amount_cents: 41_040,
+        },
+        {
+          label: "Overtime",
+          minutes: 54,
+          rate_cents: 6800,
+          amount_cents: 6120,
+        },
+        {
+          label: "Meal allowance",
+          minutes: null,
+          rate_cents: null,
+          amount_cents: 423,
+        },
+      ],
+    },
   ],
-  subtotalCents: 43_200,
-  gstCents: 4_320,
-  totalCents: 47_520,
+  subtotalCents: 90_783,
+  gstCents: 9_078,
+  totalCents: 99_861,
   bank: { accountName: "Example", bsb: "062-000", accountNumber: "12345678" },
 };
 

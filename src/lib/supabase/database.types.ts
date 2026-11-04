@@ -1795,6 +1795,8 @@ export type Database = {
           instructions: string;
           level: number;
           no_known_hazards: boolean;
+          number: number;
+          po_number: string | null;
           police_check_required: boolean;
           posted_at: string | null;
           posted_by: string | null;
@@ -1836,6 +1838,8 @@ export type Database = {
           instructions?: string;
           level?: number;
           no_known_hazards?: boolean;
+          number?: never;
+          po_number?: string | null;
           police_check_required?: boolean;
           posted_at?: string | null;
           posted_by?: string | null;
@@ -1876,6 +1880,8 @@ export type Database = {
           instructions?: string;
           level?: number;
           no_known_hazards?: boolean;
+          number?: never;
+          po_number?: string | null;
           police_check_required?: boolean;
           posted_at?: string | null;
           posted_by?: string | null;
@@ -2135,6 +2141,7 @@ export type Database = {
         Row: {
           allowance_cents: number;
           assignment_id: string;
+          award: string | null;
           bill_cents: number;
           break_minutes: number | null;
           business_id: string;
@@ -2145,9 +2152,12 @@ export type Database = {
           hours: number;
           id: string;
           invoice_id: string;
+          job_number: number | null;
           kind: Database["public"]["Enums"]["pay_line_kind"];
+          parts: Json | null;
           pay_cents: number;
           pay_run_id: string;
+          po_number: string | null;
           site_name: string;
           start_at: string | null;
           timesheet_id: string | null;
@@ -2159,6 +2169,7 @@ export type Database = {
         Insert: {
           allowance_cents?: number;
           assignment_id: string;
+          award?: string | null;
           bill_cents: number;
           break_minutes?: number | null;
           business_id: string;
@@ -2169,9 +2180,12 @@ export type Database = {
           hours: number;
           id?: string;
           invoice_id: string;
+          job_number?: number | null;
           kind: Database["public"]["Enums"]["pay_line_kind"];
+          parts?: Json | null;
           pay_cents: number;
           pay_run_id: string;
+          po_number?: string | null;
           site_name: string;
           start_at?: string | null;
           timesheet_id?: string | null;
@@ -2182,6 +2196,7 @@ export type Database = {
         Update: {
           allowance_cents?: number;
           assignment_id?: string;
+          award?: string | null;
           bill_cents?: number;
           break_minutes?: number | null;
           business_id?: string;
@@ -2192,9 +2207,12 @@ export type Database = {
           hours?: number;
           id?: string;
           invoice_id?: string;
+          job_number?: number | null;
           kind?: Database["public"]["Enums"]["pay_line_kind"];
+          parts?: Json | null;
           pay_cents?: number;
           pay_run_id?: string;
+          po_number?: string | null;
           site_name?: string;
           start_at?: string | null;
           timesheet_id?: string | null;
@@ -2440,6 +2458,7 @@ export type Database = {
         Row: {
           allowances: NonNullable<Json>;
           archived_at: string | null;
+          award: string | null;
           base_rate_cents: number;
           business_id: string | null;
           category_id: string;
@@ -2477,6 +2496,7 @@ export type Database = {
         Insert: {
           allowances?: NonNullable<Json>;
           archived_at?: string | null;
+          award?: string | null;
           base_rate_cents: number;
           business_id?: string | null;
           category_id: string;
@@ -2513,6 +2533,7 @@ export type Database = {
         Update: {
           allowances?: NonNullable<Json>;
           archived_at?: string | null;
+          award?: string | null;
           base_rate_cents?: number;
           business_id?: string | null;
           category_id?: string;
@@ -3934,12 +3955,17 @@ export type Database = {
       invoice_lines: {
         Args: { p_invoice_id: string };
         Returns: {
+          award: string;
           bill_cents: number;
           description: string;
           detail: string;
           hours: number;
+          job_number: number;
           kind: Database["public"]["Enums"]["pay_line_kind"];
           line_id: string;
+          parts: Json;
+          po_number: string;
+          site_name: string;
           work_date: string;
         }[];
       };
@@ -4262,6 +4288,10 @@ export type Database = {
       };
       set_current_agreement: {
         Args: { p_agreement_id: string };
+        Returns: undefined;
+      };
+      set_job_po_number: {
+        Args: { p_job_id: string; p_po_number: string };
         Returns: undefined;
       };
       set_scheduled_job_target: {

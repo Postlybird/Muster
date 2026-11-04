@@ -48,6 +48,8 @@ export type RateCardFormValues = {
   allowances: AllowanceRowValues[];
   effective_from: string;
   effective_to: string;
+  /** The award and level, as invoices show it. */
+  award_label: string;
   checked_by: string;
   checked_on: string;
   notes: string;
@@ -585,6 +587,21 @@ export function RateCardForm({
           )}
         </FormField>
       </div>
+
+      <FormField
+        id="award_label"
+        label="Award and level"
+        hint="Shown on invoice lines, e.g. Cleaning Services Award 2020, level 1."
+        error={fieldErrors?.award}
+      >
+        {(props) => (
+          <Input
+            {...props}
+            name="award_label"
+            defaultValue={values.award_label}
+          />
+        )}
+      </FormField>
 
       <FormField
         id="notes"

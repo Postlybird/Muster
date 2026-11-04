@@ -10,6 +10,7 @@ import {
 } from "@/domain/pay-runs";
 import { formatCalendarDate, formatCents, sydneyDateKey } from "@/lib/format";
 import { renderInvoicePdf, type InvoicePdfData } from "@/lib/invoice-pdf";
+import { invoicePartsFrom } from "@/lib/pay-run-format";
 import {
   owedTimesheetIdsWith,
   planPayRunWith,
@@ -185,7 +186,7 @@ async function invoicePdfData(
       admin
         .from("pay_run_lines")
         .select(
-          "work_date, description, detail, hours, bill_cents, assignments(shifts(jobs(sites(state))))",
+          "work_date, description, detail, hours, bill_cents, job_number, po_number, award, parts, assignments(shifts(jobs(sites(state))))",
         )
         .eq("invoice_id", invoiceId)
         .order("work_date")
@@ -237,6 +238,10 @@ async function invoicePdfData(
         detail: line.detail,
         hours: Number(line.hours),
         amountCents: line.bill_cents,
+        jobNumber: line.job_number,
+        poNumber: line.po_number,
+        award: line.award,
+        parts: invoicePartsFrom(line.parts),
       })),
       subtotalCents: invoice.subtotal_cents,
       gstCents: invoice.gst_cents,

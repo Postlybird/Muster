@@ -22,6 +22,37 @@ const name = z
   .min(1, "Give the template a name")
   .max(80, "Keep the name under 80 characters");
 
+const poNumber = z.string().trim().max(50, "Keep it to 50 characters");
+
+/**
+ * Adds, changes or removes the job's PO or reference number, which the next
+ * pay run's invoice lines take (owner, 04/11/2026).
+ */
+export async function savePoNumber(
+  jobId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const { business, role } = await getMyBusiness();
+  if (!business || !canManage(role)) {
+    return failure("Only owners and managers can change the PO number.");
+  }
+  const parsed = poNumber.safeParse(formData.get("po_number") ?? "");
+  if (!parsed.success) {
+    return failure("Check the highlighted fields.", {
+      po_number: [parsed.error.issues[0]?.message ?? "Check the number"],
+    });
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_job_po_number", {
+    p_job_id: jobId,
+    p_po_number: parsed.data,
+  });
+  if (error) return saveFailed(error);
+  revalidatePath(`/business/jobs/${jobId}`);
+  return success(parsed.data ? "PO number saved" : "PO number removed");
+}
+
 /** Saves a posted job as a template, to post again quickly (brief §4.3). */
 export async function saveTemplate(
   jobId: string,

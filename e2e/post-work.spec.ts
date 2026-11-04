@@ -100,11 +100,17 @@ test("a manager posts a shift and sees the cost first", async ({ page }) => {
   await expect(
     page.getByRole("checkbox", { name: /Let workers on overtime/ }),
   ).toHaveCount(0);
+  // Their accounts team's PO number, for the invoice (owner, 04/11/2026).
+  await page.getByLabel("PO or reference number (optional)").fill("HR-7781");
   await expectAccessible(page);
   await page.getByRole("button", { name: "Post work" }).click();
 
   await expect(page).toHaveURL(/\/business\/jobs\/[0-9a-f-]+\?posted=1$/);
   await expect(page.getByText(/^Posted\./)).toBeVisible();
+  await expect(page.getByText(/^Job \d+ · Posted /)).toBeVisible();
+  await expect(page.getByLabel("PO or reference number")).toHaveValue(
+    "HR-7781",
+  );
   await expect(
     page.getByRole("heading", {
       name: "Restoration technician at Parramatta depot",

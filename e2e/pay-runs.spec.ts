@@ -76,7 +76,7 @@ async function hoursLastWeek(name: string) {
     .from("timesheets")
     .update({ status: "approved", approved_at: new Date().toISOString() })
     .eq("assignment_id", booking!.id);
-  return { day, bookingId: booking!.id as string };
+  return { day, bookingId: booking!.id as string, jobId: job.jobId };
 }
 
 test("an admin runs the week's pay and invoices, and the business sees its invoice", async ({
@@ -84,7 +84,21 @@ test("an admin runs the week's pay and invoices, and the business sees its invoi
 }) => {
   test.setTimeout(180_000);
   const week = runWeek();
-  const { day, bookingId } = await hoursLastWeek("Fatima Al-Sayed");
+  const { day, bookingId, jobId } = await hoursLastWeek("Fatima Al-Sayed");
+  const { data: job } = await serviceClient()
+    .from("jobs")
+    .select("number")
+    .eq("id", jobId)
+    .single();
+
+  // The business adds its PO number after posting (owner, 04/11/2026).
+  await signInAsDemo(page, "Sofia Rossi");
+  await page.goto(`/business/jobs/${jobId}`);
+  await expect(page.getByText(`Job ${job!.number}`)).toBeVisible();
+  await page.getByLabel("PO or reference number").fill("4471-WS");
+  await page.getByRole("button", { name: "Save PO number" }).click();
+  await expect(page.getByText("PO number saved").first()).toBeVisible();
+  await page.context().clearCookies();
 
   await signInAsDemo(page, "Alex Morgan");
   await page.goto("/admin/pay-runs");
@@ -156,7 +170,25 @@ test("an admin runs the week's pay and invoices, and the business sees its invoi
       "Fatima Al-Sayed · Commercial cleaner · Blacktown office tower",
     ),
   ).toBeVisible();
-  await expect(page.getByText(/^10:00 am to 2:00 pm\. /)).toBeVisible();
+  // A row for each rate, with the job and PO numbers and the award.
+  await expect(
+    page.getByText(
+      `${formatCalendarDate(day)} · Job ${job!.number} · PO 4471-WS`,
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Cleaning Services Award 2020, level 1"),
+  ).toBeVisible();
+  await expect(
+    page.getByText("10:00 am to 2:00 pm", { exact: true }),
+  ).toBeVisible();
+  const charges = page.getByRole("list", {
+    name: `Charges for ${formatCalendarDate(day)}`,
+  });
+  await expect(charges.getByRole("listitem")).toHaveCount(1);
+  await expect(charges).toContainText(
+    /^Ordinary: 4 h at \$\d+\.\d\d\/h\$\d+\.\d\d$/,
+  );
   await expectAccessible(page);
   const [copy] = await Promise.all([
     page.waitForEvent("download"),
