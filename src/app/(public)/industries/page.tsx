@@ -8,7 +8,7 @@ import { listIndustries } from "@/server/industries";
 
 export const metadata: Metadata = {
   title: "Industries we cover",
-  description: `Checked, job-ready labourers, cleaners, restoration technicians and warehouse and removals staff. ${brand.tagline}`,
+  description: `Checked, job-ready labourers, cleaners, restoration labourers and technicians, and warehouse and removals staff. ${brand.tagline}`,
 };
 
 export default async function IndustriesPage() {

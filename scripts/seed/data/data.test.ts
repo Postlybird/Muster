@@ -38,6 +38,7 @@ const FOCUS_WORK_TYPES = [
   "general_labourer",
   "commercial_cleaner",
   "builders_cleaner",
+  "restoration_labourer",
   "restoration_technician",
   "pick_packer",
   "storeperson",
@@ -93,11 +94,11 @@ describe("seed catalogues", () => {
     }
   });
 
-  it("have restoration technicians cover all restoration work, with a White Card", () => {
-    const technician = CATEGORIES.find(
-      (c) => c.code === "restoration_technician",
-    )!;
-    expect(technician.requiredCredentials).toEqual(["white_card"]);
+  it("ask restoration labourers and technicians for a White Card, and jobs for IICRC tickets", () => {
+    for (const code of ["restoration_labourer", "restoration_technician"]) {
+      const workType = CATEGORIES.find((c) => c.code === code)!;
+      expect(workType.requiredCredentials).toEqual(["white_card"]);
+    }
   });
 
   it("only reference tickets and PPE that exist", () => {

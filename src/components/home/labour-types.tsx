@@ -26,6 +26,7 @@ const KINDS: {
     codes: [
       "general_labourer",
       "commercial_cleaner",
+      "restoration_labourer",
       "removalist_offsider",
       "pick_packer",
       "storeperson",

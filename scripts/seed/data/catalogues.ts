@@ -379,9 +379,10 @@ export const INDUSTRIES: SeedIndustry[] = [
   {
     code: "restoration",
     name: "Restoration",
-    summary: "Restoration technicians for water, fire, mould and storm damage.",
+    summary:
+      "Restoration labourers and technicians for water, fire, mould and storm damage.",
     description:
-      "Restoration technicians for water, fire, mould and storm damage: strip-outs, drying equipment, pack-outs and clean-ups, including urgent call-outs. Ask for IICRC tickets on a job when you need certified technicians.",
+      "Restoration labourers and technicians for water, fire, mould and storm damage: strip-outs, drying equipment, pack-outs and clean-ups, including urgent call-outs. Ask for IICRC tickets on a job when you need certified technicians.",
     icon: "droplets",
   },
   {
@@ -461,8 +462,10 @@ export const CATEGORIES: SeedCategory[] = [
     code: "restoration_labourer",
     industry: "restoration",
     name: "Restoration labourer",
+    // Back at the cleaning award's level 1 (owner, 04/11/2026), for
+    // labouring; technicians stay at level 2 for certified work.
     description:
-      "General labour on water, fire and storm damage jobs: moving equipment, removing debris, setting up drying gear.",
+      "General labour on water, fire and storm damage jobs: strip-outs, pack-outs, moving equipment and removing debris.",
     policeCheckRequired: false,
     minEngagementHours: 4,
     requiredCredentials: ["white_card"],
@@ -472,16 +475,15 @@ export const CATEGORIES: SeedCategory[] = [
       "p2_disposable",
       "safety_glasses",
     ],
-    archived: true,
   },
   {
     code: "restoration_technician",
     industry: "restoration",
     name: "Restoration technician",
-    // All restoration work (owner, 02/11/2026): jobs that need a certified
-    // technician ask for IICRC tickets.
+    // Skilled restoration work (owner, 04/11/2026): jobs that need a
+    // certified technician ask for IICRC tickets.
     description:
-      "Water, fire, mould and storm damage work: strip-outs, setting up drying equipment, pack-outs and clean-ups. Jobs can ask for IICRC tickets.",
+      "Skilled water, fire, mould and storm damage work: drying, moisture readings, and mould and fire clean-ups. Jobs can ask for IICRC tickets.",
     policeCheckRequired: false,
     minEngagementHours: 4,
     requiredCredentials: ["white_card"],

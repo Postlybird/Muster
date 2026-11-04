@@ -31,6 +31,12 @@ test("the home page leads with general and skilled labour, and call-outs come la
   ).toBeVisible();
   await expect(
     staff
+      .getByRole("region", { name: "General labour" })
+      .getByRole("listitem")
+      .filter({ hasText: "Restoration labourer" }),
+  ).toBeVisible();
+  await expect(
+    staff
       .getByRole("region", { name: "Skilled labour" })
       .getByRole("listitem")
       .filter({ hasText: "Restoration technician" }),
@@ -147,12 +153,14 @@ test("each industry has a page with the work and the tickets it needs", async ({
       name: "Restoration staff, sorted.",
     }),
   ).toBeVisible();
-  // Restoration technicians cover all restoration work (owner, 02/11/2026).
-  await expect(
-    page.getByRole("listitem").filter({
-      has: page.getByRole("heading", { name: "Restoration technician" }),
-    }),
-  ).toContainText("Needs: White Card");
+  // Restoration labourers and technicians (owner, 04/11/2026), both bookable.
+  for (const name of ["Restoration labourer", "Restoration technician"]) {
+    const workType = page.getByRole("listitem").filter({
+      has: page.getByRole("heading", { name }),
+    });
+    await expect(workType).toContainText("Needs: White Card");
+    await expect(workType).not.toContainText("Coming soon");
+  }
 
   // Only the industries we focus on are listed, each with a link to its
   // page, and work still waiting for its pay rates says so.
