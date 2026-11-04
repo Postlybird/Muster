@@ -84,7 +84,7 @@ The workflows also refuse to run from any branch but `main`.
 3. In `deploy/muster-dev/supabase/config.toml`, set `site_url` to https://demo.shifta.com.au and push: the demo's sign-in links and scheduled jobs follow it. Set the demo Vercel project's `NEXT_PUBLIC_SITE_URL` to match.
 4. Run `live-deploy.yml` again (Actions → "Deploy the live site" → Run workflow), so the scheduled jobs check passes against the live site.
 5. The owner signs in on the live site once; run "Make an admin on the live site" with their email. They set up an authenticator app at their next sign-in.
-6. The owner enters, in Admin → Settings: company details, bank account, margin, on-costs (including the workers' compensation rate) and anything else marked as a placeholder; and the lawyer-approved documents in Admin → Agreements.
+6. The owner enters, in Admin → Settings: company details, bank account, margin, on-costs (including the workers' compensation rate) and anything else marked as a placeholder; and the approved documents in Admin → Agreements.
 7. Run-through with the owner's own email and mobile: sign-in code by email (the bot check first: it couldn't be tried from the build environment, where Cloudflare is blocked), the mobile code by text, a site address search, a test shift booked, and its messages. Then archive the test records.
 
 ## Releasing after that

@@ -25,7 +25,7 @@ function Section({
   );
 }
 
-/** The rules for using the website and app. Draft wording, for a lawyer to check. */
+/** The rules for using the website and app. Draft wording, for the owner to approve. */
 export default function TermsPage() {
   return (
     <DraftPage title="Terms of use">

@@ -432,7 +432,7 @@ export function RateCardForm({
           Super isn&apos;t owed on overtime, so these hours are charged without
           it. Tick weekend or holiday rates too where this award makes that work
           overtime, as it does for day workers&apos; weekends under some awards.
-          To be checked by a payroll professional.
+          Fair Work&apos;s Employer Advisory Service can confirm which.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {SUPER_FREE_CHOICES.map((type) => (
@@ -559,7 +559,7 @@ export function RateCardForm({
         <FormField
           id="checked_by"
           label="Checked by"
-          hint="The payroll professional who checked these rates."
+          hint="Who checked these rates against the award's pay guide."
           error={fieldErrors?.checked_by}
         >
           {(props) => (

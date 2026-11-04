@@ -153,7 +153,7 @@ export default async function SalesPage({
     <div className="space-y-8">
       <PageHeader
         title="Sales and GST"
-        description="Invoices and credit notes issued, and payments received, for the BAS and the accountant."
+        description="Invoices and credit notes issued, and payments received, for the BAS."
         actions={
           <Button asChild variant="outline">
             <a href={csv} download>
@@ -250,7 +250,8 @@ export default async function SalesPage({
           By the dates invoices and credit notes were issued (accruals). For the
           BAS on that basis, the sales including GST go at G1 and the GST on
           them at 1A. On a cash basis, use what was received, by the day each
-          invoice was marked paid. The accountant can confirm which applies.
+          invoice was marked paid. Use the basis you chose when you registered
+          for GST.
         </p>
       </section>
 

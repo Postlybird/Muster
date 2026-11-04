@@ -5,7 +5,7 @@ At the start of every session:
 1. Read `BRIEF.md` in full. It is the product spec and the source of truth.
 2. Read `PROGRESS.md`: what's done, what's next, decisions made, open questions.
 3. Read `docs/plan.md` for the approved Phase 0/1 plan (schema, pages, build order).
-4. Read `docs/launch-questions.md`: every question the owner still has to settle before launch, grouped by who answers it (accountant, payroll provider, lawyer, insurer, the owner). When one is answered, tick it with the date, record the decision in `PROGRESS.md`, and add new questions there as they come up.
+4. Read `docs/launch-questions.md`: every question the owner still has to settle before launch, by topic. There are no paid specialists (owner, 04/11/2026): research each question from official sources and recommend, and the owner decides. When one is decided, tick it with the date, record the decision in `PROGRESS.md`, and add new questions there as they come up.
 
 This project uses Next.js 16, which has breaking changes from older versions:
 

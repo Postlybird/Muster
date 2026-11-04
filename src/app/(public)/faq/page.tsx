@@ -118,8 +118,8 @@ export default async function FaqPage() {
         <p>
           Every shift shows its hourly pay before you accept, with higher rates
           for weekends, public holidays, nights and overtime. Pay rates are
-          based on the award and checked by a payroll professional. We pay
-          weekly for the hours approved the week before.
+          based on the award, from the Fair Work pay guides. We pay weekly for
+          the hours approved the week before.
         </p>
       ),
     },

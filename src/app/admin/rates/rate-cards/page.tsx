@@ -91,7 +91,7 @@ export default async function RateCardsPage() {
         <Alert variant="warning">
           <AlertDescription className="text-foreground">
             {unchecked} rate {unchecked === 1 ? "card hasn't" : "cards haven't"}{" "}
-            been checked by a payroll professional yet.
+            been checked against the award&apos;s pay guide yet.
           </AlertDescription>
         </Alert>
       ) : null}

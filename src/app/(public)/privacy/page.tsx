@@ -27,7 +27,7 @@ function Section({
 
 /**
  * How we handle personal information (brief §4.9: a privacy policy and
- * collection notice at sign-up). Draft wording, for a lawyer to check.
+ * collection notice at sign-up). Draft wording, for the owner to approve.
  */
 export default function PrivacyPage() {
   return (

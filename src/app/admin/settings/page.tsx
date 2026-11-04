@@ -61,7 +61,8 @@ export default async function SettingsPage() {
           </AlertTitle>
           <AlertDescription>
             These were guesses for the demo. Check each one marked Placeholder
-            (money settings with a payroll professional), then save its section.
+            (money settings against your insurance quotes and the official
+            rates), then save its section.
           </AlertDescription>
         </Alert>
       ) : null}

@@ -422,11 +422,11 @@ _Last updated: 03/11/2026_
 
 - **Owner: the warehouse award's pay guide.** Pick-packers, storepersons and forklift drivers come under the Storage Services and Wholesale Award [MA000084]. As with the others:
   1. Download that award's pay guide from the Fair Work Ombudsman website and send it to me.
-  2. I'll add it to the rates sheet for your accountant to check.
-  3. Once they approve it, I'll load the rates, and the three work types can be posted.
+  2. I'll prepare the rate cards from it, for you to check against the pay guide.
+  3. Once you approve them, I'll load the rates, and the three work types can be posted.
 - **Owner: stage 2, the accounts.** One service at a time, starting with Twilio, I'll send click-by-click steps; you type the keys into Vercel and GitHub, never into chat. The full list is in `docs/launch.md`: Twilio, Resend, Google Cloud, Cloudflare Turnstile, the ABN Lookup GUID, Supabase Pro with a new `shifta-live` project in Sydney, and Vercel Pro with a second project for the live site.
-- **Owner: take the questions in `docs/launch-questions.md`** to your accountant, payroll provider, lawyer and insurance broker, and answer the ones only you can (section 5). Tell me each answer as it comes, and I'll make the change.
-- **Owner: choose the payroll provider** (03/11/2026: Employment Hero charges for at least 10 people, about $100 a month from the start). Shortlist: Payroller and Microkeeper, both Australian, from a few dollars per worker a month; or Xero Payroll, which only comes with a Xero accounting plan, priced by how many people are paid each month, and can't load hours from a file in Australia. Xero is worth it only if your accountant keeps the books in Xero: that's the first question for them. What to check in each free trial is in section 2 of `docs/launch-questions.md`. Then send me its timesheet import template, so the payroll file matches it exactly. Nothing else in Shifta depends on which one.
+- **Owner and Claude: work through `docs/launch-questions.md` together** (owner, 04/11/2026: no paid specialists; you decide each one). Each question has my recommendation from the official sources, and the free government services (Fair Work's helpline and Employer Advisory Service, icare, the ATO, the Long Service Corporation) check what needs checking. First, section 1: whether the business is a company or a sole trader, its legal name and ABN, and whether it's registered for GST and PAYG withholding.
+- **Owner: choose the payroll provider** (section 3 of `docs/launch-questions.md`). Employment Hero charges for at least 10 people, about $100 a month, and Xero Payroll only comes with a Xero accounting plan, so my recommendation (04/11/2026) is Payroller's free trial first: the cheapest, with super on payday in every plan. Microkeeper is next if it fails the checks. Then send me its timesheet import template, so the payroll file matches it exactly. Nothing else in Shifta depends on which one.
 - **Owner: enter the margin** on the live site: sign in as an admin, open Admin → Settings → Pay and billing, set "Default margin" to the margin you chose, and save. The figure is kept out of the code because the code is public. Until then, charges use the old placeholder margin.
 - **Owner: photos of people for the home page.** Either allow the photo library in this environment (steps in our chat, 01/11/2026), and I'll pick free photos of people at work; or send me photos you have the rights to, like your own workers with their permission. Each person in the pictures (Laura, Jack, Priya, Daniel and Mei) then shows a photo instead of initials.
 - **Before opening each new state:** enter its public holidays (Admin → Rates → Public holidays) from the state's official list, and check its tickets in Admin → Catalogues → Tickets (who issues them, and whether they expire). The official state websites are blocked from our build environment, so we haven't loaded their holiday dates; we only have NSW's.
@@ -584,6 +584,7 @@ _Last updated: 03/11/2026_
 | 03/11/2026 | Allowances live on rate cards as data, paid on every shift or for overtime past the booked finish, and are charged with on-costs but no super, at the margin (owner's OK). | Awards require them (general labourers' fares and travel, cleaners' meal allowance); data keeps them out of code and lets the accountant check them. Overtime past the booked finish stands for overtime nobody asked for the day before. |
 | 03/11/2026 | The services agreement's next draft adds a placement fee for hiring our workers directly: 15% of the first year's pay within 180 days (owner's OK), for the lawyer to finalise. The fee is in the agreement's text, not a setting. | It protects the business from clients hiring away workers they found through us. A setting could drift from what each business signed. |
 | 03/11/2026 | Every question to settle before launch lives in `docs/launch-questions.md`, grouped by who answers it, and each session reads it at the start (owner's request). | One list to take to the accountant, payroll provider, lawyer and insurer, kept current as answers come in, instead of questions scattered through chat and notes. |
+| 04/11/2026 | No paid accountant, lawyer, insurance broker or payroll professional: the owner decides each question, with our research from the official sources and a recommendation for each, and uses the free government services where a question needs checking. Documents are checked against the official guides and approved by the owner (owner's choice). | The owner's budget. Fair Work's Employer Advisory Service gives small businesses free written advice on award pay, and following it in good faith protects against penalties; icare, the ATO and the Long Service Corporation answer their own questions for free. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
@@ -592,25 +593,23 @@ All of them are in `docs/launch-questions.md` (03/11/2026), grouped by who can a
 
 ## Before launch (not now)
 
-**Owner, in order** (30/10/2026):
+**Owner, in order** (30/10/2026; owner, 04/11/2026: no paid specialists, so we work each out together in `docs/launch-questions.md`, and the owner decides):
 
-The questions for each of them are in `docs/launch-questions.md`.
-
-1. **Accountant:** company and ABN, registration for GST and PAYG withholding, a business bank account, advice on the margin and payroll tax, and cash to cover 2–3 weeks of wages (workers are paid weekly; businesses pay 14 days after the invoice).
-2. **Insurance:** workers' compensation (icare in NSW) before anyone works, and public liability, which businesses will ask for.
-3. **Lawyer:** the documents listed below.
-4. **Payroll professional:** pay rates, minimum engagements, overtime rules and on-costs for each work type we launch with. Done for the nine launch work types (01/11/2026), apart from the points under Next; workers' comp and insurance on-costs are still placeholders until the policies are in.
-5. **Payroll** (Employment Hero was assumed; the owner is looking at cheaper ones, 03/11/2026): set up the company, awards, super on payday and Single Touch Payroll, and send us its timesheet import template.
-6. **The books** (owner, 03/11/2026: no Xero; Shifta issues and tracks the invoices): agree with the accountant how they'll do the BAS and tax return from Shifta's invoices and reports, Employment Hero's payroll reports and the bank statements.
+1. **The business and tax:** company or sole trader, the ABN, and the free registrations for GST and PAYG withholding; a business bank account; the margin and payroll tax; and cash to cover 2–3 weeks of wages (workers are paid weekly; businesses pay when their invoice is due).
+2. **Insurance:** workers' compensation from icare before anyone works (required by law; no broker needed), and public liability, which businesses will ask for.
+3. **The documents:** we check each draft against the official guides (Fair Work, the OAIC and the ACCC's unfair contract terms guide), and the owner approves it.
+4. **Pay rates:** rates, minimum engagements and overtime rules for each work type we launch with. Done for the nine launch work types, checked by the owner's accountant (01/11/2026), apart from the points in section 4 of the questions, which go to Fair Work's free Employer Advisory Service; workers' comp and insurance on-costs are placeholders until the quotes are in.
+5. **Payroll:** choose the provider, then set up the company, pay items, super on payday and Single Touch Payroll, and send us its timesheet import template.
+6. **The books** (owner, 03/11/2026: no Xero; Shifta issues and tracks the invoices): the owner lodges the BAS in the ATO's online services, from Shifta's Sales and GST page, the payroll app's reports and the bank statements.
 7. **Website and services:** connect the domain and support email (owner setup checklist below); approve and sign up for texts (Twilio), email (Resend), an address lookup, and the Vercel and Supabase paid plans; get the free ABN Lookup GUID and Cloudflare Turnstile keys.
-8. **Admin setup on the real site:** company and bank details, settings, work types (archive any we won't offer yet), rate cards, public holidays, the lawyer-approved agreements, and message templates.
-9. **A test week** with one or two friendly businesses and a few workers, through to workers paid in Employment Hero and an invoice paid.
+8. **Admin setup on the real site:** company and bank details, settings, work types (archive any we won't offer yet), rate cards, public holidays, the approved agreements, and message templates.
+9. **A test week** with one or two friendly businesses and a few workers, through to workers paid in the payroll app and an invoice paid.
 
 **Details and our part:**
 
 - Ready (03/11/2026): the live site's own Supabase project and sign-in settings, the release workflow, the real setup without demo data, and making the first admin; and Resend, Twilio, Google Maps and Turnstile, each waiting for its account and keys. The steps are in `docs/launch.md`.
 - Upgrade to Vercel Pro and Supabase Pro (commercial use, backups, no pausing). Ask the owner first.
-- Have a lawyer check the privacy policy, terms of use, casual employment contract, information statements and the labour hire services agreement. The public pages are marked as drafts until then.
+- Check the privacy policy, terms of use, casual employment contract, information statements and the labour hire services agreement against the official guides, for the owner to approve (owner, 04/11/2026: no lawyer). The public pages are marked as drafts until then.
 - Set real pay rates and minimum engagements for any work type before we offer it. The focus work types have real rates (01/11/2026), apart from the three warehouse ones waiting for the Storage Services and Wholesale Award's; the archived ones (02/11/2026) span other awards (for example Hospitality, General Retail, Clerks and Manufacturing) and have none until they come back.
 - Before we pass about 1,000 active workers, or 1,000 shifts in a week: the matching engine and the weekly pay run read at most 1,000 rows at a time, so they need to read in pages, as the expiry checks already do.
 

@@ -6,8 +6,8 @@ import { z } from "zod";
  * the defaults, the admin settings page renders and validates from it, and
  * server code reads typed values through it.
  *
- * `placeholder: true` marks values we guessed for the demo. The owner (and a
- * payroll professional, for money) must confirm them before launch.
+ * `placeholder: true` marks values we guessed for the demo. The owner must
+ * confirm them before launch (`docs/launch-questions.md`).
  */
 
 const time = z
@@ -295,7 +295,7 @@ export const SETTINGS = {
   }),
   on_costs_pct: define({
     label: "On-costs",
-    help: "Employer costs as a percent of pay. Workers' comp can be overridden per category. To be checked by a payroll professional.",
+    help: "Employer costs as a percent of pay. Workers' comp can be overridden per category. Check each against icare's quote and the official rates.",
     group: "money",
     schema: z.object({
       super: percent,
