@@ -602,17 +602,37 @@ All of them are in `docs/launch-questions.md` (03/11/2026), grouped by who can a
 
 ## Before launch (not now)
 
-**Owner, in order** (30/10/2026; owner, 04/11/2026: no paid specialists, so we work each out together in `docs/launch-questions.md`, and the owner decides):
+**Owner, in order** (05/11/2026; no paid specialists, so we work each out together in `docs/launch-questions.md`, and the owner decides):
 
-1. **The business and tax:** company or sole trader, the ABN, and the free registrations for GST and PAYG withholding; a business bank account; the margin and payroll tax; and cash to cover 2–3 weeks of wages (workers are paid weekly; businesses pay when their invoice is due).
-2. **Insurance:** workers' compensation from icare before anyone works (required by law; no broker needed), and public liability, which businesses will ask for.
-3. **The documents:** we check each draft against the official guides (Fair Work, the OAIC and the ACCC's unfair contract terms guide), and the owner approves it.
-4. **Pay rates:** rates, minimum engagements and overtime rules for each work type we launch with. Done for the nine launch work types, checked by the owner's accountant (01/11/2026), apart from the points in section 4 of the questions, which go to Fair Work's free Employer Advisory Service; workers' comp and insurance on-costs are placeholders until the quotes are in.
-5. **Payroll:** choose the provider, then set up the company, pay items, super on payday and Single Touch Payroll, and send us its timesheet import template.
-6. **The books** (owner, 03/11/2026: no Xero; Shifta issues and tracks the invoices): the owner lodges the BAS in the ATO's online services, from Shifta's Sales and GST page, the payroll app's reports and the bank statements.
-7. **Website and services:** connect the domain and support email (owner setup checklist below); approve and sign up for texts (Twilio), email (Resend), an address lookup, and the Vercel and Supabase paid plans; get the free ABN Lookup GUID and Cloudflare Turnstile keys.
-8. **Admin setup on the real site:** company and bank details, settings, work types (archive any we won't offer yet), rate cards, public holidays, the approved agreements, and message templates.
-9. **A test week** with one or two friendly businesses and a few workers, through to workers paid in the payroll app and an invoice paid.
+_Now, from anywhere (free, no company needed):_
+
+1. **A director ID** (free, online through the ABRS with myID): a new director needs one before the company is registered.
+2. **Check "Shifta Pty Ltd" is free** on ASIC's register (a free search).
+3. **Decide the recommendations** in `docs/launch-questions.md` (sections 1, 2, 5 and 6), all at once or one by one.
+4. **The warehouse award's pay guide**, if warehouse work is to launch (see Next).
+5. **Small things:** a contact phone number (or email only), forwarding for support@shifta.com.au, and photos of people (optional).
+6. **Free accounts, any time:** Cloudflare Turnstile, and the ABN Lookup GUID if it hasn't come.
+
+Meanwhile we check each document against the official guides for the owner's OK, and write the award questions for Fair Work's Employer Advisory Service.
+
+_January 2027, once back from Brazil, in this order:_
+
+1. **Register Shifta Pty Ltd** with ASIC.
+2. **The company's ABN, GST (cash basis recommended) and PAYG withholding:** free, one online application.
+3. **A business bank account,** and cash for 2–3 weeks of wages.
+4. **Workers' compensation from icare** (required by law before anyone works); its rate for each work type goes into Admin.
+5. **Public liability:** two or three quotes for labour hire, $20 million cover.
+6. **The Long Service Corporation:** register for the contract cleaning scheme, and the building scheme if labourers will work on building sites.
+7. **Payroll:** choose the provider (Payroller's free trial first), set it up, and send us its timesheet import template.
+8. **The accounts, one at a time with our steps:** Twilio (the sender name, with the ABN), Resend, Google Cloud, Supabase Pro with `shifta-live`, Vercel Pro with the live project, and the locked GitHub environment (`docs/launch.md`).
+9. **The margin,** worked out together from the quotes and costs, then the Fair Work enquiry about the award questions.
+
+_Launch:_
+
+1. **"Release":** we build the live site; the owner moves the address in Vercel (our steps).
+2. **Admin setup on the live site:** sign in, set up the authenticator app, then company and bank details, the margin, on-costs (workers' compensation rates), and the approved documents.
+3. **A run-through** with the owner's own email and mobile.
+4. **A test week** with one or two friendly businesses and a few workers, through to workers paid and an invoice paid.
 
 **Details and our part:**
 
