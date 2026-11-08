@@ -594,6 +594,7 @@ _Last updated: 03/11/2026_
 | 04/11/2026 | The business will be a company, Shifta Pty Ltd, registered with ASIC and for GST and PAYG withholding in January 2027, when the owner is back from Brazil. | The owner's plan; a company keeps the business's risks off the owner personally. Nothing trades, and no paid account is opened, until it exists. |
 | 04/11/2026 | Restoration labourer is back at the cleaning award's level 1, beside restoration technicians at level 2 (owner's OK). | Another agency bills restoration labouring at level 1, so the technician rate alone would cost restoration businesses more. |
 | 04/11/2026 | Invoices show a row for each rate (hours, rate, amount), with the job number, the business's PO or reference number, the site, and the award and level; job numbers are an identity column nobody sets or changes, and the PO can change any time until the hours are invoiced (owner's OK). | Restoration and cleaning businesses get this from other agencies and check invoices against it; a PO is often needed for payment. Lines keep what they were invoiced with, so a later change never alters a sent invoice. |
+| 08/11/2026 | Shifta gets App Store and Google Play apps around launch (changes brief §10), made by wrapping the existing app with the phone's own notifications, location and camera, rather than building separate apps. | Workers look for work in the app stores and trust apps there, notifications reach iPhones without the home-screen step, and app notifications are free where texts aren't. Wrapping keeps one app to look after, and most changes reach it without a store review. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
@@ -626,6 +627,14 @@ _January 2027, once back from Brazil, in this order:_
 7. **Payroll:** choose the provider (Payroller's free trial first), set it up, and send us its timesheet import template.
 8. **The accounts, one at a time with our steps:** Twilio (the sender name, with the ABN), Resend, Google Cloud, Supabase Pro with `shifta-live`, Vercel Pro with the live project, and the locked GitHub environment (`docs/launch.md`).
 9. **The margin,** worked out together from the quotes and costs, then the Fair Work enquiry about the award questions.
+10. **The store apps** (owner, 08/11/2026), with our steps for each:
+    - a free D-U-N-S number for Shifta Pty Ltd, which both stores ask a business for (about a week);
+    - Apple's developer program as a business (US$99 a year), and a Google Play business account (US$25 once; a business account skips Google's 14-day test with 12 testers);
+    - a free Firebase project for the apps' notifications;
+    - the Apple, Google Play and Firebase access keys, added to GitHub and Vercel, never sent in chat;
+    - the store agreements, the test versions on the owner's phone, and the final submit.
+
+    We build the iPhone and Android apps around the existing one, with automatic builds on GitHub's Mac machines (free while the code is public), the store listings, privacy and content-rating answers, and a sign-in for the stores' reviewers.
 
 _Launch:_
 

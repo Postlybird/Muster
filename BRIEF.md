@@ -33,6 +33,8 @@
 > **Owner update, 04/11/2026 (no paid specialists).** There's no budget for an accountant, lawyer, insurance broker or payroll professional, so the owner makes those decisions, working each one out with us (changes to §4.8 and §12): we research the official sources and recommend, and the free government services (Fair Work's helpline and Employer Advisory Service, icare, the ATO, Revenue NSW and the Long Service Corporation) check what needs checking. Where this brief says rates are checked by a payroll professional or documents get a legal review, read: checked against the official guidance and approved by the owner. The questions and decisions are kept in `docs/launch-questions.md`.
 >
 > **Owner update, 04/11/2026 (restoration labourers and invoices).** Restoration labourer is back at the cleaning award's level 1 for labouring, next to restoration technicians at level 2 (nine work types instead of the 02/11/2026 update's eight). Invoices show a row for each rate (hours, rate and amount), with the job number, the business's PO or reference number, the site, and the award and level (changes to §4.8). The company, Shifta Pty Ltd, is registered, with GST, in January 2027, and real shifts start after that.
+>
+> **Owner update, 08/11/2026 (store apps).** Shifta gets App Store and Google Play apps after all (changes §10), around launch: the existing app, wrapped with the phone's own notifications, location and camera, rather than separate apps. They follow the company's registration, as both stores ask a business for a D-U-N-S number.
 
 *"Muster" is a working name only. Keep the brand in a single config value (`src/config/brand.ts`) so swapping in the real name is a one-line change.*
 
