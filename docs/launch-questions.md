@@ -114,6 +114,7 @@ Until you decide, Shifta uses the default shown, and each can change later.
 - [ ] **Support email:** set up forwarding for support@shifta.com.au to your own inbox; most domain sellers offer it free.
 - [ ] **Photos of people for the home page:** allow the photo library in this environment, or send photos you have the rights to.
 - [ ] **Public or private code:** the GitHub repository is public. Nothing secret is in it, and a private one would soon pay for its test runs. **Recommendation:** keep it public for now.
+- [ ] **App Store and Google Play apps** (asked 08/11/2026). Shifta already works as an app on phones: workers install it from the website to their home screen, and it sends notifications, but the brief left store apps out for now. **Recommendation:** yes, by wrapping the existing app rather than building a new one, with the phone's own notifications, location and camera, around launch. Workers find and trust apps in the stores, notifications reach iPhones without the home-screen step, and app notifications are free where texts aren't. It costs US$99 a year for Apple and US$25 once for Google, and needs the company: both stores ask a business for a free D-U-N-S number.
 - [ ] **The 10 questions in `docs/plan.md`:** Shifta uses our recommendations. **Recommendation:** keep them.
 
 ### Later (not needed to launch)
