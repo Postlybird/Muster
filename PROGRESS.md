@@ -641,7 +641,8 @@ _Launch:_
 1. **"Release":** we build the live site; the owner moves the address in Vercel (our steps).
 2. **Admin setup on the live site:** sign in, set up the authenticator app, then company and bank details, the margin, on-costs (workers' compensation rates), and the approved documents.
 3. **A run-through** with the owner's own email and mobile.
-4. **A test week** with one or two friendly businesses and a few workers, through to workers paid and an invoice paid.
+4. **Google Search Console** (free): add www.shifta.com.au and its sitemap, so Google lists the live site soon after launch. The demo asks search engines not to list it, so it never competes.
+5. **A test week** with one or two friendly businesses and a few workers, through to workers paid and an invoice paid.
 
 **Details and our part:**
 
