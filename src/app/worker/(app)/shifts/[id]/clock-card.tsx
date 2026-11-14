@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { currentFix } from "@/lib/phone-location";
 
 import { clockShift, type ClockInput } from "./actions";
 
@@ -59,21 +60,6 @@ function writeQueue(items: Queued[]) {
     // Private browsing: nothing can wait, but sending still works.
   }
   for (const listener of listeners) listener();
-}
-
-/** Where the phone is, or null if it can't or won't say. */
-function currentPosition(): Promise<GeolocationPosition | null> {
-  if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
-    return Promise.resolve(null);
-  }
-  return new Promise((resolve) =>
-    navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), {
-      enableHighAccuracy: true,
-      timeout: 15_000,
-      // A fresh fix: a cached one could be from before they arrived.
-      maximumAge: 0,
-    }),
-  );
 }
 
 /**
@@ -157,13 +143,13 @@ export function ClockCard({
   async function onClock() {
     setBusy(true);
     try {
-      const position = await currentPosition();
+      const fix = await currentFix();
       await send({
         kind: next,
         occurredAt: new Date().toISOString(),
-        lat: position?.coords.latitude ?? null,
-        lng: position?.coords.longitude ?? null,
-        accuracy: position?.coords.accuracy ?? null,
+        lat: fix?.latitude ?? null,
+        lng: fix?.longitude ?? null,
+        accuracy: fix?.accuracy ?? null,
         reason: "",
         offline: false,
       });
