@@ -4,7 +4,7 @@ import Link from "next/link";
 import { pushPublicKey } from "@/adapters/push";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 import { PreferencesForm } from "@/components/notifications/preferences-form";
-import { PushToggle } from "@/components/notifications/push-toggle";
+import { DeviceNotifications } from "@/components/notifications/device-notifications";
 import { PageHeader } from "@/components/page-header";
 import {
   CATEGORIES_FOR,
@@ -18,7 +18,9 @@ import { choosableCategories } from "@/server/notification-settings";
 
 import {
   savePreferences,
+  turnOffAppPush,
   turnOffPush,
+  turnOnAppPush,
   turnOnDemoPush,
   turnOnPush,
 } from "./actions";
@@ -60,11 +62,13 @@ export default async function WorkerSettingsPage() {
         <h2 id="device" className="text-lg font-semibold">
           Notifications on this phone
         </h2>
-        <PushToggle
+        <DeviceNotifications
           publicKey={pushPublicKey()}
           turnOn={turnOnPush}
           turnOnDemo={turnOnDemoPush}
           turnOff={turnOffPush}
+          turnOnApp={turnOnAppPush}
+          turnOffApp={turnOffAppPush}
         />
       </section>
 

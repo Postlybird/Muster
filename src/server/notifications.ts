@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import { getEmailSender, type EmailAttachment } from "@/adapters/email";
+import { getAppPushSender } from "@/adapters/app-push";
 import { getPushSender } from "@/adapters/push";
 import { getSmsSender } from "@/adapters/sms";
 import { brand, contactLine } from "@/config/brand";
@@ -136,27 +137,36 @@ async function createNotification<K extends TemplateKey>(
 ) {
   const admin = createAdminClient();
   const template = TEMPLATES[key];
-  const [{ data: person }, { count: devices }, settings, message] =
-    await Promise.all([
-      admin
-        .from("profiles")
-        .select(
-          "email, phone, notification_prefs, archived_at, workers(home_state)",
-        )
-        .eq("id", profileId)
-        .maybeSingle(),
-      admin
-        .from("push_subscriptions")
-        .select("id", { count: "exact", head: true })
-        .eq("profile_id", profileId),
-      getAllSettings(),
-      render(key, values, options.url),
-    ]);
+  const [
+    { data: person },
+    { count: browsers },
+    { count: phones },
+    settings,
+    message,
+  ] = await Promise.all([
+    admin
+      .from("profiles")
+      .select(
+        "email, phone, notification_prefs, archived_at, workers(home_state)",
+      )
+      .eq("id", profileId)
+      .maybeSingle(),
+    admin
+      .from("push_subscriptions")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", profileId),
+    admin
+      .from("app_devices")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", profileId),
+    getAllSettings(),
+    render(key, values, options.url),
+  ]);
   if (!person || person.archived_at) return;
   const channels = channelsFor(
     {
       audience: template.audience,
-      hasPush: (devices ?? 0) > 0,
+      hasPush: (browsers ?? 0) + (getAppPushSender() ? (phones ?? 0) : 0) > 0,
       hasPhone: !!person.phone,
       hasEmail: !!person.email,
     },
@@ -293,6 +303,38 @@ async function push(
       }
     } catch (error) {
       console.error("Couldn't push to a device", error);
+    }
+  }
+
+  // The phone apps (docs/apps.md), through Firebase.
+  const appPush = getAppPushSender();
+  if (!appPush) return reached;
+  const { data: phones } = await admin
+    .from("app_devices")
+    .select("id, token, platform")
+    .eq("profile_id", row.profile_id);
+  for (const phone of phones ?? []) {
+    try {
+      const result = await appPush.send(
+        { token: phone.token, platform: phone.platform as "ios" | "android" },
+        {
+          recipient,
+          title: row.title,
+          body: row.body,
+          url: row.url ?? undefined,
+        },
+      );
+      if (result === "gone") {
+        await admin.from("app_devices").delete().eq("id", phone.id);
+      } else {
+        reached = true;
+        await admin
+          .from("app_devices")
+          .update({ last_used_at: new Date().toISOString() })
+          .eq("id", phone.id);
+      }
+    } catch (error) {
+      console.error("Couldn't send to a phone", error);
     }
   }
   return reached;

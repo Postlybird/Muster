@@ -18,6 +18,7 @@ const people: string[] = [];
 async function putBack(profileId: string) {
   const service = serviceClient();
   await service.from("push_subscriptions").delete().eq("profile_id", profileId);
+  await service.from("app_devices").delete().eq("profile_id", profileId);
   await service
     .from("profiles")
     .update({ notification_prefs: {} })
@@ -127,6 +128,37 @@ test("a worker who turns notifications on gets them in the app instead of texts"
     reminder.getByText(/^Reminder: Commercial cleaner for Westside Cleaning/),
   ).toBeVisible();
   await expectAccessible(page);
+});
+
+test("a worker with the phone app gets reminders there instead of texts", async ({
+  request,
+}) => {
+  const name = "Fatima Al-Sayed";
+  const { id, email } = await personCalled(name);
+  // What the app saves when notifications are turned on (docs/apps.md).
+  await serviceClient()
+    .from("app_devices")
+    .insert({
+      profile_id: id,
+      platform: "android",
+      token: `e2e-${id}-phone-token`,
+    });
+
+  const { jobId, phone } = await shiftTomorrow(name);
+  await runJob(request, "reminders");
+  const { data: pushed } = await serviceClient()
+    .from("dev_outbox")
+    .select("subject, meta")
+    .eq("channel", "push")
+    .eq("recipient", email)
+    .like("meta->>url", `%/worker/shifts/${jobId}`);
+  expect(pushed).toEqual([
+    {
+      subject: "Shift tomorrow",
+      meta: expect.objectContaining({ app: "android" }),
+    },
+  ]);
+  expect(await sent("sms", phone, jobId)).toEqual([]);
 });
 
 test("a worker can turn reminders off, and still sees them in the app", async ({

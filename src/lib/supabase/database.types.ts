@@ -201,6 +201,42 @@ export type Database = {
           },
         ];
       };
+      app_devices: {
+        Row: {
+          created_at: string;
+          id: string;
+          last_used_at: string | null;
+          platform: string;
+          profile_id: string;
+          token: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          last_used_at?: string | null;
+          platform: string;
+          profile_id: string;
+          token: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          last_used_at?: string | null;
+          platform?: string;
+          profile_id?: string;
+          token?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "app_devices_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       app_review_sign_ins: {
         Row: {
           created_at: string;
@@ -4286,6 +4322,7 @@ export type Database = {
         }[];
       };
       record_timesheet: { Args: { p_assignment_id: string }; Returns: string };
+      remove_app_device: { Args: { p_token: string }; Returns: undefined };
       remove_push_subscription: {
         Args: { p_endpoint: string };
         Returns: undefined;
@@ -4318,6 +4355,10 @@ export type Database = {
       };
       review_worker_credential: {
         Args: { p_approve: boolean; p_id: string; p_reason?: string };
+        Returns: undefined;
+      };
+      save_app_device: {
+        Args: { p_platform: string; p_token: string };
         Returns: undefined;
       };
       save_pay_run: {

@@ -93,3 +93,37 @@ export async function removePushDevice(endpoint: string): Promise<ActionState> {
   if (error) return saveFailed(error);
   return success("Notifications are off for this device.");
 }
+
+const phone = z.object({
+  token: z.string().min(20).max(4096),
+  platform: z.enum(["ios", "android"]),
+});
+
+/** This phone (the app, docs/apps.md) gets notifications for the signed-in person. */
+export async function saveAppDevice(
+  token: unknown,
+  platform: unknown,
+): Promise<ActionState> {
+  const parsed = phone.safeParse({ token, platform });
+  if (!parsed.success) {
+    return failure("This phone didn't give us what notifications need.");
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("save_app_device", {
+    p_token: parsed.data.token,
+    p_platform: parsed.data.platform,
+  });
+  if (error) return saveFailed(error);
+  return success("Notifications are on for this phone.");
+}
+
+/** This phone stops getting them. */
+export async function removeAppDevice(token: unknown): Promise<ActionState> {
+  if (typeof token !== "string" || token.length > 4096) {
+    return failure("That isn't this phone's notifications.");
+  }
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("remove_app_device", { p_token: token });
+  if (error) return saveFailed(error);
+  return success("Notifications are off for this phone.");
+}

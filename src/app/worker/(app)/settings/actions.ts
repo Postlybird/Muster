@@ -10,7 +10,9 @@ import { requireRole } from "@/lib/auth";
 import { isDemoMode } from "@/lib/env";
 import { failure, type ActionState } from "@/lib/forms";
 import {
+  removeAppDevice,
   removePushDevice,
+  saveAppDevice,
   saveNotificationPrefs,
   savePushDevice,
 } from "@/server/notification-settings";
@@ -53,4 +55,22 @@ export async function turnOnDemoPush(): Promise<
 export async function turnOffPush(endpoint: string): Promise<ActionState> {
   await requireRole("worker");
   return removePushDevice(endpoint);
+}
+
+/** Notifications on this phone, in the app (docs/apps.md). */
+export async function turnOnAppPush(
+  token: unknown,
+  platform: unknown,
+): Promise<ActionState> {
+  await requireRole("worker");
+  const result = await saveAppDevice(token, platform);
+  revalidatePath("/worker/settings");
+  return result;
+}
+
+export async function turnOffAppPush(token: unknown): Promise<ActionState> {
+  await requireRole("worker");
+  const result = await removeAppDevice(token);
+  revalidatePath("/worker/settings");
+  return result;
 }

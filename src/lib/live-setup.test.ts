@@ -63,6 +63,18 @@ describe("liveSetupProblems", () => {
   });
 });
 
+describe("the phone apps' notifications", () => {
+  it("aren't needed until Firebase is chosen", () => {
+    expect(liveSetupProblems(READY)).toEqual([]);
+  });
+
+  it("need the Firebase key once it is", () => {
+    expect(liveSetupProblems({ ...READY, APP_PUSH_PROVIDER: "fcm" })).toEqual([
+      "FIREBASE_SERVICE_ACCOUNT (the phone apps' notifications)",
+    ]);
+  });
+});
+
 describe("isLiveBuild", () => {
   it("is only Vercel's production build outside demo mode", () => {
     expect(isLiveBuild({ VERCEL_ENV: "production" })).toBe(true);

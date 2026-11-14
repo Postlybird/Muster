@@ -44,6 +44,11 @@ export function liveSetupProblems(
   need("NEXT_PUBLIC_VAPID_PUBLIC_KEY", "app notifications");
   need("VAPID_PRIVATE_KEY", "app notifications");
 
+  // The phone apps' notifications (docs/apps.md), once Firebase is set up.
+  if (value("APP_PUSH_PROVIDER") === "fcm") {
+    need("FIREBASE_SERVICE_ACCOUNT", "the phone apps' notifications");
+  }
+
   // The pretend lookup only knows the demo's ABNs.
   need("ABN_LOOKUP_GUID", "checking businesses' ABNs");
   // The live sign-in settings refuse code requests without the bot check.
