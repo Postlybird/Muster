@@ -448,6 +448,7 @@ _Last updated: 14/11/2026_
 
 ## Next
 
+- **Claude: the store apps** (owner, 14/11/2026: "ok to both"), in the steps in `docs/apps.md`: delete my account, the reviewers' sign-in, the Android and iPhone apps, notifications, location and app links, automatic builds, and the store listings. They're ready to submit once the Apple, Google Play and Firebase accounts exist (after the company's D-U-N-S number).
 - **Owner: the warehouse award's pay guide.** Pick-packers, storepersons and forklift drivers come under the Storage Services and Wholesale Award [MA000084]. As with the others:
   1. Download that award's pay guide from the Fair Work Ombudsman website and send it to me.
   2. I'll prepare the rate cards from it, for you to check against the pay guide.
@@ -633,6 +634,9 @@ _Last updated: 14/11/2026_
 | 14/11/2026 | The owner approved the casual employment contract and the privacy collection notice and policy (version 1.0). Demo workers who accepted an earlier version of a document accept its current version in the seed; real workers are asked again. | A new version would otherwise send every demo worker back through sign-up and paperwork; real people must see and accept what they sign. |
 | 14/11/2026 | Each week's pay run waits for the owner to check and issue it: the run day emails our team and the dashboard shows it, and only "Issue invoices and payroll file" sends invoices and saves the payroll file. A setting makes it automatic again (owner's choice). | The owner checks every invoice before a business sees it. Workers' pay waits on the same click, so the dashboard keeps showing it, in red, until it's done. |
 | 14/11/2026 | The payroll provider with a $100 monthly minimum is ruled out, and the app names no provider (owner's choice). | Too dear for a handful of workers; the payroll file works with any provider. |
+| 14/11/2026 | The App Store and Google Play apps are built now (owner: "can we develop the app for both Android & Apple"), as one app for workers, businesses and our team: the website inside a Capacitor app, with the phone's own notifications (through Firebase), location and camera (`docs/apps.md`). | They're ready when the company's accounts are, while the owner works through the launch list. One app keeps one thing to look after. |
+| 14/11/2026 | "Delete my account" (owner: "ok"): it signs the person out for good and stops their messages, and removes their photo, phones and availability straight away; hours, pay and invoices are kept for 7 years. Anyone with shifts booked cancels them first. | Both stores require deleting an account from inside the app, and both allow keeping what the law requires. |
+| 14/11/2026 | The stores' reviewers sign in to one account with a fixed code, only while an admin has switched review sign-in on; it's a worker we haven't checked (owner: "ok"). The one exception to "no passwords". | Reviewers can't receive our emailed codes. Switched off, nobody can use it, and as an unchecked worker it can't apply for real shifts or see businesses. |
 | 14/11/2026 | All restoration work, pack-outs and contents included, comes under the Cleaning Services Award (owner, "as we know"): restoration labourers at level 1 and technicians at level 2, as built. | The owner's knowledge of the industry, and how the rates were built. Whether the cleaners' long service scheme also covers restoration depends on the work, not the award, so it stays a question for the Long Service Corporation. |
 | 14/11/2026 | The owner approved the website's terms of use. | Brought up to date with the app (email sign-in, when each side accepts its agreement, uploads, messages), and fair under the Australian Consumer Law: anyone who doesn't accept a change can stop using the app. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
@@ -675,7 +679,7 @@ _Before launch, in this order (January 2027 in the first plan; the owner is now 
     - the Apple, Google Play and Firebase access keys, added to GitHub and Vercel, never sent in chat;
     - the store agreements, the test versions on the owner's phone, and the final submit.
 
-    We build the iPhone and Android apps around the existing one, with automatic builds on GitHub's Mac machines (free while the code is public), the store listings, privacy and content-rating answers, and a sign-in for the stores' reviewers.
+    We're building the apps now (14/11/2026, `docs/apps.md`): the iPhone and Android apps around the existing one, with automatic builds on GitHub's Mac machines (free while the code is public), the store listings, privacy and content-rating answers, and a sign-in for the stores' reviewers.
 
 _Launch:_
 

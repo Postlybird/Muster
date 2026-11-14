@@ -118,7 +118,9 @@ Until you decide, Shifta uses the default shown, and each can change later.
 - [ ] **Support email:** set up forwarding for support@shifta.com.au to your own inbox; most domain sellers offer it free.
 - [ ] **Photos of people for the home page:** allow the photo library in this environment, or send photos you have the rights to.
 - [x] **Public or private code.** Decided 14/11/2026: public for now. Nothing secret is in it, and a private one would soon pay for its test runs.
-- [x] **App Store and Google Play apps.** Decided 08/11/2026: yes, around launch, by wrapping the existing app with the phone's own notifications, location and camera. They follow the company (both stores ask a business for a free D-U-N-S number), so the steps are in January's list in `PROGRESS.md`. US$99 a year for Apple and US$25 once for Google.
+- [x] **App Store and Google Play apps.** Decided 08/11/2026: yes, around launch, by wrapping the existing app with the phone's own notifications, location and camera. They follow the company (both stores ask a business for a free D-U-N-S number), so the steps are in January's list in `PROGRESS.md`. US$99 a year for Apple and US$25 once for Google. Building started 14/11/2026, so the apps are ready when the accounts are (`docs/apps.md`).
+- [x] **Delete my account.** Decided 14/11/2026: both stores require it. It signs the person out for good and stops their messages, and removes their photo, phones and availability straight away; hours, pay and invoices are kept for 7 years, as the law requires. Anyone with shifts booked cancels them first.
+- [x] **The stores' reviewers.** Decided 14/11/2026: one reviewers' account signs in with a fixed code, the one exception to "no passwords". It works only while an admin has switched review sign-in on, and it's a worker we haven't checked, so reviewers can look around but can't apply for real shifts or see any business's details.
 - [x] **The 10 questions in `docs/plan.md`.** Decided 14/11/2026: keep our recommendations.
 
 ### Later (not needed to launch)
