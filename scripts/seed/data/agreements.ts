@@ -23,41 +23,65 @@ type SeedAgreement = {
 };
 
 const draftNote =
-  "> **Draft for demonstration only.** This document hasn't been reviewed by a lawyer and must not be used with real workers or businesses.";
+  "> **Draft.** This document hasn't been approved yet and must not be used with real workers or businesses.";
 
 export const AGREEMENT_VERSION = "0.1-draft";
 
 export const AGREEMENTS: SeedAgreement[] = [
   {
     kind: "labour_hire_services",
-    // 0.2 (owner, 03/11/2026): a placement fee for hiring our workers directly.
-    version: "0.2-draft",
+    // 0.2 (owner, 03/11/2026): a placement fee for hiring our workers
+    // directly. 0.3 (owner, 14/11/2026): 7-day terms, interest and costs on
+    // late payments, the cancellation charge, who's responsible for what,
+    // vehicles and forklifts, 30 days' notice of rate changes and checks on
+    // request; each checked against the law's examples of unfair terms
+    // (Australian Consumer Law, section 25).
+    version: "0.3-draft",
     title: "Labour Hire Services Agreement (draft)",
     body: `${draftNote}
 
 ## 1. What we provide
-We supply workers we employ to work at your sites under your day-to-day direction. We remain their employer: we pay them, and we hold workers' compensation insurance for them.
+We supply workers we employ to work at your sites under your day-to-day direction. We remain their employer: we pay their wages and super, withhold their tax, and hold workers' compensation insurance for them.
 
 ## 2. Safety
-We share work health and safety duties for every placement. You'll describe the hazards and the controls in place, provide the site induction, and supervise the work. You'll tell us straight away about any incident or safety concern.
+We share work health and safety duties for every placement. You'll describe the hazards and the controls in place, provide the site induction and any safety equipment the job needs beyond what we supply, and supervise the work safely. You'll tell us straight away about any incident or safety concern.
 
-## 3. Rates and invoices
-You pay the bill rates shown when you post work, plus GST. We invoice weekly for approved timesheets. Payment is due within the terms on the invoice.
+## 3. Directing the work, and who's responsible
+You direct and supervise our workers while they're with you, as you would your own staff. So you're responsible for loss or damage that comes from:
+- the work you ask them to do, and how it's directed and supervised;
+- your site, equipment, materials and goods; and
+- cash, keys, cards or valuables you give them to handle. Please don't ask our workers to handle cash unless we've agreed to it in writing.
 
-## 4. Timesheets
-Approve or dispute each timesheet within the approval window. If you don't, it's treated as approved.
+We're responsible for loss or damage that comes from our negligence or our breach of this agreement (such as sending a worker without a ticket you asked for), or from a worker's dishonesty or deliberate wrongdoing. Neither of us is responsible for the other's indirect losses, such as lost profits.
 
-## 5. Cancellations
-Cancelling within the late cancellation window is charged under our cancellation policy.
+## 4. Vehicles, forklifts and machinery
+Our workers drive a vehicle, operate a forklift or use other plant for you only if you ask in writing first (by email, or in the job's details when you post it) and they hold the licence or ticket it needs. By asking, you confirm your insurance covers them while they drive or operate it, and you're responsible for damage to it, or caused by it, while they use it under your direction.
 
-## 6. Labour hire licensing
+## 5. Rates, invoices and payment
+You pay the charges shown when you post work, plus GST. We invoice each week for the hours approved and any late cancellations. Payment is due within 7 days of the invoice date, unless we've agreed other terms with you in writing.
+
+If an invoice isn't paid by its due date, we can charge interest on the amount unpaid, from the due date until it's paid, at 4% a year above the Reserve Bank's cash rate, worked out daily (the rate NSW courts use for interest on debts before judgment). You'll also pay our reasonable costs of recovering an overdue amount, such as a collection agency's or lawyer's fees. Neither applies to an amount you've disputed with us in good faith before its due date, while we work it out together.
+
+## 6. Timesheets
+Approve or query each timesheet within 48 hours. If you don't, it's treated as approved.
+
+## 7. Cancellations
+If you cancel a booking less than 12 hours before it starts, we charge 3 hours at the shift's rate for each booked worker, as we pay the worker those hours. If the worker has already arrived, we charge at least the minimum engagement for the work.
+
+## 8. Changes to our rates
+We can change our rates and charges by telling you by email at least 30 days before the change starts, for example when award rates rise each 1 July. Shifts already booked keep the rates they were booked at. If you don't accept a change, you can end this agreement by telling us before it starts, and pay only for work already done. Changes to the rest of this agreement apply only once you accept them.
+
+## 9. Extra checks
+If you'd like a worker checked beyond what we do for everyone, such as a police check, a driving record or a drug and alcohol test, tell us. With the worker's consent we'll arrange it, and charge you what it costs us, which we'll tell you first.
+
+## 10. Labour hire licensing
 Where a state requires a labour hire licence, our licence number appears on this agreement and our invoices.
 
-## 7. Hiring our workers yourself
+## 11. Hiring our workers yourself
 Our workers are our employees. If you employ a worker who has worked for you through us, or take them on through another agency or as a contractor, within 180 days after the last shift they worked for you, you'll pay us a placement fee of 15% of the pay you agree with them for their first year, plus GST. Talk to us first: we're happy to agree the fee before they start.
 
-## 8. Ending this agreement
-Either of us can end this agreement by written notice. Work already completed is still payable, and section 7 still applies for its 180 days.
+## 12. Ending this agreement
+Either of us can end this agreement by written notice. Work already completed is still payable, and section 11 still applies for its 180 days.
 `,
   },
   {
