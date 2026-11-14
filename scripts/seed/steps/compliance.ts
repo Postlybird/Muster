@@ -1,5 +1,5 @@
 import { allowancesToRow } from "../../../src/domain/rates";
-import { check, type SeedClient } from "../client";
+import { check, must, type SeedClient } from "../client";
 import { AGREEMENT_VERSION, AGREEMENTS } from "../data/agreements";
 import { JURISDICTIONS } from "../data/compliance";
 import {
@@ -79,29 +79,45 @@ export async function seedCompliance(
         `${a.kind}|${a.jurisdiction ?? ""}|${a.version ?? AGREEMENT_VERSION}`,
       ),
   );
+  const isDraft = (version: string) => version.endsWith("-draft");
   for (const agreement of missingAgreements) {
+    const version = agreement.version ?? AGREEMENT_VERSION;
     const current = check(
       await client
         .from("agreements")
-        .select("id")
+        .select("id, version")
         .eq("kind", agreement.kind)
         .eq("is_current", true)
         .maybeSingle(),
       "current agreement",
     );
-    check(
-      await client.from("agreements").insert({
-        kind: agreement.kind,
-        jurisdiction: agreement.jurisdiction ?? null,
-        version: agreement.version ?? AGREEMENT_VERSION,
-        title: agreement.title,
-        body_md: agreement.body,
-        published_at: new Date().toISOString(),
-        // Don't displace a version an admin has already published.
-        is_current: !current,
-      }),
+    const inserted = must(
+      await client
+        .from("agreements")
+        .insert({
+          kind: agreement.kind,
+          jurisdiction: agreement.jurisdiction ?? null,
+          version,
+          title: agreement.title,
+          body_md: agreement.body,
+          published_at: new Date().toISOString(),
+          // Don't displace a version an admin has already published.
+          is_current: !current,
+        })
+        .select("id")
+        .single(),
       `agreement ${agreement.kind}`,
     );
+    // A version the owner approved (no "-draft") takes over from a current
+    // draft, the way an admin makes a version current.
+    if (current && isDraft(current.version) && !isDraft(version)) {
+      check(
+        await client.rpc("set_current_agreement", {
+          p_agreement_id: inserted.id,
+        }),
+        `current ${agreement.kind}`,
+      );
+    }
   }
 
   // Default rate cards: one per category at level 1, if none exists yet.

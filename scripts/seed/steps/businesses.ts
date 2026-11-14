@@ -55,10 +55,18 @@ export async function seedBusinesses(client: SeedClient) {
 
   let added = 0;
   let repaired = 0;
+  let accepted = 0;
   for (const [index, business] of BUSINESSES.entries()) {
     const existingId = have.get(business.abn);
     if (existingId) {
       repaired += await repairSites(client, geocoder, existingId, business);
+      const owner = business.people.find((p) => p.role === "owner");
+      accepted += await acceptCurrentAgreement(
+        client,
+        agreement.data?.id,
+        existingId,
+        owner ? profileByEmail.get(owner.email) : undefined,
+      );
       continue;
     }
     const abr = DEMO_ABNS[business.abn];
@@ -194,7 +202,40 @@ export async function seedBusinesses(client: SeedClient) {
     added++;
   }
 
-  return { businesses: BUSINESSES.length, added, repaired };
+  return { businesses: BUSINESSES.length, added, repaired, accepted };
+}
+
+/**
+ * A demo business accepts the current services agreement if it hasn't,
+ * such as a newer version that replaced the one it first accepted, so the
+ * demo doesn't stall on it. Real businesses are always asked themselves.
+ */
+async function acceptCurrentAgreement(
+  client: SeedClient,
+  agreementId: string | undefined,
+  businessId: string,
+  ownerId: string | undefined,
+): Promise<number> {
+  if (!agreementId || !ownerId) return 0;
+  const { count, error } = await client
+    .from("agreement_acceptances")
+    .select("id", { count: "exact", head: true })
+    .eq("agreement_id", agreementId)
+    .eq("business_id", businessId);
+  if (error) throw new Error(`services agreement: ${error.message}`);
+  if ((count ?? 0) > 0) return 0;
+  check(
+    await client.from("agreement_acceptances").insert({
+      agreement_id: agreementId,
+      profile_id: ownerId,
+      business_id: businessId,
+      accepted_at: new Date().toISOString(),
+      ip: DEMO_IP,
+      user_agent: "Demo data (seed script)",
+    }),
+    "services agreement",
+  );
+  return 1;
 }
 
 /**

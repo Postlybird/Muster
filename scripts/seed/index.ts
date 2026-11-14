@@ -53,7 +53,7 @@ async function main() {
 
   const businesses = await seedBusinesses(client);
   console.log(
-    `  businesses: ${businesses.businesses} (${businesses.added} added, ${businesses.repaired} sites corrected)`,
+    `  businesses: ${businesses.businesses} (${businesses.added} added, ${businesses.repaired} sites corrected, ${businesses.accepted} accepted the new services agreement)`,
   );
 
   const workers = await seedWorkers(client);

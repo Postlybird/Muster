@@ -36,12 +36,11 @@ export const AGREEMENTS: SeedAgreement[] = [
     // request; each checked against the law's examples of unfair terms
     // (Australian Consumer Law, section 25). 0.4 (owner, 14/11/2026): no
     // placement fee, so businesses can hire our workers directly for free,
-    // as the website says (the fee came in with 0.2).
-    version: "0.4-draft",
-    title: "Labour Hire Services Agreement (draft)",
-    body: `${draftNote}
-
-## 1. What we provide
+    // as the website says (the fee came in with 0.2). 1.0: 0.4 as the owner
+    // approved it (14/11/2026), without the draft label.
+    version: "1.0",
+    title: "Labour Hire Services Agreement",
+    body: `## 1. What we provide
 We supply workers we employ to work at your sites under your day-to-day direction. We remain their employer: we pay their wages and super, withhold their tax, and hold workers' compensation insurance for them.
 
 ## 2. Safety
