@@ -19,6 +19,7 @@ on:
       - package.json
       - package-lock.json
       - .github/workflows/apps.yml
+      - .github/workflows/apps-release.yml
   workflow_dispatch:
 
 concurrency:
@@ -62,9 +63,9 @@ jobs:
           fi
 
       - run: npm run app:sync
-      - name: Build the test app
+      - name: Build the test app, and check the store version builds
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug bundleRelease --no-daemon
       - uses: actions/upload-artifact@v4
         with:
           name: android-test-app

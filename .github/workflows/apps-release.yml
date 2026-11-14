@@ -1,0 +1,191 @@
+# The phone apps for the stores (docs/apps.md): run by hand from the Actions
+# tab once the Apple, Google Play and Firebase accounts exist. It builds the
+# signed apps and sends them to TestFlight and Google Play's internal
+# testing, for the owner to try and then submit. Its secrets live in the
+# GitHub environment "stores", locked to main with the owner as reviewer.
+name: Phone apps for the stores
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The version people see in the stores, like 1.0.1"
+        required: true
+        default: "1.0"
+
+permissions:
+  contents: read
+
+env:
+  APP_VERSION: ${{ inputs.version }}
+  # Each upload needs a bigger number than the last.
+  APP_BUILD_NUMBER: ${{ github.run_number }}
+
+jobs:
+  android:
+    name: Google Play (internal testing)
+    runs-on: ubuntu-latest
+    environment: stores
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+      - run: npm ci
+
+      - name: Check the Google Play and Firebase secrets are set
+        env:
+          ANDROID_UPLOAD_KEYSTORE: ${{ secrets.ANDROID_UPLOAD_KEYSTORE }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          FIREBASE_ANDROID_CONFIG: ${{ secrets.FIREBASE_ANDROID_CONFIG }}
+        run: |
+          missing=0
+          for name in ANDROID_UPLOAD_KEYSTORE ANDROID_UPLOAD_KEYSTORE_PASSWORD \
+            ANDROID_UPLOAD_KEY_ALIAS ANDROID_UPLOAD_KEY_PASSWORD \
+            PLAY_SERVICE_ACCOUNT_JSON FIREBASE_ANDROID_CONFIG; do
+            if [ -z "${!name}" ]; then
+              echo "::error::The secret $name isn't set in the stores environment (docs/apps.md)."
+              missing=1
+            fi
+          done
+          exit $missing
+
+      - name: Add Firebase's settings and the upload key
+        env:
+          FIREBASE_ANDROID_CONFIG: ${{ secrets.FIREBASE_ANDROID_CONFIG }}
+          ANDROID_UPLOAD_KEYSTORE: ${{ secrets.ANDROID_UPLOAD_KEYSTORE }}
+        run: |
+          printf '%s' "$FIREBASE_ANDROID_CONFIG" > android/app/google-services.json
+          printf '%s' "$ANDROID_UPLOAD_KEYSTORE" | base64 --decode > "$RUNNER_TEMP/upload.jks"
+          echo "ANDROID_UPLOAD_KEYSTORE_PATH=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+
+      - run: npm run app:sync
+      - name: Build the signed app bundle
+        working-directory: android
+        env:
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease --no-daemon
+      - name: Remove the upload key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.jks"
+
+      # Google Play takes the very first upload by hand: download this from
+      # the run's page and upload it in the Play Console.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-app-bundle
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      - name: The app's ID
+        id: app
+        run: echo "id=$(npx tsx -e 'import { brand } from "./src/config/brand"; console.log(brand.appId)')" >> "$GITHUB_OUTPUT"
+      - name: Send it to internal testing
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ steps.app.outputs.id }}
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+
+  ios:
+    name: TestFlight
+    runs-on: macos-15
+    environment: stores
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Check the Apple and Firebase secrets are set
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+          FIREBASE_IOS_CONFIG: ${{ secrets.FIREBASE_IOS_CONFIG }}
+        run: |
+          missing=0
+          for name in APPLE_TEAM_ID APP_STORE_CONNECT_KEY_ID \
+            APP_STORE_CONNECT_ISSUER_ID APP_STORE_CONNECT_KEY FIREBASE_IOS_CONFIG; do
+            if [ -z "${!name}" ]; then
+              echo "::error::The secret $name isn't set in the stores environment (docs/apps.md)."
+              missing=1
+            fi
+          done
+          exit $missing
+
+      - name: Add Firebase's settings and the App Store Connect key
+        env:
+          FIREBASE_IOS_CONFIG: ${{ secrets.FIREBASE_IOS_CONFIG }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+        run: |
+          printf '%s' "$FIREBASE_IOS_CONFIG" > ios/App/App/GoogleService-Info.plist
+          printf '%s' "$APP_STORE_CONNECT_KEY" > "$RUNNER_TEMP/AuthKey.p8"
+
+      - run: npm run app:sync
+
+      - name: Build and sign the app
+        working-directory: ios/App
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" archive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Automatic \
+            MARKETING_VERSION="$APP_VERSION" CURRENT_PROJECT_VERSION="$APP_BUILD_NUMBER"
+
+      - name: Send it to TestFlight
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID"
+      - name: Remove the key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/AuthKey.p8"

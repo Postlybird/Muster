@@ -7,8 +7,9 @@ android {
         applicationId "au.com.shifta.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // The store builds number each upload (docs/apps.md).
+        versionCode((System.getenv("APP_BUILD_NUMBER") ?: "1").toInteger())
+        versionName(System.getenv("APP_VERSION") ?: "1.0")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +17,24 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Google Play's upload key, from GitHub secrets in the store build
+    // (docs/apps.md); other builds aren't signed for the store.
+    def uploadKeystore = System.getenv("ANDROID_UPLOAD_KEYSTORE_PATH")
+    signingConfigs {
+        if (uploadKeystore) {
+            upload {
+                storeFile file(uploadKeystore)
+                storePassword System.getenv("ANDROID_UPLOAD_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ANDROID_UPLOAD_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_UPLOAD_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
+            if (uploadKeystore) {
+                signingConfig signingConfigs.upload
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

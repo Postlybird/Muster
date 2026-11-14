@@ -87,6 +87,7 @@
 				504EC3001FED79650016851F /* Sources */,
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
+				A1B2C3D4E5F6071829304A5B /* Add Firebase settings */,
 			);
 			buildRules = (
 			);
@@ -152,6 +153,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A1B2C3D4E5F6071829304A5B /* Add Firebase settings */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Add Firebase settings";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Firebase's settings for notifications (docs/apps.md): the store builds\n# write them from a GitHub secret; other builds go without.\nif [ -f \"${SRCROOT}/App/GoogleService-Info.plist\" ]; then\n  cp \"${SRCROOT}/App/GoogleService-Info.plist\" \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		504EC3001FED79650016851F /* Sources */ = {
@@ -310,6 +333,7 @@
 				MARKETING_VERSION = 1.0;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = au.com.shifta.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -332,6 +356,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = au.com.shifta.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";

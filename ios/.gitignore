@@ -14,3 +14,6 @@ App/App/config.xml
 
 # Made by cap sync, pointing into node_modules (docs/apps.md)
 App/CapApp-SPM/symlinks
+
+# Firebase settings, written by the store builds from a secret (docs/apps.md)
+App/App/GoogleService-Info.plist
