@@ -23,7 +23,7 @@ These cost nothing, and their answers carry more weight than mine:
 
 ## 1. The business and tax
 
-- [x] **Company or sole trader?** Decided 04/11/2026: a company, Shifta Pty Ltd, which you'll register with ASIC in January 2027, when you're back from Brazil. Until then there's no ABN, so real shifts, the paid accounts and the text sender name wait for it.
+- [x] **Company or sole trader?** Decided 04/11/2026: a company, Shifta Pty Ltd. Registered with ASIC on 14/11/2026 (owner); the ABN is on its way, and real shifts, the paid accounts and the text sender name wait for it.
 - [x] **GST.** Decided 04/11/2026: register in January 2027, with the company (free, with the ATO).
 - [x] **GST basis.** Decided 14/11/2026: cash, reporting GST when businesses pay, which any business turning over less than $10 million can choose. Choose it when you register for GST in January; Shifta's Sales and GST page says what goes at G1 and 1A.
 - [ ] **PAYG withholding.** **The law:** register before the first pay run (free), with the company in January. The payroll app works out each worker's tax and reports it to the ATO every payday; you pay it with your BAS, quarterly while you withhold $25,000 a year or less.

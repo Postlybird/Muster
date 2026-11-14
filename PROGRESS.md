@@ -10,7 +10,7 @@ _Last updated: 14/11/2026_
 
 **Going live: stage 1 built** (03/11/2026). Real email (Resend), texts (Twilio), address search (Google Maps) and a bot check (Cloudflare Turnstile) are ready behind their adapters, waiting only for the accounts and keys. The live site's own database, sign-in settings and release workflow are ready, and invoicing gained overdue reminders, credit notes and a sales and GST report. The demo stays as it is, and moves to demo.shifta.com.au at the switch-over. Next is stage 2: the owner opens the accounts, one at a time (`docs/launch.md`).
 
-**Launch timing** (owner, 04/11/2026): the company, Shifta Pty Ltd, is registered with ASIC, and for GST and PAYG withholding, in January 2027, when the owner is back from Brazil. Real shifts start after that, once workers' compensation is in place; until then the work continues on the demo, and the paid accounts can wait. On 14/11/2026 the owner said they're now looking at launching in November 2026: the same steps, sooner.
+**Launch timing** (owner, 04/11/2026): the company, Shifta Pty Ltd, is registered with ASIC, and for GST and PAYG withholding, in January 2027, when the owner is back from Brazil. Real shifts start after that, once workers' compensation is in place; until then the work continues on the demo, and the paid accounts can wait. On 14/11/2026 the owner said they're now looking at launching in November 2026: the same steps, sooner. The company was registered on 14/11/2026 (owner); its ABN is on its way.
 
 ## Done
 
@@ -666,8 +666,9 @@ Meanwhile we write the award questions for Fair Work's Employer Advisory Service
 
 _Before launch, in this order (January 2027 in the first plan; the owner is now looking at November 2026):_
 
-1. **Register Shifta Pty Ltd** with ASIC. Then we add its name and ABN to the business agreement, the casual contract and the privacy documents (version 1.1 of each), and to the terms of use.
-2. **The company's ABN, GST (cash basis, decided 14/11/2026) and PAYG withholding:** free, one online application.
+1. ~~**Register the company** with ASIC~~: done 14/11/2026 (owner). When the ABN arrives, we add the company's name, ACN and ABN to the business agreement, the casual contract and the privacy documents (version 1.1 of each), and to the terms of use, in one go.
+2. **The company's ABN, GST (cash basis, decided 14/11/2026) and PAYG withholding:** the ABN is on its way (14/11/2026); check the application included GST and PAYG withholding, or add them once it arrives.
+2a. **The D-U-N-S number** (free, about a week), which Apple and Google ask for: apply now, through Apple's D-U-N-S lookup, with the company's details.
 3. **A business bank account,** and cash for 2–3 weeks of wages.
 4. **Workers' compensation from icare** (required by law before anyone works); its rate for each work type goes into Admin.
 5. **A free ImmiAccount** with Home Affairs for the company, to check workers' visas in VEVO before their first shift (the law: nobody works without the right to).
