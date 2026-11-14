@@ -7,3 +7,7 @@ package-lock.json
 supabase/.temp
 BRIEF.md
 *.md
+# The phone apps' native projects and generated pages (docs/apps.md).
+android
+ios
+mobile/www

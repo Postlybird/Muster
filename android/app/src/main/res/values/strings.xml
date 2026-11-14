@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Shifta</string>
+    <string name="title_activity_main">Shifta</string>
+    <string name="package_name">au.com.shifta.app</string>
+    <string name="custom_url_scheme">au.com.shifta.app</string>
+</resources>

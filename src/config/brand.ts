@@ -13,6 +13,10 @@ export const brand = {
   description:
     "Connecting great businesses with great people, one shift at a time. Sydney businesses book checked, job-ready staff in minutes; workers pick up shifts on their phone and get paid every week.",
   supportEmail: "support@shifta.com.au",
+  /** The live website, which the phone apps open (docs/apps.md). */
+  website: "https://www.shifta.com.au",
+  /** The phone apps' ID in both stores. It can't change once published. */
+  appId: "au.com.shifta.app",
   /** Shown only once we have a number to give out. */
   supportPhone: null as string | null,
   /** Hex colours. Each pair has been checked for WCAG 2.1 AA contrast. */

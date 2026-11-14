@@ -23,6 +23,9 @@ const eslintConfig = defineConfig([
     "test-results/**",
     "supabase/.temp/**",
     "src/lib/supabase/database.types.ts",
+    // The phone apps' native projects (docs/apps.md).
+    "android/**",
+    "ios/**",
   ]),
 ]);
 

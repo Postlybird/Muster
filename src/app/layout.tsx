@@ -5,6 +5,7 @@ import { Suspense, type CSSProperties } from "react";
 
 import { DemoBanner } from "@/components/layout/demo-banner";
 import { NavigationProgress } from "@/components/layout/navigation-progress";
+import { NativeBridge } from "@/components/native/native-bridge";
 import { isDemoMode } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <DemoBanner />
         {children}
         <Toaster />
+        <NativeBridge />
       </body>
     </html>
   );
