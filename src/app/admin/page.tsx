@@ -4,11 +4,13 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { payrollTaxWarning } from "@/domain/payroll-tax";
 import { needsAttention } from "@/domain/shift-board";
 import { requireAdmin } from "@/lib/auth";
-import { sydneyDateKey } from "@/lib/format";
+import { formatDollars, sydneyDateKey } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { getAllSettings } from "@/server/settings";
 import { loadVerificationQueue } from "@/server/verification";
 
 export const metadata: Metadata = { title: "Admin dashboard" };
@@ -144,11 +146,37 @@ export default async function AdminDashboardPage() {
       href: "/admin/invoices",
     },
   ];
-  const nothing = items.every((item) => item.count === 0);
+  // Payroll tax isn't in prices until wages near NSW's threshold (owner,
+  // 14/11/2026), so the dashboard says when they do.
+  const settings = await getAllSettings();
+  const daysAgo = (days: number) =>
+    sydneyDateKey(new Date(now.getTime() - days * 86_400_000));
+  const { data: runs } = await supabase
+    .from("pay_runs")
+    .select("period_end, pay_cents")
+    .gte("period_end", daysAgo(365));
+  const paidSince = (date: string) =>
+    (runs ?? [])
+      .filter((run) => run.period_end >= date)
+      .reduce((sum, run) => sum + run.pay_cents, 0);
+  const payrollTax = payrollTaxWarning({
+    yearPayCents: paidSince(daysAgo(365)),
+    monthPayCents: paidSince(daysAgo(30)),
+    thresholdCents: settings.payroll_tax_threshold * 100,
+    superPct: settings.on_costs_pct.super,
+  });
+  const nothing = items.every((item) => item.count === 0) && !payrollTax;
 
   return (
     <div className="space-y-6">
       <PageHeader title="Dashboard" description="What needs attention today." />
+      {payrollTax ? (
+        <Alert variant={payrollTax.over ? "destructive" : "warning"}>
+          <AlertDescription>
+            {`Wages, with super, ${payrollTax.over ? "have passed" : "are nearing"} NSW's payroll tax threshold of ${formatDollars(settings.payroll_tax_threshold * 100)} a year (${formatDollars(payrollTax.monthThresholdCents)} for 30 days): ${formatDollars(payrollTax.yearCents)} in the last 12 months, and ${formatDollars(payrollTax.monthCents)} in the last 30 days. ${payrollTax.over ? "Register" : "Before you pass it, register"} with Revenue NSW, and add payroll tax to the on-costs in Settings → Pay and billing.`}
+          </AlertDescription>
+        </Alert>
+      ) : null}
       {nothing ? (
         <Alert variant="success">
           <AlertDescription>

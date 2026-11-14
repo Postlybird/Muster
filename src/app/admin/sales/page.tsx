@@ -247,11 +247,12 @@ export default async function SalesPage({
           />
         </dl>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          By the dates invoices and credit notes were issued (accruals). For the
-          BAS on that basis, the sales including GST go at G1 and the GST on
-          them at 1A. On a cash basis, use what was received, by the day each
-          invoice was marked paid. Use the basis you chose when you registered
-          for GST.
+          We report GST on a cash basis. For the BAS, what was received in the
+          period, including GST, goes at G1 and the GST in it at 1A: each
+          payment is an invoice marked paid, for what was owed after any credit
+          notes. A credit note on an invoice already paid means a refund, so
+          take it off in the period you pay the refund. The sales are by the
+          dates invoices and credit notes were issued, for reference.
         </p>
       </section>
 

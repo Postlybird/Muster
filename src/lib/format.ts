@@ -88,6 +88,17 @@ export function formatCents(cents: number): string {
   return audFormatter.format(cents / 100);
 }
 
+const wholeDollarFormatter = new Intl.NumberFormat("en-AU", {
+  style: "currency",
+  currency: "AUD",
+  maximumFractionDigits: 0,
+});
+
+/** Large sums to the nearest dollar: 120000049 → "$1,200,000" */
+export function formatDollars(cents: number): string {
+  return wholeDollarFormatter.format(Math.round(cents / 100));
+}
+
 /** Minutes as hours: 456 → "7.6 h", 480 → "8 h", 225 → "3.75 h". */
 export function formatHours(minutes: number): string {
   const hours = Math.round((minutes / 60) * 100) / 100;

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatCents,
   formatDate,
+  formatDollars,
   formatDateTime,
   formatDayShort,
   dateKeyIn,
@@ -49,6 +50,12 @@ describe("Australian formats", () => {
     expect(formatCents(123456)).toBe("$1,234.56");
     expect(formatCents(0)).toBe("$0.00");
     expect(formatCents(-550)).toBe("-$5.50");
+  });
+
+  it("formats large sums to the nearest dollar", () => {
+    expect(formatDollars(120_000_049)).toBe("$1,200,000");
+    expect(formatDollars(9_863_014)).toBe("$98,630");
+    expect(formatDollars(0)).toBe("$0");
   });
 });
 

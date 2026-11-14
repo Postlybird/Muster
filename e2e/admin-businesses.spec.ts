@@ -28,11 +28,13 @@ test("an admin approves a business, which can then post work", async ({
   await expect(
     page.getByRole("checkbox", { name: "Approved for account terms" }),
   ).toBeChecked();
-  await expect(page.getByLabel("Payment terms in days")).toHaveValue("14");
+  // 7 days unless we agree otherwise (owner, 14/11/2026); a large business
+  // can have 14.
+  await expect(page.getByLabel("Payment terms in days")).toHaveValue("7");
   await page.getByLabel("Payment terms in days").fill("120");
   await page.getByRole("button", { name: "Save decision" }).click();
   await expect(page.getByText("90 days at most")).toBeVisible();
-  await page.getByLabel("Payment terms in days").fill("7");
+  await page.getByLabel("Payment terms in days").fill("14");
   await page.getByRole("button", { name: "Save decision" }).click();
   await expect(page.getByText(`${business.name} approved`)).toBeVisible();
   await expect(

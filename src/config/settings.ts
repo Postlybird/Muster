@@ -143,20 +143,20 @@ export const SETTINGS = {
     help: "Hours charged per booked worker when a business cancels late.",
     group: "cancellations",
     schema: z.number().min(0).max(12),
+    // Confirmed by the owner, 14/11/2026.
     defaultValue: 3,
     input: { kind: "number", unit: "hours", step: 0.5, min: 0, max: 12 },
     isPublic: true,
-    placeholder: true,
   }),
   pay_worker_on_late_business_cancel: define({
     label: "Pay workers for late business cancellations",
     help: "Also pay the worker when a business cancels late before they arrive. Workers who have arrived are always paid the minimum engagement.",
     group: "cancellations",
     schema: z.boolean(),
-    defaultValue: false,
+    // The owner, 14/11/2026: the worker is paid the hours the business is charged.
+    defaultValue: true,
     input: { kind: "boolean" },
     isPublic: false,
-    placeholder: true,
   }),
   no_show_flag_minutes: define({
     label: "Possible no-show after",
@@ -270,7 +270,9 @@ export const SETTINGS = {
     help: "The run on this day covers the previous Monday to Sunday.",
     group: "money",
     schema: z.enum(weekdays),
-    defaultValue: "monday",
+    // Wednesday (owner, 14/11/2026): businesses have 48 hours to approve,
+    // so the weekend's shifts are in.
+    defaultValue: "wednesday",
     input: { kind: "weekday" },
     isPublic: false,
   }),
@@ -306,7 +308,9 @@ export const SETTINGS = {
     defaultValue: {
       super: 12,
       workers_comp: 5,
-      payroll_tax: 5.45,
+      // None until wages near NSW's threshold (owner, 14/11/2026); the
+      // admin dashboard warns before then.
+      payroll_tax: 0,
       insurance: 1,
     },
     input: {
@@ -320,6 +324,15 @@ export const SETTINGS = {
     },
     isPublic: false,
     placeholder: true,
+  }),
+  payroll_tax_threshold: define({
+    label: "NSW payroll tax threshold",
+    help: "Taxable wages a year, super included, above which NSW payroll tax applies. Payroll tax isn't in prices until then, and the dashboard warns at 80% (owner, 14/11/2026).",
+    group: "money",
+    schema: z.number().int().min(1).max(100_000_000),
+    defaultValue: 1_200_000,
+    input: { kind: "number", unit: "$ a year", min: 1, max: 100_000_000 },
+    isPublic: false,
   }),
   daily_overtime_after_hours: define({
     label: "Daily overtime after",
@@ -455,10 +468,10 @@ export const SETTINGS = {
     help: "Days after the invoice date that payment is due.",
     group: "money",
     schema: z.number().int().min(0).max(90),
-    defaultValue: 14,
+    // 7 days (owner, 14/11/2026), as workers are paid weekly.
+    defaultValue: 7,
     input: { kind: "number", unit: "days", min: 0, max: 90 },
     isPublic: false,
-    placeholder: true,
   }),
   invoice_reminder_days: define({
     label: "Overdue invoice reminders",

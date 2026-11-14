@@ -82,10 +82,10 @@ test("a manager posts a shift and sees the cost first", async ({ page }) => {
   await expectAccessible(page);
   await page.getByRole("button", { name: "Save and continue" }).click();
 
-  // Check and post: 2 workers × 4 hours at $50.34 (Harbour's 15% margin),
-  // plus GST.
+  // Check and post: 2 workers × 4 hours at $48.12 (Harbour's 15% margin,
+  // with no payroll tax until wages near the threshold), plus GST.
   await expect(page).toHaveURL(/\/review$/);
-  await expect(page.getByText("$442.99")).toBeVisible();
+  await expect(page.getByText("$423.46")).toBeVisible();
   await expect(page.getByRole("radio", { name: /I'll choose/ })).toBeChecked();
   // First in: the business decides whether workers whose other shifts with
   // us would put this one into overtime may take it.
