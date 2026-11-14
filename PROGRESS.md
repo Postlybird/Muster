@@ -10,7 +10,7 @@ _Last updated: 14/11/2026_
 
 **Going live: stage 1 built** (03/11/2026). Real email (Resend), texts (Twilio), address search (Google Maps) and a bot check (Cloudflare Turnstile) are ready behind their adapters, waiting only for the accounts and keys. The live site's own database, sign-in settings and release workflow are ready, and invoicing gained overdue reminders, credit notes and a sales and GST report. The demo stays as it is, and moves to demo.shifta.com.au at the switch-over. Next is stage 2: the owner opens the accounts, one at a time (`docs/launch.md`).
 
-**Launch timing** (owner, 04/11/2026): the company, Shifta Pty Ltd, is registered with ASIC, and for GST and PAYG withholding, in January 2027, when the owner is back from Brazil. Real shifts start after that, once workers' compensation is in place; until then the work continues on the demo, and the paid accounts can wait.
+**Launch timing** (owner, 04/11/2026): the company, Shifta Pty Ltd, is registered with ASIC, and for GST and PAYG withholding, in January 2027, when the owner is back from Brazil. Real shifts start after that, once workers' compensation is in place; until then the work continues on the demo, and the paid accounts can wait. On 14/11/2026 the owner said they're now looking at launching in November 2026: the same steps, sooner.
 
 ## Done
 
@@ -655,18 +655,19 @@ _Now, from anywhere (free, no company needed):_
 
 Meanwhile we write the award questions for Fair Work's Employer Advisory Service (the documents were approved on 14/11/2026).
 
-_January 2027, once back from Brazil, in this order:_
+_Before launch, in this order (January 2027 in the first plan; the owner is now looking at November 2026):_
 
 1. **Register Shifta Pty Ltd** with ASIC. Then we add its name and ABN to the business agreement, the casual contract and the privacy documents (version 1.1 of each), and to the terms of use.
 2. **The company's ABN, GST (cash basis, decided 14/11/2026) and PAYG withholding:** free, one online application.
 3. **A business bank account,** and cash for 2–3 weeks of wages.
 4. **Workers' compensation from icare** (required by law before anyone works); its rate for each work type goes into Admin.
-5. **Public liability:** two or three quotes for labour hire, $20 million cover.
-6. **The Long Service Corporation:** register for the contract cleaning scheme (and ask whether it covers restoration work), and the building scheme if labourers will work on building sites.
-7. **Payroll:** choose the provider (Payroller's free trial first), set it up, and send us its timesheet import template.
-8. **The accounts, one at a time with our steps:** Twilio (the sender name, with the ABN), Resend, Google Cloud, Supabase Pro with `shifta-live`, Vercel Pro with the live project, and the locked GitHub environment (`docs/launch.md`).
-9. **The margin,** worked out together from the quotes and costs, then the Fair Work enquiry about the award questions.
-10. **The store apps** (owner, 08/11/2026), with our steps for each:
+5. **A free ImmiAccount** with Home Affairs for the company, to check workers' visas in VEVO before their first shift (the law: nobody works without the right to).
+6. **Public liability:** two or three quotes for labour hire, $20 million cover.
+7. **The Long Service Corporation:** register for the contract cleaning scheme (and ask whether it covers restoration work), and the building scheme if labourers will work on building sites.
+8. **Payroll:** choose the provider (Payroller's free trial first), set it up, and send us its timesheet import template.
+9. **The accounts, one at a time with our steps:** Twilio (the sender name, with the ABN), Resend, Google Cloud, Supabase Pro with `shifta-live`, Vercel Pro with the live project, and the locked GitHub environment (`docs/launch.md`).
+10. **The margin,** worked out together from the quotes and costs, then the Fair Work enquiry about the award questions.
+11. **The store apps** (owner, 08/11/2026), with our steps for each:
     - a free D-U-N-S number for Shifta Pty Ltd, which both stores ask a business for (about a week);
     - Apple's developer program as a business (US$99 a year), and a Google Play business account (US$25 once; a business account skips Google's 14-day test with 12 testers);
     - a free Firebase project for the apps' notifications;
