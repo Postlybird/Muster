@@ -668,7 +668,7 @@ _Before launch, in this order (January 2027 in the first plan; the owner is now 
 
 1. ~~**Register the company** with ASIC~~: done 14/11/2026 (owner). When the ABN arrives, we add the company's name, ACN and ABN to the business agreement, the casual contract and the privacy documents (version 1.1 of each), and to the terms of use, in one go.
 2. **The company's ABN, GST (cash basis, decided 14/11/2026) and PAYG withholding:** the ABN is on its way (14/11/2026); check the application included GST and PAYG withholding, or add them once it arrives.
-2a. **The D-U-N-S number** (free, about a week), which Apple and Google ask for: apply now, through Apple's D-U-N-S lookup, with the company's details.
+2a. **The D-U-N-S number** (free, about a week), which Apple and Google ask for: requested 14/11/2026 through Apple's D-U-N-S lookup; waiting for Dun & Bradstreet's email. Then the Apple Developer and Google Play accounts (`docs/apps.md`).
 3. **A business bank account,** and cash for 2–3 weeks of wages.
 4. **Workers' compensation from icare** (required by law before anyone works); its rate for each work type goes into Admin.
 5. **A free ImmiAccount** with Home Affairs for the company, to check workers' visas in VEVO before their first shift (the law: nobody works without the right to).
