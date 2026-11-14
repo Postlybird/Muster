@@ -505,5 +505,74 @@ export async function seedWorkers(client: SeedClient) {
     seeded++;
   }
 
-  return { workers: WORKERS.length, newlySeeded: seeded };
+  const upgraded = await acceptNewVersions(client, [
+    ...profileByEmail.values(),
+  ]);
+  return {
+    workers: WORKERS.length,
+    newlySeeded: seeded,
+    newVersionsAccepted: upgraded,
+  };
+}
+
+/**
+ * A demo worker who accepted an earlier version of a document accepts its
+ * current version too, so a new version (an approved contract, say)
+ * doesn't send the demo back through sign-up or the paperwork step. Real
+ * workers are always asked themselves.
+ */
+async function acceptNewVersions(
+  client: SeedClient,
+  profileIds: readonly string[],
+): Promise<number> {
+  if (profileIds.length === 0) return 0;
+  const [current, accepted] = await Promise.all([
+    client
+      .from("agreements")
+      .select("id, kind, jurisdiction")
+      .eq("is_current", true),
+    client
+      .from("agreement_acceptances")
+      .select("profile_id, agreement_id, agreements!inner(kind, jurisdiction)")
+      .in("profile_id", [...profileIds])
+      .is("business_id", null),
+  ]);
+  const currentByKind = new Map(
+    must(current, "current agreements").map((a) => [
+      `${a.kind}|${a.jurisdiction ?? ""}`,
+      a.id,
+    ]),
+  );
+  const acceptances = must(accepted, "agreement acceptances");
+  const have = new Set(
+    acceptances.map((a) => `${a.profile_id}|${a.agreement_id}`),
+  );
+  const rows: {
+    agreement_id: string;
+    profile_id: string;
+    accepted_at: string;
+    ip: string;
+    user_agent: string;
+  }[] = [];
+  for (const acceptance of acceptances) {
+    const { kind, jurisdiction } = acceptance.agreements;
+    const currentId = currentByKind.get(`${kind}|${jurisdiction ?? ""}`);
+    const key = `${acceptance.profile_id}|${currentId}`;
+    if (!currentId || have.has(key)) continue;
+    have.add(key);
+    rows.push({
+      agreement_id: currentId,
+      profile_id: acceptance.profile_id,
+      accepted_at: new Date().toISOString(),
+      ip: DEMO_IP,
+      user_agent: DEMO_USER_AGENT,
+    });
+  }
+  if (rows.length > 0) {
+    check(
+      await client.from("agreement_acceptances").insert(rows),
+      "new versions accepted",
+    );
+  }
+  return rows.length;
 }

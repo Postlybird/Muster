@@ -58,7 +58,7 @@ async function main() {
 
   const workers = await seedWorkers(client);
   console.log(
-    `  worker details: ${workers.workers} workers (${workers.newlySeeded} filled in)`,
+    `  worker details: ${workers.workers} workers (${workers.newlySeeded} filled in, ${workers.newVersionsAccepted} new document versions accepted)`,
   );
 
   const jobs = await seedJobs(client);

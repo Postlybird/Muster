@@ -89,13 +89,11 @@ Either of us can end this agreement by written notice. Work already completed is
     kind: "casual_employment_contract",
     // 0.2 (14/11/2026): checked against Fair Work's rules as they stand,
     // including the casual definition and the employee choice pathway to
-    // permanent work (Fair Work Act, from 2024 and 2025), for the owner to
-    // approve.
-    version: "0.2-draft",
-    title: "Casual Employment Contract (draft)",
-    body: `${draftNote}
-
-## 1. Your job
+    // permanent work (Fair Work Act, from 2024 and 2025). 1.0: 0.2 as the
+    // owner approved it (14/11/2026), without the draft label.
+    version: "1.0",
+    title: "Casual Employment Contract",
+    body: `## 1. Your job
 We're a labour hire business. We employ you as a casual employee to work shifts at businesses that book our workers (hosts). You stay our employee the whole time: we pay you, and we hold workers' compensation insurance for you.
 
 This offer depends on our checks: your identity, your right to work in Australia, the tickets and licences the work needs and, where the work needs it, a police check. Your employment starts when we activate your account after the checks.
@@ -135,6 +133,9 @@ Either of us can end your employment by telling the other, with any notice your 
   },
   {
     kind: "fair_work_information_statement",
+    // 1.0 (14/11/2026): links to the official statement, which we also
+    // email (owner's decision).
+    version: "1.0",
     title: "Fair Work Information Statement",
     body: `As your employer we must give you the Fair Work Information Statement. Read the current version on the Fair Work Ombudsman's website: ${FAIR_WORK_STATEMENTS.fwis}
 
@@ -143,6 +144,9 @@ We also email you this link, so you keep a copy.
   },
   {
     kind: "casual_employment_information_statement",
+    // 1.0 (14/11/2026): links to the official statement, which we also
+    // email, and again at 6 and 12 months and every year after.
+    version: "1.0",
     title: "Casual Employment Information Statement",
     body: `As your employer we must give casual employees the Casual Employment Information Statement. Read the current version on the Fair Work Ombudsman's website: ${FAIR_WORK_STATEMENTS.ceis}
 
@@ -153,12 +157,11 @@ We also email you this link, so you keep a copy.
     kind: "privacy_collection_notice",
     // 0.2 (14/11/2026): checked against the Australian Privacy Principles
     // (APP 5's notice, and APP 1's new rule on decisions made by computer
-    // programs, from 10/12/2026), for the owner to approve.
-    version: "0.2-draft",
-    title: "Privacy collection notice (draft)",
-    body: `${draftNote}
-
-${brand.name} is the labour hire business that employs you. Contact us about your information at ${brand.supportEmail}.
+    // programs, from 10/12/2026). 1.0: 0.2 as the owner approved it
+    // (14/11/2026), without the draft label.
+    version: "1.0",
+    title: "Privacy collection notice",
+    body: `${brand.name} is the labour hire business that employs you. Contact us about your information at ${brand.supportEmail}.
 
 ## What we collect, and why
 - Your name, date of birth, contact details, suburb and photo, to employ you and offer you work near you.

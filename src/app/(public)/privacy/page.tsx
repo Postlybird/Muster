@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { DraftPage } from "@/components/layout/draft-page";
+import { LegalPage } from "@/components/layout/legal-page";
 import { brand } from "@/config/brand";
 
 export const metadata: Metadata = { title: "Privacy policy" };
@@ -36,12 +36,14 @@ const EMAIL = (
  * collection notice at sign-up). Checked against the Australian Privacy
  * Principles (14/11/2026), including APP 1's rule on decisions made by
  * computer programs, from 10/12/2026. The collection notice section says
- * what the `privacy_collection_notice` agreement says. Draft wording, for
- * the owner to approve.
+ * what the `privacy_collection_notice` agreement says. Approved by the
+ * owner (14/11/2026); the company's name and ABN go in once it's
+ * registered.
  */
 export default function PrivacyPage() {
   return (
-    <DraftPage title="Privacy policy">
+    <LegalPage title="Privacy policy">
+      <p className="text-sm text-muted-foreground">Last updated 14/11/2026</p>
       <p>
         {brand.name} supplies workers to businesses as a labour hire provider:
         workers are our casual employees. To do that we need some personal
@@ -262,6 +264,6 @@ export default function PrivacyPage() {
           Commissioner at oaic.gov.au.
         </p>
       </Section>
-    </DraftPage>
+    </LegalPage>
   );
 }
