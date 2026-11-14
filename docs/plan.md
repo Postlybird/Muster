@@ -14,11 +14,11 @@ is tracked in `PROGRESS.md`.
 2. **Deleting ID images vs. keeping documents.** → After verification, delete the ID photo, selfie, citizenship evidence and police certificate, keeping the outcome, date and reference. Keep ticket documents (hosts and insurers ask for them) and the VEVO result record (evidence that we checked). Confirm with a privacy adviser.
 3. **Availability as a hard rule.** → The weekly pattern decides who is notified; a worker choosing to accept counts as available. Blocked dates and overlapping shifts still block.
 4. **"Level" in rate cards is undefined.** → Each job has a level (default from the category); admin sets each worker's level per category; a worker is eligible if their level ≥ the job's. Seed Level 1 only.
-5. **Overtime across hosts.** → v1 calculates daily overtime only (threshold in settings). Weekly overtime is left to Employment Hero's award interpretation; margin reports are labelled as estimates.
-6. **Payroll export contents.** → Export raw start, finish and break per shift plus work type, site and allowances (e.g. the urgent loading). Our rate splits drive invoices, estimates and margin only. Need the owner's Employment Hero timesheet import template.
+5. **Overtime across hosts.** → v1 calculates daily overtime only (threshold in settings). Weekly overtime is left to the payroll provider's award interpretation; margin reports are labelled as estimates.
+6. **Payroll export contents.** → Export raw start, finish and break per shift plus work type, site and allowances (e.g. the urgent loading). Our rate splits drive invoices, estimates and margin only. Need the payroll provider's timesheet import template.
 7. **Urgent call-out "higher rate".** → Both pay and bill, as two separate percentage settings (placeholders until set). The pay part goes into the export as an allowance.
 8. **Late business cancellation before the worker arrives.** → Business is charged X hours (setting). The worker is paid only if they arrived, unless a setting says otherwise. Minimum engagement applies to every short shift, not only cancellations.
-9. **Contract before verification; payroll onboarding.** → The contract is worded as conditional on verification (legal to confirm). Admin creates the worker in Employment Hero at verification; "payroll onboarding complete" is a core item before Active.
+9. **Contract before verification; payroll onboarding.** → The contract is worded as conditional on verification (legal to confirm). Admin creates the worker in the payroll app at verification; "payroll onboarding complete" is a core item before Active.
 10. **Paid services the brief implies.**
     - Vercel Hobby is non-commercial only, and its cron runs once a day.
     - Supabase Free pauses after a week idle and has no backups.
@@ -192,6 +192,6 @@ RLS is on for every table, deny by default. Admins can read and write everything
 | Supabase (dev project)                 | done                      | free                                | database for previews               |
 | ABN Lookup GUID                        | requested                 | free                                | live ABN checks                     |
 | Vercel                                 | after 0.1                 | free for previews                   | preview links                       |
-| Employment Hero                        | by step 1.13              | existing                            | timesheet import template           |
+| Payroll provider                       | by step 1.13              | existing                            | timesheet import template           |
 | Twilio · Resend + domain · Google Maps | before launch (ask first) | paid / free tier + domain / billing | SMS · email · address autocomplete  |
 | Vercel Pro · Supabase Pro              | before launch             | about US$20 + US$25/month           | commercial use, backups, no pausing |

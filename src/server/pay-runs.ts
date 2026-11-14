@@ -10,7 +10,7 @@ import {
 } from "@/domain/pay-runs";
 import { formatCalendarDate, formatCents, sydneyDateKey } from "@/lib/format";
 import { renderInvoicePdf, type InvoicePdfData } from "@/lib/invoice-pdf";
-import { invoicePartsFrom } from "@/lib/pay-run-format";
+import { invoicePartsFrom, weekLabel } from "@/lib/pay-run-format";
 import {
   owedTimesheetIdsWith,
   planPayRunWith,
@@ -19,7 +19,7 @@ import {
 } from "@/lib/pay-runs";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-import { emailTemplate } from "./notifications";
+import { emailTemplate, notifyAdmins } from "./notifications";
 import { getAllSettings } from "./settings";
 import { costTimesheets } from "./timesheets";
 
@@ -126,9 +126,10 @@ export async function runPayRun(runBy: string | null) {
 }
 
 /**
- * The scheduled run (cron job "pay-run"): on the run day (a setting), runs
- * the last full week if it hasn't been, or finishes any invoice an earlier
- * attempt couldn't make or send.
+ * The scheduled run (cron job "pay-run"): on the run day (a setting), tells
+ * our team the last full week is ready to check and issue (owner,
+ * 14/11/2026), or runs it straight away if `pay_run_automatic` is on; and
+ * finishes any invoice an earlier attempt couldn't make or send.
  */
 export async function scheduledPayRun() {
   const settings = await getAllSettings();
@@ -147,6 +148,24 @@ export async function scheduledPayRun() {
   }
   if (!preview.plan || preview.plan.lines.length === 0) {
     return { skipped: "Nothing to pay" };
+  }
+  if (!settings.pay_run_automatic) {
+    const { invoices } = preview.plan;
+    await notifyAdmins(
+      "admin_pay_run_ready",
+      {
+        week: weekLabel(preview.week),
+        invoices: String(invoices.length),
+        total: formatCents(
+          invoices.reduce((sum, invoice) => sum + invoice.total_cents, 0),
+        ),
+      },
+      {
+        url: "/admin/pay-runs",
+        dedupeKey: `pay_run_ready:${preview.week.start}`,
+      },
+    );
+    return { skipped: "Waiting for an admin to check and issue it" };
   }
   return runPayRun(null);
 }

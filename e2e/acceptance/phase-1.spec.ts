@@ -261,8 +261,10 @@ test("Phase 1 acceptance: 10 workers and 3 businesses onboarded, 20 shifts fille
         admin.getByRole("cell", { name: business.name, exact: true }),
       ).toBeVisible();
     }
-    await admin.getByRole("button", { name: "Run pay and invoices" }).click();
-    await admin.getByRole("button", { name: "Run it" }).click();
+    await admin
+      .getByRole("button", { name: "Issue invoices and payroll file" })
+      .click();
+    await admin.getByRole("button", { name: "Issue them" }).click();
     await expect(
       admin.getByText(/^Done\. Each invoice has been emailed/),
     ).toBeVisible({ timeout: 60_000 });

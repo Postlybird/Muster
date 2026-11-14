@@ -100,7 +100,11 @@ export default async function PayRunsPage() {
     <div className="space-y-8">
       <PageHeader
         title="Pay runs"
-        description={`Each week's payroll file and invoices. The ${runDay} run covers the Monday to Sunday before; once a week is over you can also run it here.`}
+        description={
+          settings.pay_run_automatic
+            ? `Each week's invoices and payroll file, issued automatically each ${runDay} for the Monday to Sunday before. Once a week is over you can also issue it here.`
+            : `Each week's invoices and payroll file. Each ${runDay} we email you when the Monday to Sunday before is ready: check each business's invoice below, then issue them. Nothing goes to businesses until you do.`
+        }
       />
 
       <section aria-labelledby="due" className="space-y-4">
@@ -165,7 +169,7 @@ export default async function PayRunsPage() {
             </dl>
             {notes.length > 0 ? (
               <Alert variant="info">
-                <AlertTitle>Before you run it</AlertTitle>
+                <AlertTitle>Before you issue it</AlertTitle>
                 <AlertDescription>
                   <ul className="list-disc space-y-1 pl-5">
                     {notes.map((note, index) => (
@@ -211,11 +215,52 @@ export default async function PayRunsPage() {
                 ))}
               </TableBody>
             </Table>
+            <section aria-labelledby="check" className="space-y-3">
+              <h3 id="check" className="font-semibold">
+                Check each invoice
+              </h3>
+              {plan.invoices.map((invoice) => {
+                const lines = plan.lines.filter(
+                  (l) => l.business_id === invoice.business_id,
+                );
+                const name =
+                  businessName.get(invoice.business_id) ?? "Business";
+                return (
+                  <details
+                    key={invoice.business_id}
+                    className="rounded-xl border bg-card p-4"
+                  >
+                    <summary className="cursor-pointer font-medium">
+                      {name}: {plural(lines.length, "line")},{" "}
+                      {formatCents(invoice.total_cents)} with GST
+                    </summary>
+                    <ul className="mt-3 space-y-2 text-sm">
+                      {lines.map((line, index) => (
+                        <li
+                          key={`${line.assignment_id}-${index}`}
+                          className="flex flex-wrap justify-between gap-x-4 border-t pt-2"
+                        >
+                          <span>
+                            <span className="block">{line.description}</span>
+                            <span className="block text-muted-foreground">
+                              {line.detail}
+                            </span>
+                          </span>
+                          <span className="whitespace-nowrap">
+                            {line.hours} h · {formatCents(line.bill_cents)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                );
+              })}
+            </section>
             <ConfirmAction
-              trigger={<Button>Run pay and invoices</Button>}
-              title={`Run the week of ${weekLabel(preview.week)}?`}
-              description={`This saves ${plural(plan.lines.length, "line")} for payroll and raises ${plural(plan.invoices.length, "invoice")}, each emailed to the business's accounts email. The hours in it can't be changed afterwards.`}
-              confirmLabel="Run it"
+              trigger={<Button>Issue invoices and payroll file</Button>}
+              title={`Issue the week of ${weekLabel(preview.week)}?`}
+              description={`This emails ${plural(plan.invoices.length, "invoice")} to each business's accounts email and saves the payroll file (${plural(plan.lines.length, "line")}). The hours in it can't be changed afterwards.`}
+              confirmLabel="Issue them"
               variant="default"
               action={runPay}
             />

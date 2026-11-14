@@ -179,7 +179,7 @@ export async function signUpWorker(
 
 /** The payroll employee ID the admin records for a worker. */
 export function payrollId(worker: Worker): string {
-  return `EH-${worker.mobile.e164.slice(-6)}`;
+  return `P-${worker.mobile.e164.slice(-6)}`;
 }
 
 async function decide(page: Page, section: string, choice: string | RegExp) {
@@ -223,7 +223,7 @@ export async function verifyWorker(admin: Page, worker: Worker) {
     await decide(admin, "tickets", "Verify");
     await expect(admin.getByText(`${worker.ticket} verified`)).toBeVisible();
   }
-  await admin.getByLabel("Employment Hero employee ID").fill(payrollId(worker));
+  await admin.getByLabel("Payroll employee ID").fill(payrollId(worker));
   await admin.getByLabel("Payroll setup").selectOption("complete");
   await admin.getByRole("button", { name: "Save payroll details" }).click();
   await expect(admin.getByText("Payroll details saved")).toBeVisible();

@@ -37,6 +37,8 @@
 > **Owner update, 08/11/2026 (store apps).** Shifta gets App Store and Google Play apps after all (changes §10), around launch: the existing app, wrapped with the phone's own notifications, location and camera, rather than separate apps. They follow the company's registration, as both stores ask a business for a D-U-N-S number.
 >
 > **Owner update, 14/11/2026 (decisions before launch).** The owner settled the recommendations in `docs/launch-questions.md` (changes to §4.5 and §4.8). When a business cancels late, a worker who hadn't arrived is paid the hours the business is charged. The weekly run is on Wednesday, and businesses pay within 7 days. Payroll tax stays out of prices until wages near NSW's threshold, with a warning on the admin dashboard. A work type can carry a long service levy as an on-cost (1% for cleaners, NSW's contract cleaning scheme), and an allowance can be paid once a day. New workers are emailed links to the Fair Work statements. GST is reported on a cash basis.
+>
+> **Owner update, 14/11/2026 (payroll and invoices).** The payroll provider this brief assumed is out (its monthly minimum is too high for us); the owner is choosing another, and Shifta's payroll file works with any. Each week's pay run now waits for the owner (changes §4.8): on the run day we email them and the admin dashboard shows it, they check each business's invoice on the Pay runs page, and nothing goes to businesses until they press "Issue invoices and payroll file". A setting can make it automatic again.
 
 *"Muster" is a working name only. Keep the brand in a single config value (`src/config/brand.ts`) so swapping in the real name is a one-line change.*
 
@@ -164,7 +166,7 @@ A step-by-step wizard the worker can leave and resume at any point.
 - **Bill rates:** pay rate plus on-costs (super, workers compensation, payroll tax, insurance — each a percentage in settings) plus margin; or a fixed bill rate per category per business.
 - Snapshot pay rate, bill rate and margin on every assignment so later rate changes never rewrite history.
 - **Weekly run** (day is a setting): the prior week's approved timesheets produce (a) a payroll export and (b) one invoice per business, with a line per worker per shift, GST, and a PDF emailed to the accounts contact.
-- v1: CSV payroll export matching the payroll provider's timesheet import, plus PDF invoices on account terms. Phase 2: push approved timesheets through the Employment Hero Payroll API, and take payment with Stripe (card and BECS direct debit).
+- v1: CSV payroll export matching the payroll provider's timesheet import, plus PDF invoices on account terms. Phase 2: push approved timesheets through the payroll provider's API, and take payment with Stripe (card and BECS direct debit).
 
 ### 4.9 Compliance
 
@@ -217,8 +219,8 @@ A step-by-step wizard the worker can leave and resume at any point.
 | Maps and geocoding | Google Maps Places | Mapbox |
 | Identity | Manual review | Stripe Identity, or a DVS driver licence check provider |
 | Police check | Upload and manual review | ACIC-accredited provider with an API, e.g. National Crime Check or Worker Checks |
-| Right to work | Manual VEVO check in ImmiAccount, result recorded | VEVO via Worker Checks, CVCheck or Employment Hero |
-| Payroll | CSV export | Employment Hero Payroll API |
+| Right to work | Manual VEVO check in ImmiAccount, result recorded | VEVO via Worker Checks or CVCheck |
+| Payroll | CSV export | The payroll provider's API |
 | Payments | Invoices on account terms | Stripe (card, BECS direct debit) |
 
 ### Access rules (Row Level Security)
@@ -274,7 +276,7 @@ A starting point; propose refinements before building. Every table has a UUID id
 **Phase 1 — Run real shifts (MVP):** everything in sections 4–9 except the items listed under Phase 2.
 *Done when* an admin can onboard 10 workers and 3 businesses, fill 20 shifts end to end, and produce the payroll export and invoices without editing the database by hand.
 
-**Phase 2 — Automate:** Stripe payments, Employment Hero Payroll API, automated identity, police check and VEVO checks, in-app messaging per shift, recurring jobs, smarter ranking, fuller reports.
+**Phase 2 — Automate:** Stripe payments, the payroll provider's API, automated identity, police check and VEVO checks, in-app messaging per shift, recurring jobs, smarter ranking, fuller reports.
 
 **Phase 3 — Scale:** licensing rules for other states, more cities, worker referrals, self-serve credit for businesses, rostering for a business's own staff.
 
@@ -284,7 +286,7 @@ Make these settings or placeholders; don't let them block the build.
 
 - Final brand name.
 - Margin, on-costs, cancellation and no-show rules, geofence radius, auto-approve window, maximum police check age, minimum worker age.
-- Payroll provider (Employment Hero assumed).
+- Payroll provider (the owner is choosing one; Payroller's free trial first).
 - Our labour hire licences, and the timing of the NSW scheme.
 - Legal review of the Labour Hire Services Agreement, casual employment contract, privacy policy and collection notice.
 

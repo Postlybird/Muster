@@ -521,9 +521,9 @@ export default async function WorkerReviewPage({
         badge={<StatusBadge status={payrollStatuses[worker.payroll_status]} />}
       >
         <p className="text-sm text-muted-foreground">
-          Add them in Employment Hero, which emails them to collect their tax
-          file number, super and bank details. Record the employee ID here, and
-          mark it complete when they&apos;ve finished.
+          Add them in our payroll app, which emails them to collect their tax
+          file number, super and bank details. Record their employee ID from it
+          here, and mark it complete when they&apos;ve finished.
         </p>
         <PayrollForm
           workerId={worker.id}

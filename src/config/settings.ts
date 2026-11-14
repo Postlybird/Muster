@@ -276,6 +276,16 @@ export const SETTINGS = {
     input: { kind: "weekday" },
     isPublic: false,
   }),
+  pay_run_automatic: define({
+    label: "Issue the weekly pay run automatically",
+    help: "Off: on the run day we email you, and the week waits on Pay runs for you to check its invoices and issue them with the payroll file. On: it's issued on the run day without a check.",
+    group: "money",
+    schema: z.boolean(),
+    // The owner checks each week's invoices before they go (14/11/2026).
+    defaultValue: false,
+    input: { kind: "boolean" },
+    isPublic: false,
+  }),
   gst_pct: define({
     label: "GST",
     help: "GST rate added to invoices.",

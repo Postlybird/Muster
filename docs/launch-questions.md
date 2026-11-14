@@ -47,7 +47,6 @@ The options (03/11/2026; check prices when you sign up):
 - **Payroller:** 99c per worker a month for the first 6 months (a current offer), then $3.99 per worker a month paid yearly ($15.96 minimum) or $5.50 monthly ($22 minimum). It says super on payday is included in every plan.
 - **Microkeeper:** from $2.25 per worker a month for payroll only; $6 for the standard plan.
 - **Xero Payroll:** only with a Xero accounting plan, about $143 a month for 10 people. Not worth it without an accountant who works in Xero.
-- **Employment Hero:** at least 10 people, about $100 a month from the start.
 
 - [ ] **Which one?** **Recommendation:** Payroller's free trial first, as the cheapest with super on payday included. If it fails the checks below, try Microkeeper.
 

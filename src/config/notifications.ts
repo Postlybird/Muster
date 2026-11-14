@@ -82,8 +82,8 @@ export const NOTIFICATION_CATEGORIES: Record<
     critical: true,
   },
   checks: {
-    label: "Compliance checks",
-    help: "Bookings that no longer pass the rules, and VEVO re-checks due.",
+    label: "Checks",
+    help: "Bookings that no longer pass the rules, VEVO re-checks due, and each week's pay run to check.",
     critical: true,
   },
 };
@@ -749,6 +749,19 @@ export const TEMPLATES = {
     },
     title: "Safety issue at {{site}} ({{business}})",
     body: "{{worker}} reported a safety issue on {{work}} at {{site}}:\n\n{{description}}\n\nIt's flagged for admins in the app.",
+  }),
+  admin_pay_run_ready: define({
+    audience: "admin",
+    category: "checks",
+    label: "Pay run to check",
+    when: "The run day, when last week's pay run waits for an admin to check and issue it.",
+    values: {
+      week: "Mon 3 Nov to Sun 9 Nov",
+      invoices: "3",
+      total: "$4,520.40",
+    },
+    title: "Pay run to check: {{week}}",
+    body: "The week of {{week}} is ready: {{invoices}} invoices, {{total}} with GST. Check them and issue the invoices and payroll file in Pay runs. {{link}}",
   }),
   admin_business_submitted: define({
     audience: "admin",

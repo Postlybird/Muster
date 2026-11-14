@@ -101,6 +101,38 @@ test("an admin runs the week's pay and invoices, and the business sees its invoi
   await page.context().clearCookies();
 
   await signInAsDemo(page, "Alex Morgan");
+  // From the run day, the dashboard asks us to check the week before it's
+  // issued (owner, 14/11/2026). Today is made the run day for this check.
+  const service = serviceClient();
+  const { data: runDay } = await service
+    .from("settings")
+    .select("value")
+    .eq("key", "weekly_run_day")
+    .maybeSingle();
+  const today = new Intl.DateTimeFormat("en-AU", {
+    weekday: "long",
+    timeZone: "Australia/Sydney",
+  })
+    .format(new Date())
+    .toLowerCase();
+  await service
+    .from("settings")
+    .upsert({ key: "weekly_run_day", value: today }, { onConflict: "key" });
+  try {
+    await page.goto("/admin");
+    const card = page.getByRole("link", { name: /Pay run to check/ });
+    await expect(card).toContainText("1");
+    await expect(card).toContainText("Needs action");
+    await card.click();
+    await expect(page).toHaveURL(/\/admin\/pay-runs$/);
+  } finally {
+    await service
+      .from("settings")
+      .upsert(
+        { key: "weekly_run_day", value: runDay?.value ?? "wednesday" },
+        { onConflict: "key" },
+      );
+  }
   await page.goto("/admin/pay-runs");
   await expect(
     page.getByRole("heading", { name: `Week of ${weekLabel(week)}` }),
@@ -108,9 +140,16 @@ test("an admin runs the week's pay and invoices, and the business sees its invoi
   await expect(
     page.getByRole("cell", { name: "Westside Cleaning", exact: true }),
   ).toBeVisible();
+  // Each invoice opens to show its lines before anything is issued.
+  await page.getByText(/^Westside Cleaning: \d+ lines?,/).click();
+  await expect(
+    page.getByRole("listitem").filter({ hasText: "Fatima Al-Sayed" }).first(),
+  ).toBeVisible();
   await expectAccessible(page);
-  await page.getByRole("button", { name: "Run pay and invoices" }).click();
-  await page.getByRole("button", { name: "Run it" }).click();
+  await page
+    .getByRole("button", { name: "Issue invoices and payroll file" })
+    .click();
+  await page.getByRole("button", { name: "Issue them" }).click();
   await expect(
     page.getByText(/^Done\. Each invoice has been emailed/),
   ).toBeVisible({ timeout: 30_000 });
@@ -197,7 +236,6 @@ test("an admin runs the week's pay and invoices, and the business sees its invoi
   expect(copy.suggestedFilename()).toBe(`${number}.pdf`);
 
   // Paid hours can't be changed now.
-  const service = serviceClient();
   const { error } = await service
     .from("timesheets")
     .update({ break_minutes: 30 })
@@ -223,8 +261,10 @@ test("a business with an overdue invoice is reminded, once a day, with the invoi
   await hoursLastWeek("Fatima Al-Sayed");
   await signInAsDemo(page, "Alex Morgan");
   await page.goto("/admin/pay-runs");
-  await page.getByRole("button", { name: "Run pay and invoices" }).click();
-  await page.getByRole("button", { name: "Run it" }).click();
+  await page
+    .getByRole("button", { name: "Issue invoices and payroll file" })
+    .click();
+  await page.getByRole("button", { name: "Issue them" }).click();
   await expect(
     page.getByText(/^Done\. Each invoice has been emailed/),
   ).toBeVisible({ timeout: 30_000 });
@@ -282,8 +322,10 @@ test("an admin credits an invoice, and the business gets the credit note", async
   await hoursLastWeek("Fatima Al-Sayed");
   await signInAsDemo(page, "Alex Morgan");
   await page.goto("/admin/pay-runs");
-  await page.getByRole("button", { name: "Run pay and invoices" }).click();
-  await page.getByRole("button", { name: "Run it" }).click();
+  await page
+    .getByRole("button", { name: "Issue invoices and payroll file" })
+    .click();
+  await page.getByRole("button", { name: "Issue them" }).click();
   await expect(
     page.getByText(/^Done\. Each invoice has been emailed/),
   ).toBeVisible({ timeout: 30_000 });
@@ -405,8 +447,10 @@ test("the sales and GST report adds up invoices, credit notes and payments", asy
   await hoursLastWeek("Fatima Al-Sayed");
   await signInAsDemo(page, "Alex Morgan");
   await page.goto("/admin/pay-runs");
-  await page.getByRole("button", { name: "Run pay and invoices" }).click();
-  await page.getByRole("button", { name: "Run it" }).click();
+  await page
+    .getByRole("button", { name: "Issue invoices and payroll file" })
+    .click();
+  await page.getByRole("button", { name: "Issue them" }).click();
   await expect(
     page.getByText(/^Done\. Each invoice has been emailed/),
   ).toBeVisible({ timeout: 30_000 });

@@ -12,6 +12,7 @@ import {
   reminderDue,
   weekEndsAt,
   weekOf,
+  runDayReached,
 } from "./pay-runs";
 
 const SYDNEY = "Australia/Sydney";
@@ -229,5 +230,16 @@ describe("overdue reminders", () => {
       ),
     ).toBe(false);
     expect(reminderDue(invoice, "2026-11-20", 0)).toBe(false);
+  });
+});
+
+describe("runDayReached", () => {
+  it("is true from the run day to Sunday of the same week", () => {
+    // 10/11/2026 is a Tuesday.
+    expect(runDayReached("2026-11-10", "wednesday")).toBe(false);
+    expect(runDayReached("2026-11-11", "wednesday")).toBe(true);
+    expect(runDayReached("2026-11-15", "wednesday")).toBe(true);
+    expect(runDayReached("2026-11-16", "wednesday")).toBe(false);
+    expect(runDayReached("2026-11-16", "monday")).toBe(true);
   });
 });

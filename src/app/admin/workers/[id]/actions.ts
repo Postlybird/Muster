@@ -440,7 +440,7 @@ export async function savePayroll(
     parsed.data;
   if (status !== "not_started" && !employeeId) {
     return failure("Check the highlighted fields.", {
-      payroll_employee_id: ["Enter the employee ID from Employment Hero"],
+      payroll_employee_id: ["Enter the employee ID from the payroll app"],
     });
   }
   const { data: before } = await supabase

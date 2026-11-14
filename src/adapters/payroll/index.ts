@@ -1,10 +1,10 @@
 /**
  * Payroll export (brief §4.8). v1: a CSV of a pay run's timesheets for the
  * payroll provider's timesheet import; the provider applies the award.
- * Phase 2: push timesheets through the Employment Hero Payroll API.
+ * Phase 2: push timesheets through the payroll provider's API.
  *
  * The columns below are a working draft until we have the owner's
- * Employment Hero timesheet import template (see PROGRESS.md).
+ * payroll provider's timesheet import template (see PROGRESS.md).
  */
 import { csvText } from "@/lib/csv";
 

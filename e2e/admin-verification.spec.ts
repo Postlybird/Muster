@@ -63,7 +63,7 @@ test("an admin checks a new worker and activates them", async ({ page }) => {
   await decide(page, "tickets", "Verify");
   await expect(page.getByText("White Card verified")).toBeVisible();
 
-  await page.getByLabel("Employment Hero employee ID").fill("EH-9001");
+  await page.getByLabel("Payroll employee ID").fill("P-9001");
   await page.getByLabel("Payroll setup").selectOption("complete");
   await page.getByRole("button", { name: "Save payroll details" }).click();
   await expect(page.getByText("Payroll details saved")).toBeVisible();

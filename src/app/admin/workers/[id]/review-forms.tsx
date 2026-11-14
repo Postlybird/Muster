@@ -322,7 +322,7 @@ export function PayrollForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField
           id="payroll_employee_id"
-          label="Employment Hero employee ID"
+          label="Payroll employee ID"
           error={errors?.payroll_employee_id}
         >
           {(props) => (

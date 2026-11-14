@@ -59,6 +59,14 @@ export function lastFullWeek(today: string): Week {
   return weekOf(addDays(today, -7));
 }
 
+/**
+ * Whether this week's run day has come: from the run day to Sunday. Last
+ * week's run waits for an admin to check from then (owner, 14/11/2026).
+ */
+export function runDayReached(today: string, runDay: Weekday): boolean {
+  return dayOfWeek(today) >= WEEKDAYS.indexOf(runDay);
+}
+
 /** Whether `today` is the weekly run day (a setting). */
 export function isRunDay(today: string, runDay: Weekday): boolean {
   return WEEKDAYS[dayOfWeek(today)] === runDay;

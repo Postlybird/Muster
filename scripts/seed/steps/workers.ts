@@ -128,7 +128,7 @@ async function seedDetails(
       Object.assign(fields, {
         activated_at: daysAgo(submittedDaysAgo - 2),
         payroll_status: "complete",
-        payroll_employee_id: `DEMO-EH-${1000 + index}`,
+        payroll_employee_id: `DEMO-P-${1000 + index}`,
       });
     }
     if (worker.status === "suspended") {
@@ -508,6 +508,25 @@ export async function seedWorkers(client: SeedClient) {
   const upgraded = await acceptNewVersions(client, [
     ...profileByEmail.values(),
   ]);
+  // Demo payroll IDs once named a provider we don't use (owner, 14/11/2026).
+  const { data: oldIds } = await client
+    .from("workers")
+    .select("id, payroll_employee_id")
+    .like("payroll_employee_id", "DEMO-EH-%");
+  for (const row of oldIds ?? []) {
+    check(
+      await client
+        .from("workers")
+        .update({
+          payroll_employee_id: row.payroll_employee_id!.replace(
+            "DEMO-EH-",
+            "DEMO-P-",
+          ),
+        })
+        .eq("id", row.id),
+      "demo payroll ID",
+    );
+  }
   return {
     workers: WORKERS.length,
     newlySeeded: seeded,

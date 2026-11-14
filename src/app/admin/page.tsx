@@ -4,10 +4,11 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { addDays, lastFullWeek, runDayReached } from "@/domain/pay-runs";
 import { payrollTaxWarning } from "@/domain/payroll-tax";
 import { needsAttention } from "@/domain/shift-board";
 import { requireAdmin } from "@/lib/auth";
-import { formatDollars, sydneyDateKey } from "@/lib/format";
+import { formatDollars, fromSydneyTime, sydneyDateKey } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { getAllSettings } from "@/server/settings";
@@ -53,8 +54,13 @@ export default async function AdminDashboardPage() {
   await requireAdmin();
   const supabase = await createClient();
   const now = new Date();
+  const today = sydneyDateKey(now);
+  const week = lastFullWeek(today);
   const count = { count: "exact", head: true } as const;
   const [
+    settings,
+    { data: runs },
+    { count: approvedLastWeek },
     board,
     { count: matters },
     { count: safety },
@@ -63,6 +69,23 @@ export default async function AdminDashboardPage() {
     { count: overdue },
     verification,
   ] = await Promise.all([
+    getAllSettings(),
+    supabase
+      .from("pay_runs")
+      .select("period_end, pay_cents")
+      .gte(
+        "period_end",
+        sydneyDateKey(new Date(now.getTime() - 365 * 86_400_000)),
+      ),
+    supabase
+      .from("timesheets")
+      .select("id", count)
+      .in("status", ["approved", "auto_approved", "adjusted"])
+      .gte("start_at", fromSydneyTime(week.start, "00:00").toISOString())
+      .lt(
+        "start_at",
+        fromSydneyTime(addDays(week.end, 1), "00:00").toISOString(),
+      ),
     supabase.rpc("admin_shift_board", {
       p_from: now.toISOString(),
       p_to: new Date(now.getTime() + 24 * 3_600_000).toISOString(),
@@ -93,8 +116,23 @@ export default async function AdminDashboardPage() {
   const unfilled = (board.data ?? []).filter((shift) =>
     needsAttention({ ...shift, startsAt: new Date(shift.starts_at) }, now),
   ).length;
+  // Last week's pay run waits for our check from the run day (owner,
+  // 14/11/2026), unless it's issued automatically.
+  const payRunToCheck =
+    !settings.pay_run_automatic &&
+    runDayReached(today, settings.weekly_run_day) &&
+    !(runs ?? []).some((run) => run.period_end >= week.end) &&
+    (approvedLastWeek ?? 0) > 0;
 
   const items: Item[] = [
+    {
+      title: "Pay run to check",
+      count: payRunToCheck ? 1 : 0,
+      description:
+        "Last week's invoices and payroll file wait for you to check and issue.",
+      href: "/admin/pay-runs",
+      urgent: true,
+    },
     {
       title: "Unfilled shifts starting within 24 hours",
       count: unfilled,
@@ -148,13 +186,8 @@ export default async function AdminDashboardPage() {
   ];
   // Payroll tax isn't in prices until wages near NSW's threshold (owner,
   // 14/11/2026), so the dashboard says when they do.
-  const settings = await getAllSettings();
   const daysAgo = (days: number) =>
     sydneyDateKey(new Date(now.getTime() - days * 86_400_000));
-  const { data: runs } = await supabase
-    .from("pay_runs")
-    .select("period_end, pay_cents")
-    .gte("period_end", daysAgo(365));
   const paidSince = (date: string) =>
     (runs ?? [])
       .filter((run) => run.period_end >= date)
