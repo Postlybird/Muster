@@ -37,6 +37,9 @@ jobs:
       DEMO_MODE: "true"
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
       CRON_SECRET: ci-only-cron-secret
+      # The app reviewers' sign-in, with values used only by these tests.
+      APP_REVIEW_EMAIL: app-review@ci.test
+      APP_REVIEW_CODE: "135792"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

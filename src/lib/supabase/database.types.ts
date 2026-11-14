@@ -201,6 +201,25 @@ export type Database = {
           },
         ];
       };
+      app_review_sign_ins: {
+        Row: {
+          created_at: string;
+          id: string;
+          ok: boolean;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          ok: boolean;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          ok?: boolean;
+        };
+        Relationships: [];
+      };
       applications: {
         Row: {
           created_at: string;

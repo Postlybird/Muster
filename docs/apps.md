@@ -29,7 +29,9 @@ The plan the owner approved on 14/11/2026 ("ok to both"), built before the compa
 - **The stores' reviewers:** they can't receive our emailed codes, so one reviewers' account signs in with a fixed code that only the stores are given. It's the one exception to "no passwords":
   - the code works only while an admin has switched review sign-in on, during a review;
   - the account is a worker we haven't checked, so reviewers can look around (nearby shifts and pay, settings) but can't apply for real shifts or see any business's details;
-  - the email and code are kept in the live site's settings, never in the code.
+  - the email and code are kept in the live site's settings, never in the code: `APP_REVIEW_EMAIL` (an address of ours, like a support alias) and `APP_REVIEW_CODE` (6 digits) in the live Vercel project;
+  - switching it on (Admin → Settings → Workers) makes the account, or opens it again if a reviewer deleted it, and takes it through the quick sign-up; every try is recorded, and ten wrong codes switch it off;
+  - in each store's review notes: "Sign in as a worker with this email; when asked for the code, type this code."
 
 ## What needs the owner's accounts
 

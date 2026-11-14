@@ -14,6 +14,7 @@ import { requireAdmin } from "@/lib/auth";
 import { failure, formBoolean, success, type ActionState } from "@/lib/forms";
 import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
+import { prepareReviewAccount, reviewAccount } from "@/server/app-review";
 
 /** Reads one setting's value out of the form, shaped for its schema. */
 function readValue(key: SettingKey, formData: FormData): unknown {
@@ -91,6 +92,15 @@ export async function saveSettingsGroup(
     });
   }
 
+  const reviewOn = rows.some(
+    (row) => row.key === "app_review_sign_in" && row.value === true,
+  );
+  if (reviewOn && !reviewAccount()) {
+    fieldErrors.app_review_sign_in = [
+      "The reviewers' account needs APP_REVIEW_EMAIL and a 6-digit APP_REVIEW_CODE in the hosting settings first.",
+    ];
+  }
+
   if (Object.keys(fieldErrors).length > 0) {
     return failure("Some values need fixing. Nothing was saved.", fieldErrors);
   }
@@ -101,8 +111,25 @@ export async function saveSettingsGroup(
     .upsert(rows, { onConflict: "key" });
   if (error) return failure(`Couldn't save: ${error.message}`);
 
+  // Switching review sign-in on gets the reviewers' account ready.
+  if (reviewOn) {
+    const ready = await prepareReviewAccount();
+    if (!ready.ok) {
+      await supabase
+        .from("settings")
+        .update({ value: false })
+        .eq("key", "app_review_sign_in");
+      revalidatePath("/admin/settings");
+      return failure(`${ready.error} Review sign-in is still off.`);
+    }
+  }
+
   revalidatePath("/admin/settings");
-  return success("Settings saved");
+  return success(
+    reviewOn
+      ? "Settings saved. The reviewers' account is ready to sign in."
+      : "Settings saved",
+  );
 }
 
 /**

@@ -52,6 +52,8 @@ ABN_LOOKUP_GUID=<…>
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=<Turnstile site key>
 ```
 
+Only for the app stores' reviews (`docs/apps.md`), and not checked by the build: `APP_REVIEW_EMAIL` (an address of ours) and `APP_REVIEW_CODE` (6 digits). The fixed code works only while an admin has switched review sign-in on.
+
 ## The GitHub environment "live"
 
 Secrets (named `LIVE_*` so they can't be mixed up with the demo's repository secrets):

@@ -116,6 +116,17 @@ export const SETTINGS = {
     input: { kind: "number", unit: "months", min: 1, max: 12 },
     isPublic: false,
   }),
+  app_review_sign_in: define({
+    label: "Let the app stores' reviewers sign in",
+    help: "Switch on only while Apple or Google is reviewing the app: their account then signs in with its fixed code. Switch it off when the review is done. Ten wrong codes switch it off.",
+    group: "workers",
+    schema: z.boolean(),
+    // The one exception to "no passwords" (owner, 14/11/2026), so it's off
+    // except during a review.
+    defaultValue: false,
+    input: { kind: "boolean" },
+    isPublic: false,
+  }),
 
   // Cancellations, no-shows and reliability
   worker_late_cancel_hours: define({

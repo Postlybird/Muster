@@ -10,6 +10,7 @@ import { roleHome, signupRoleFor } from "@/lib/roles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { CLOSED_ACCOUNT_MESSAGE } from "@/server/accounts";
+import { isReviewSignIn, reviewSignIn } from "@/server/app-review";
 import { cleanEmail, sendEmailCode } from "@/server/email-codes";
 
 /** Everyone signs in with an email address (owner, 31/10/2026). */
@@ -52,6 +53,10 @@ export async function sendCode(
       error: "Enter an email address, like name@example.com.",
     };
   }
+  // The app stores' reviewers type their fixed code instead.
+  if (await isReviewSignIn(email)) {
+    return { ok: true, method, destination: email };
+  }
   const result = await sendEmailCode({
     email,
     data: { signup_role: signupRoleFor(as) },
@@ -73,6 +78,15 @@ export async function verifyCode(
   const code = parsed.data.code.replace(/\s/g, "");
   if (!/^\d{6}$/.test(code)) {
     return { ok: false, error: "Enter the 6-digit code." };
+  }
+
+  const review = await reviewSignIn(destination, code);
+  if (review === "signed_in") redirect(roleHome.worker);
+  if (review === "wrong") {
+    return {
+      ok: false,
+      error: "That code didn't work. Check it and try again.",
+    };
   }
 
   const supabase = await createClient();
