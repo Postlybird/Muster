@@ -5,6 +5,9 @@ import { useEffect } from "react";
 
 import { appLinkPath, inNativeApp } from "@/lib/native-app";
 
+/** Set once the link the app was started with has been opened. */
+const LAUNCH_URL_SEEN = "app-launch-url-seen";
+
 /**
  * Inside the phone apps only (docs/apps.md): hides the opening screen once
  * the site is ready, and opens links the app was opened with (like a
@@ -30,6 +33,7 @@ export function NativeBridge() {
           event: "appUrlOpen",
           handler: (event: { url: string }) => void,
         ) => Promise<Listener>;
+        getLaunchUrl: () => Promise<{ url?: string } | undefined>;
       }>("App");
       const Messaging = registerPlugin<{
         addListener: (
@@ -43,10 +47,15 @@ export function NativeBridge() {
       await SplashScreen.hide().catch(() => undefined);
       const open = (url: unknown) => {
         if (typeof url !== "string") return;
-        const path = appLinkPath(
-          new URL(url, window.location.origin).toString(),
-          window.location.origin,
-        );
+        let path: string | null = null;
+        try {
+          path = appLinkPath(
+            new URL(url, window.location.origin).toString(),
+            window.location.origin,
+          );
+        } catch {
+          // Not a link we can read: stay where we are.
+        }
         if (path) router.push(path);
       };
       const listeners = await Promise.all([
@@ -56,6 +65,15 @@ export function NativeBridge() {
           open(event.notification.data?.url),
         ).catch(() => null),
       ]);
+      // A link that started the app from closed opens its page, once.
+      try {
+        if (!window.sessionStorage.getItem(LAUNCH_URL_SEEN)) {
+          window.sessionStorage.setItem(LAUNCH_URL_SEEN, "1");
+          open((await App.getLaunchUrl())?.url);
+        }
+      } catch {
+        // No storage, or nothing to open: the app stays where it is.
+      }
       const removeAll = async () => {
         await Promise.all(listeners.map((listener) => listener?.remove()));
       };
