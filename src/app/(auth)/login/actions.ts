@@ -9,6 +9,7 @@ import { safeNextPath } from "@/lib/redirects";
 import { roleHome, signupRoleFor } from "@/lib/roles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { CLOSED_ACCOUNT_MESSAGE } from "@/server/accounts";
 import { cleanEmail, sendEmailCode } from "@/server/email-codes";
 
 /** Everyone signs in with an email address (owner, 31/10/2026). */
@@ -81,6 +82,9 @@ export async function verifyCode(
     type: "email",
   });
 
+  if (error?.code === "user_banned") {
+    return { ok: false, error: CLOSED_ACCOUNT_MESSAGE };
+  }
   if (error || !data.user) {
     return {
       ok: false,
@@ -91,9 +95,14 @@ export async function verifyCode(
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, closed_at")
     .eq("id", data.user.id)
     .single();
+  // Deleted accounts stay out, even if blocking sign-in didn't take.
+  if (profile?.closed_at) {
+    await supabase.auth.signOut();
+    return { ok: false, error: CLOSED_ACCOUNT_MESSAGE };
+  }
 
   redirect(safeNextPath(next, profile ? roleHome[profile.role] : "/"));
 }

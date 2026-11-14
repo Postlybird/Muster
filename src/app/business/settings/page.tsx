@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { formatAbn } from "@/adapters/abn/validate";
 import { Markdown } from "@/components/markdown";
@@ -42,6 +43,7 @@ export default async function BusinessSettingsPage() {
       <div className="space-y-6">
         <PageHeader title="Settings" />
         <p className="text-muted-foreground">Set up your business first.</p>
+        <DeleteAccountLink />
       </div>
     );
   }
@@ -215,6 +217,26 @@ export default async function BusinessSettingsPage() {
           )}
         </section>
       ) : null}
+
+      <section aria-labelledby="account" className="space-y-3">
+        <h2 id="account" className="text-lg font-semibold">
+          Your account
+        </h2>
+        <DeleteAccountLink />
+      </section>
     </div>
+  );
+}
+
+function DeleteAccountLink() {
+  return (
+    <p className="text-sm">
+      <Link
+        href="/business/settings/delete-account"
+        className="underline underline-offset-4"
+      >
+        Delete my account
+      </Link>
+    </p>
   );
 }

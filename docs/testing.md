@@ -31,6 +31,7 @@ Every push to GitHub runs the checks in `.github/workflows/ci.yml`:
 | 5 Notifications             | `notifications` (push instead of texts, preferences, quiet hours, editing templates), `outbox`                                                                                       |
 | 6 Admin console             | `admin-lists` (workers, businesses, shift board), `admin-queues`, `admin-reports` (reports, dashboard), `admin-catalogues`, `admin-settings`                                         |
 | 7 Public pages (home and industry pages) | `public`, `a11y`                                                                                                                                                                 |
+| Deleting an account (store apps, owner 14/11/2026) | `delete-account` (a worker and a business user delete theirs and can't sign in again, booked shifts cancelled first, the only owner warned the business closes, the website's page on how) |
 
 ## The Phase 1 acceptance run
 

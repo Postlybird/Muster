@@ -253,9 +253,13 @@ export default function PrivacyPage() {
 
       <Section id="access" title="Seeing, correcting or complaining">
         <p>
-          You can see and update most of your details in the app. To ask for a
-          copy of your information, correct it, or make a complaint, email{" "}
-          {EMAIL} or{" "}
+          You can see and update most of your details in the app, and{" "}
+          <Link href="/delete-account" className="text-primary underline">
+            delete your account
+          </Link>{" "}
+          in Settings: we then delete what the law doesn&apos;t need us to keep.
+          To ask for a copy of your information, correct it, or make a
+          complaint, email {EMAIL} or{" "}
           <Link href="/contact" className="text-primary underline">
             contact us
           </Link>

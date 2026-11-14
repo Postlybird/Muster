@@ -115,6 +115,14 @@ export default async function WorkerSettingsPage() {
           Your account
         </h2>
         <SignOutButton />
+        <p className="text-sm">
+          <Link
+            href="/worker/settings/delete-account"
+            className="underline underline-offset-4"
+          >
+            Delete my account
+          </Link>
+        </p>
       </section>
     </div>
   );

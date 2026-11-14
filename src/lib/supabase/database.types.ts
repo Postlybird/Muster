@@ -2383,6 +2383,7 @@ export type Database = {
       profiles: {
         Row: {
           archived_at: string | null;
+          closed_at: string | null;
           created_at: string;
           email: string | null;
           full_name: string | null;
@@ -2395,6 +2396,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           archived_at?: string | null;
+          closed_at?: string | null;
           created_at?: string;
           email?: string | null;
           full_name?: string | null;
@@ -2406,6 +2408,7 @@ export type Database = {
         };
         Update: {
           archived_at?: string | null;
+          closed_at?: string | null;
           created_at?: string;
           email?: string | null;
           full_name?: string | null;
@@ -3928,6 +3931,7 @@ export type Database = {
           inside: boolean;
         }[];
       };
+      close_my_account: { Args: Record<PropertyKey, never>; Returns: Json };
       confirm_arrival: {
         Args: { p_assignment_id: string; p_at?: string };
         Returns: undefined;

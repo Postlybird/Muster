@@ -6,6 +6,7 @@ import { z } from "zod";
 import { safeNextPath } from "@/lib/redirects";
 import { createClient } from "@/lib/supabase/server";
 
+import { CLOSED_ACCOUNT_MESSAGE } from "./accounts";
 import { requestOrigin } from "./request";
 
 /**
@@ -29,6 +30,8 @@ export function friendlyAuthError(error: AuthError): string {
       return "We couldn't check the request came from a person. Wait a moment, then try again.";
     case "signup_disabled":
       return "New accounts can't be created right now. Contact us for help.";
+    case "user_banned":
+      return CLOSED_ACCOUNT_MESSAGE;
     default:
       return "Something went wrong sending your code. Please try again.";
   }

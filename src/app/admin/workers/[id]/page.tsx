@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { StatusBadge } from "@/components/status/status-badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { reviewReasons } from "@/config/review-reasons";
 import { ageOn } from "@/domain/onboarding";
@@ -63,7 +64,7 @@ export default async function WorkerReviewPage({
   ] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, email, phone")
+      .select("full_name, email, phone, closed_at")
       .eq("id", worker.profile_id)
       .single(),
     supabase.from("work_rights").select("*").eq("worker_id", id).maybeSingle(),
@@ -191,6 +192,16 @@ export default async function WorkerReviewPage({
           )
         ) : null}
       </div>
+
+      {profile?.closed_at ? (
+        <Alert>
+          <AlertDescription>
+            Deleted their account on {formatDate(profile.closed_at)}. They
+            can&apos;t sign in, and their records are kept for 7 years from
+            then.
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
       <Section
         id="photo"

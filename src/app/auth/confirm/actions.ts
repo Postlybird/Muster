@@ -24,15 +24,23 @@ export async function confirmSignIn(formData: FormData): Promise<void> {
     type: type as EmailOtpType,
     token_hash: tokenHash,
   });
+  if (error?.code === "user_banned") {
+    redirect("/account-closed");
+  }
   if (error || !data.user) {
     redirect("/login?error=link");
   }
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, closed_at")
     .eq("id", data.user.id)
     .single();
+  // Deleted accounts stay out, even if blocking sign-in didn't take.
+  if (profile?.closed_at) {
+    await supabase.auth.signOut();
+    redirect("/account-closed");
+  }
 
   redirect(
     safeNextPath(
