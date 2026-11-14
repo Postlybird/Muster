@@ -1,0 +1,92 @@
+# The phone apps (docs/apps.md): on each change to them, an Android test app
+# to install from the run's page, and a check that the iPhone app builds.
+# Signed builds for the stores follow once the Apple and Google accounts
+# exist.
+name: Phone apps
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - android/**
+      - ios/**
+      - mobile/**
+      - capacitor.config.ts
+      - scripts/mobile/**
+      - scripts/generate-icons.ts
+      - src/config/brand.ts
+      - src/config/logo.ts
+      - package.json
+      - package-lock.json
+      - .github/workflows/apps.yml
+  workflow_dispatch:
+
+concurrency:
+  group: apps-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # The site the test apps open: the demo (a repository variable once the
+  # demo moves to its own address), or the live website when it's unset.
+  APP_SERVER_URL: ${{ vars.APP_TEST_SERVER_URL }}
+
+jobs:
+  android:
+    name: Android test app
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+      - run: npm ci
+
+      # Notifications need Firebase's file for the app; without it the app
+      # still builds and runs, just without notifications.
+      - name: Add Firebase's Android settings, if they're set up
+        env:
+          FIREBASE_ANDROID_CONFIG: ${{ secrets.FIREBASE_ANDROID_CONFIG }}
+        run: |
+          if [ -n "$FIREBASE_ANDROID_CONFIG" ]; then
+            printf '%s' "$FIREBASE_ANDROID_CONFIG" > android/app/google-services.json
+          fi
+
+      - run: npm run app:sync
+      - name: Build the test app
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-test-app
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+  ios:
+    name: iPhone app builds
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run app:sync
+      - name: Build for the simulator (no signing)
+        working-directory: ios/App
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App \
+            -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build
