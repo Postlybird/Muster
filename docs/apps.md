@@ -42,3 +42,31 @@ The plan the owner approved on 14/11/2026 ("ok to both"), built before the compa
 | Firebase (free) | The app configuration files for Android and iPhone (GitHub secrets, written in at build time), and a service account key for sending notifications (Vercel) |
 
 The owner gets click-by-click steps for each account, one at a time, and types keys into GitHub and Vercel, never into chat.
+
+## What's built (14/11/2026)
+
+- **The apps:** `android/` and `ios/` (Capacitor 8), opening `brand.website`; `npm run app:sync` writes the name, IDs, link host and "no connection" page from `src/config/brand.ts`, and `npm run icons` draws the icons and opening screens.
+- **Inside the app:** the phone's own notifications (Settings → "Notifications on this phone"), location for clock-in, and camera for uploads; links to the website, and tapped notifications, open the matching page.
+- **Delete my account** and **the reviewers' sign-in**, on the website and so in the apps.
+- **Builds:** `.github/workflows/apps.yml` builds an Android test app (kept 30 days on the run's page) and checks the iPhone app on every change; `.github/workflows/apps-release.yml` ("Phone apps for the stores", run by hand) signs them and sends them to TestFlight and Google Play's internal testing.
+- **The listings:** `docs/store/listing.md` (description, privacy answers, ratings, review notes) and `docs/store/screenshots/`.
+
+## Trying the Android app now
+
+1. On GitHub, open the repository's **Actions** tab, then **Phone apps**, and the newest run with a green tick.
+2. Under **Artifacts**, download **android-test-app** and unzip it.
+3. Copy `app-debug.apk` to an Android phone and open it; allow installing from that source when the phone asks.
+
+It opens the demo (www.shifta.com.au until the switch-over; then set the repository variable `APP_TEST_SERVER_URL` to https://demo.shifta.com.au). Notifications wait for Firebase.
+
+## Getting them into the stores (after the company's D-U-N-S number)
+
+The owner gets click-by-click steps for each, one at a time:
+
+1. **Apple Developer Program** as an organisation (US$99 a year), then the app in App Store Connect, an App Store Connect API key, and an Apple push key for Firebase.
+2. **Google Play Console** as an organisation (US$25 once), then the app, an upload key, and a service account for uploads.
+3. **Firebase** (free): a project with the Android and iPhone apps, the Apple push key, and a service account key for sending.
+4. **GitHub:** an environment named `stores`, locked to `main` with the owner as reviewer, holding `APPLE_TEAM_ID`, `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY`, `ANDROID_UPLOAD_KEYSTORE` (base64), `ANDROID_UPLOAD_KEYSTORE_PASSWORD`, `ANDROID_UPLOAD_KEY_ALIAS`, `ANDROID_UPLOAD_KEY_PASSWORD`, `PLAY_SERVICE_ACCOUNT_JSON`, `FIREBASE_ANDROID_CONFIG` and `FIREBASE_IOS_CONFIG`; and `FIREBASE_ANDROID_CONFIG` as a repository secret too, for the test builds.
+5. **The live site's settings (Vercel):** `APP_PUSH_PROVIDER=fcm`, `FIREBASE_SERVICE_ACCOUNT`, `APPLE_TEAM_ID`, `ANDROID_CERT_SHA256` (from Play's app signing page), `APP_REVIEW_EMAIL` and `APP_REVIEW_CODE`.
+6. **Run "Phone apps for the stores"** from the Actions tab. Google takes the first upload by hand (the app bundle is on the run's page); after that it goes straight to internal testing. Try both on the owner's phone (TestFlight, and Play's internal testing).
+7. **Fill in the listings** from `docs/store/listing.md`, switch on the reviewers' sign-in, and submit.

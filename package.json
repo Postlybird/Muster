@@ -24,7 +24,8 @@
     "seed:reference": "tsx scripts/seed/index.ts --reference",
     "seed:assets": "tsx scripts/seed/generate-assets.ts",
     "icons": "tsx scripts/generate-icons.ts",
-    "app:sync": "tsx scripts/mobile/sync-brand.ts && cap sync"
+    "app:sync": "tsx scripts/mobile/sync-brand.ts && cap sync",
+    "app:screenshots": "tsx scripts/mobile/store-screenshots.ts"
   },
   "dependencies": {
     "@capacitor/core": "8.6.2",

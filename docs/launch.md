@@ -20,9 +20,9 @@ The owner gets click-by-click steps for each account in chat, one at a time, and
 | Supabase | The live database | Pro plan; project `shifta-live` in Sydney; its database password, secret key and project ref; an access token for GitHub |
 | Vercel | The live site | Pro plan; a second project from this repository with `main` as its production branch; a deploy hook for `main` |
 | Web push | App notifications | A pair of keys, made in the demo's Admin → Settings → Push notifications |
-| Apple Developer Program | The App Store app (owner, 08/11/2026) | A business membership (US$99 a year, with the company's D-U-N-S number); an App Store Connect API key, as a GitHub secret |
-| Google Play Console | The Google Play app | A business account (US$25 once, with the D-U-N-S number); a service account key for publishing, as a GitHub secret |
-| Firebase | The store apps' notifications | A free project; a service account key, in Vercel |
+| Apple Developer Program | The App Store app (owner, 08/11/2026) | A business membership (US$99 a year, with the company's D-U-N-S number); the Team ID and an App Store Connect API key, as secrets in the GitHub environment `stores`; an Apple push key for Firebase (`docs/apps.md`) |
+| Google Play Console | The Google Play app | A business account (US$25 once, with the D-U-N-S number); the upload key and a service account key for publishing, as secrets in the GitHub environment `stores`; the app signing fingerprint, in Vercel (`docs/apps.md`) |
+| Firebase | The store apps' notifications | A free project; its Android and iPhone settings files, as GitHub secrets; a service account key, in Vercel (`docs/apps.md`) |
 
 ## The live Vercel project's environment variables (Production)
 

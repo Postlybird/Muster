@@ -451,7 +451,7 @@ _Last updated: 14/11/2026_
 
 ## Next
 
-- **Claude: the store apps** (owner, 14/11/2026: "ok to both"), in the steps in `docs/apps.md`: delete my account, the reviewers' sign-in, the Android and iPhone apps, notifications, location and app links, automatic builds, and the store listings. They're ready to submit once the Apple, Google Play and Firebase accounts exist (after the company's D-U-N-S number).
+- **Owner: try the Android test app** (built 14/11/2026): the steps are under "Trying the Android app now" in `docs/apps.md`. It opens the demo. The store apps are built and ready to submit once the Apple, Google Play and Firebase accounts exist, after the company's D-U-N-S number ("Getting them into the stores" in the same file).
 - **Owner: the warehouse award's pay guide.** Pick-packers, storepersons and forklift drivers come under the Storage Services and Wholesale Award [MA000084]. As with the others:
   1. Download that award's pay guide from the Fair Work Ombudsman website and send it to me.
   2. I'll prepare the rate cards from it, for you to check against the pay guide.
