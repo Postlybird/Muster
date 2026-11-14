@@ -60,6 +60,31 @@ describe("pricing shifts from loaded data", () => {
     expect(result.ok && result.cost.payCents).toBe(7288 * 4);
   });
 
+  it("adds a work type's long service levy to the on-costs, like super (owner, 14/11/2026)", () => {
+    const shift = {
+      start: sydney("2026-11-04T08:00"),
+      end: sydney("2026-11-04T12:00"),
+      breakMinutes: 0,
+      urgent: false,
+    };
+    const scope = {
+      businessId: "b",
+      categoryId: "cleaner",
+      level: 1,
+      state: "NSW" as const,
+    };
+    const plain = makePricer(scope, data).quote(shift);
+    const levied = makePricer(scope, {
+      ...data,
+      category: { ...data.category!, long_service_levy_pct: "1.00" },
+    }).quote(shift);
+    if (!plain.ok || !levied.ok) throw new Error("Should price");
+    expect(levied.rules.levyPct).toBe(1);
+    expect(plain.rules.levyPct).toBeUndefined();
+    expect(levied.rules.onCostPct).toBe(plain.rules.onCostPct + 1);
+    expect(levied.cost.billCents).toBeGreaterThan(plain.cost.billCents);
+  });
+
   it("explains when there's no rate card", () => {
     const result = makePricer(
       { businessId: "b", categoryId: "cleaner", level: 3, state: "NSW" },

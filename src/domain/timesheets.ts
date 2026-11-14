@@ -93,6 +93,7 @@ export function costTimesheet(
     minutes,
     cost: costShift(minutes, costRules, {
       lateOvertimeMinutes: lateOvertimeMinutes(minutes, hours, bookedFinish),
+      earlierShiftToday: (prior?.dayMinutes ?? 0) > 0,
     }),
   };
 }

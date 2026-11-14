@@ -8,6 +8,7 @@ import {
   emptyMinutes,
   hourlyBillCents,
   onCostPctFor,
+  ordinaryOnlyPct,
   percentOf,
   splitShift,
   sumCosts,
@@ -657,6 +658,74 @@ describe("allowances (owner, 03/11/2026)", () => {
         .allowances,
     ).toEqual([]);
     expect(costShift(eightHours, costRules).allowances).toEqual([]);
+  });
+
+  it("once a day: on the worker's first shift with us that day only (owner, 14/11/2026)", () => {
+    const daily: CostRules = {
+      ...rules,
+      allowances: [{ ...fares, when: "each_day" }, meal],
+    };
+    const names = (facts: Parameters<typeof costShift>[2]) =>
+      (costShift(eightHours, daily, facts).allowances ?? []).map((a) => a.name);
+    expect(names({})).toEqual(["Fares and travel allowance"]);
+    expect(names({ earlierShiftToday: false })).toEqual([
+      "Fares and travel allowance",
+    ]);
+    // A second shift that day: no fares again, but late overtime still counts.
+    expect(names({ earlierShiftToday: true })).toEqual([]);
+    expect(
+      names({ earlierShiftToday: true, lateOvertimeMinutes: 121 }),
+    ).toEqual(["Meal allowance"]);
+  });
+});
+
+describe("a long service levy (owner, 14/11/2026)", () => {
+  const rules: CostRules = {
+    ...costRules,
+    card: cleaner,
+    onCostPct: 24.45,
+    superPct: 12,
+    levyPct: 1,
+  };
+
+  it("adds to the work type's on-costs", () => {
+    expect(
+      totalOnCostPct(
+        { super: 12, workers_comp: 5, payroll_tax: 0, insurance: 1 },
+        null,
+        1,
+      ),
+    ).toBe(19);
+  });
+
+  it("is owed on ordinary hours, and left off overtime like super", () => {
+    expect(ordinaryOnlyPct(rules)).toBe(13);
+    expect(onCostPctFor(rules, "ordinary")).toBe(24.45);
+    expect(onCostPctFor(rules, "overtime")).toBe(11.45);
+    expect(onCostPctFor({ ...rules, levyPct: undefined }, "overtime")).toBe(
+      12.45,
+    );
+    // Rates kept from before super was left off overtime are unchanged.
+    expect(ordinaryOnlyPct({ levyPct: 1 })).toBeUndefined();
+  });
+
+  it("raises an ordinary hour's on-costs by its percent of the pay", () => {
+    const eight = minutes({ ordinary: 480 });
+    const withLevy = costShift(eight, rules);
+    const without = costShift(eight, {
+      ...rules,
+      onCostPct: 23.45,
+      levyPct: undefined,
+    });
+    expect(withLevy.payCents).toBe(without.payCents);
+    expect(
+      Math.abs(
+        withLevy.onCostCents -
+          without.onCostCents -
+          percentOf(withLevy.payCents, 1),
+      ),
+    ).toBeLessThanOrEqual(1);
+    expect(withLevy.billCents).toBeGreaterThan(without.billCents);
   });
 });
 

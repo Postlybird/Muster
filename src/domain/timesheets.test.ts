@@ -186,6 +186,35 @@ describe("overtime past the booked finish (owner, 03/11/2026)", () => {
     );
     expect(booked.cost.allowances).toEqual([]);
   });
+
+  it("pays a once-a-day allowance only when there's no earlier shift that day (owner, 14/11/2026)", () => {
+    const withFares: CostRules = {
+      ...costRules,
+      allowances: [
+        {
+          name: "Fares and travel allowance",
+          when: "each_day",
+          afterMinutes: 0,
+          payCents: 2241,
+          billCents: 2947,
+        },
+      ],
+    };
+    const afternoon = {
+      start: sydney("2026-11-04T12:00"),
+      finish: sydney("2026-11-04T16:00"),
+      breakMinutes: 0,
+    };
+    const first = costTimesheet(afternoon, hoursRules, withFares);
+    expect(first.cost.allowances?.map((a) => a.name)).toEqual([
+      "Fares and travel allowance",
+    ]);
+    const second = costTimesheet(afternoon, hoursRules, withFares, {
+      dayMinutes: 240,
+      weekOrdinaryMinutes: 240,
+    });
+    expect(second.cost.allowances).toEqual([]);
+  });
 });
 
 describe("late arrivals", () => {

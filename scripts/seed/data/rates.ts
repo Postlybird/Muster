@@ -208,12 +208,13 @@ export const AWARD_RATE_CARDS: AwardRateCard[] = [
       {
         name: "Fares and travel allowance",
         payCents: 2241,
-        when: "each_shift",
+        // For each day worked (owner, 14/11/2026).
+        when: "each_day",
         afterMinutes: 0,
       },
     ],
     notes:
-      "Building and Construction General On-site Award 2020 [MA000020], CW/ECW 1 (level a), general building and construction (not residential), casual, including the industry allowance: pay guide effective 01/07/2026, plus $0.50 an hour. Saturday: first 2 hours before noon at 1.75, then 2.25. Day work: hours outside 7 am to 6 pm on weekdays, or after 8 hours, are overtime (higher than the shift rates). Fares and travel allowance, $22.41 a day worked: an allowance on every shift. To confirm with the accountant: ordinary hours 7 am to 6 pm, and overtime after 8 hours a day for casuals.",
+      "Building and Construction General On-site Award 2020 [MA000020], CW/ECW 1 (level a), general building and construction (not residential), casual, including the industry allowance: pay guide effective 01/07/2026, plus $0.50 an hour. Saturday: first 2 hours before noon at 1.75, then 2.25. Day work: hours outside 7 am to 6 pm on weekdays, or after 8 hours, are overtime (higher than the shift rates). Fares and travel allowance, $22.41 a day worked: paid once a day, on the worker's first shift with us that day. To confirm with the accountant: ordinary hours 7 am to 6 pm, and overtime after 8 hours a day for casuals.",
   },
   {
     codes: ["removalist_offsider"],

@@ -24,6 +24,7 @@ export type CategoryFormValues = {
   min_engagement_hours: number;
   default_level: number;
   workers_comp_pct: number | null;
+  long_service_levy_pct: number;
   active: boolean;
   credential_type_ids: string[];
   ppe_item_ids: string[];
@@ -146,6 +147,24 @@ export function CategoryForm({
               min="0"
               max="100"
               defaultValue={values.workers_comp_pct ?? ""}
+            />
+          )}
+        </FormField>
+        <FormField
+          id="long_service_levy_pct"
+          label="Long service levy %"
+          hint="On ordinary hours, like super: 1 for contract cleaning in NSW, otherwise 0."
+          error={errors?.long_service_levy_pct}
+        >
+          {(props) => (
+            <Input
+              {...props}
+              name="long_service_levy_pct"
+              type="number"
+              step="0.01"
+              min="0"
+              max="10"
+              defaultValue={values.long_service_levy_pct}
             />
           )}
         </FormField>

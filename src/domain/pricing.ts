@@ -8,6 +8,7 @@ import {
   sumCosts,
   totalOnCostPct,
   allowanceBillCents,
+  ordinaryOnlyPct,
   type CostRules,
   type CostTotals,
   type MinutesByType,
@@ -79,6 +80,8 @@ export type PricingData = {
   category: {
     min_engagement_hours: number | string;
     workers_comp_pct: number | string | null;
+    /** On ordinary wages, like super (owner, 14/11/2026). */
+    long_service_levy_pct?: number | string | null;
   } | null;
   settings: {
     daily_overtime_after_hours: number;
@@ -187,24 +190,29 @@ export function makePricer(scope: PricingScope, data: PricingData) {
       };
     }
     const billRule = billRuleFromRow(rule, settings.margin_pct);
+    const levyPct = Number(data.category.long_service_levy_pct ?? 0) || 0;
     const onCostPct = totalOnCostPct(
       settings.on_costs_pct,
       data.category.workers_comp_pct === null
         ? null
         : Number(data.category.workers_comp_pct),
+      levyPct,
     );
+    const levy = levyPct > 0 ? { levyPct } : {};
     const rules: CostRules = {
       card: rateCard,
       billRule,
       onCostPct,
       superPct: settings.on_costs_pct.super,
+      ...levy,
       // Charged at the business's margin, or ours for fixed rates.
       allowances: (rateCard.allowances ?? []).map((allowance) => ({
         ...allowance,
         billCents: allowanceBillCents(
           allowance.payCents,
           onCostPct,
-          settings.on_costs_pct.super,
+          ordinaryOnlyPct({ superPct: settings.on_costs_pct.super, ...levy }) ??
+            0,
           billRule.method === "markup"
             ? billRule.marginPct
             : settings.margin_pct,
@@ -225,7 +233,9 @@ export function makePricer(scope: PricingScope, data: PricingData) {
       ok: true,
       date,
       minutes,
-      cost: costShift(minutes, rules),
+      cost: costShift(minutes, rules, {
+        earlierShiftToday: (shift.prior?.dayMinutes ?? 0) > 0,
+      }),
       rules,
       card: {
         id: card.id,

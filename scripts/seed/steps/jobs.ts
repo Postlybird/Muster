@@ -54,7 +54,7 @@ export async function seedJobs(client: SeedClient) {
     client
       .from("categories")
       .select(
-        "id, code, default_level, police_check_required, min_engagement_hours, workers_comp_pct, category_credentials(credential_type_id), category_ppe(ppe_item_id)",
+        "id, code, default_level, police_check_required, min_engagement_hours, workers_comp_pct, long_service_levy_pct, category_credentials(credential_type_id), category_ppe(ppe_item_id)",
       ),
     client.from("hazards").select("id, code"),
     client.from("settings").select("key, value"),

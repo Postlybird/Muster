@@ -54,6 +54,11 @@ const categorySchema = z.object({
   ),
   default_level: z.coerce.number().int().min(1).max(10),
   workers_comp_pct: z.coerce.number().min(0).max(100).nullable(),
+  // On ordinary wages, like super (owner, 14/11/2026).
+  long_service_levy_pct: z.coerce
+    .number({ error: "Enter a percent, like 1" })
+    .min(0, "Can't be negative")
+    .max(10, "Too high"),
   active: z.boolean(),
   credential_type_ids: z.array(z.uuid()),
   ppe_item_ids: z.array(z.uuid()),
@@ -74,6 +79,8 @@ export async function saveCategory(
     min_engagement_hours: formData.get("min_engagement_hours"),
     default_level: formData.get("default_level") ?? 1,
     workers_comp_pct: workersComp,
+    long_service_levy_pct:
+      optionalText(formData.get("long_service_levy_pct")) ?? 0,
     active: formBoolean(formData.get("active")),
     credential_type_ids: formData.getAll("credential_type_ids"),
     ppe_item_ids: formData.getAll("ppe_item_ids"),

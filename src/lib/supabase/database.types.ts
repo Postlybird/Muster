@@ -1000,6 +1000,7 @@ export type Database = {
           description: string;
           id: string;
           industry_id: string | null;
+          long_service_levy_pct: number;
           min_engagement_hours: number;
           name: string;
           police_check_required: boolean;
@@ -1017,6 +1018,7 @@ export type Database = {
           description?: string;
           id?: string;
           industry_id?: string | null;
+          long_service_levy_pct?: number;
           min_engagement_hours?: number;
           name: string;
           police_check_required?: boolean;
@@ -1033,6 +1035,7 @@ export type Database = {
           description?: string;
           id?: string;
           industry_id?: string | null;
+          long_service_levy_pct?: number;
           min_engagement_hours?: number;
           name?: string;
           police_check_required?: boolean;

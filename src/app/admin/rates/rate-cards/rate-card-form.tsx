@@ -503,6 +503,9 @@ export function RateCardForm({
                   defaultValue={row.when}
                 >
                   <option value="each_shift">On every shift worked</option>
+                  <option value="each_day">
+                    Once a day, on the first shift
+                  </option>
                   <option value="late_overtime">
                     For overtime past the booked finish
                   </option>

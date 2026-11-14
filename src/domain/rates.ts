@@ -115,12 +115,18 @@ export const DEFAULT_SUPER_FREE_TYPES: readonly SuperFreeType[] = [
 
 /**
  * When an award's allowance is paid (owner, 03/11/2026), as data on the
- * rate card: on every shift worked (like the building award's fares and
- * travel, a day worked), or when the worker stays more than some hours past
- * the booked finish in overtime: overtime nobody asked for the day before,
- * which is when, for example, the cleaning award pays a meal allowance.
+ * rate card: on every shift worked; once a day, on a worker's first shift
+ * with us that day (like the building award's fares and travel, for each
+ * day worked; owner, 14/11/2026); or when the worker stays more than some
+ * hours past the booked finish in overtime: overtime nobody asked for the
+ * day before, which is when, for example, the cleaning award pays a meal
+ * allowance.
  */
-export const ALLOWANCE_TRIGGERS = ["each_shift", "late_overtime"] as const;
+export const ALLOWANCE_TRIGGERS = [
+  "each_shift",
+  "each_day",
+  "late_overtime",
+] as const;
 export type AllowanceTrigger = (typeof ALLOWANCE_TRIGGERS)[number];
 
 export type Allowance = {

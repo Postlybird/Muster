@@ -455,6 +455,8 @@ export type SeedCategory = {
   defaultPpe: string[];
   /** Outside the focus (owner, 02/11/2026): added archived. */
   archived?: true;
+  /** Long service levy on ordinary wages, priced in like super (owner, 14/11/2026). */
+  longServiceLevyPct?: number;
 };
 
 export const CATEGORIES: SeedCategory[] = [
@@ -551,6 +553,8 @@ export const CATEGORIES: SeedCategory[] = [
       "Cleaning offices, builds and commercial sites, including post-construction and post-restoration cleans.",
     policeCheckRequired: false,
     minEngagementHours: 3,
+    // NSW contract cleaning long service levy (owner, 14/11/2026).
+    longServiceLevyPct: 1,
     requiredCredentials: [],
     defaultPpe: ["nitrile_gloves"],
   },
@@ -769,6 +773,7 @@ export const CATEGORIES: SeedCategory[] = [
       "Cleaning new and renovated buildings ready for handover: dust, paint and debris.",
     policeCheckRequired: false,
     minEngagementHours: 4,
+    longServiceLevyPct: 1,
     requiredCredentials: ["white_card"],
     defaultPpe: ["steel_cap_boots", "hi_vis", "p2_disposable"],
   },

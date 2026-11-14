@@ -102,6 +102,7 @@ export default async function EditCategoryPage({
             category.workers_comp_pct === null
               ? null
               : Number(category.workers_comp_pct),
+          long_service_levy_pct: Number(category.long_service_levy_pct),
           active: category.active,
           credential_type_ids: category.category_credentials.map(
             (c) => c.credential_type_id,

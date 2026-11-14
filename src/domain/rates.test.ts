@@ -197,6 +197,7 @@ describe("allowances on a rate card", () => {
         },
         { name: "", pay_cents: 100, when: "each_shift" },
         { name: "No amount", when: "each_shift" },
+        { name: "Daily", pay_cents: 100, when: "each_day", after_hours: 3 },
         { name: "Unknown", pay_cents: 100, when: "weekly" },
         "not an allowance",
       ]),
@@ -213,6 +214,8 @@ describe("allowances on a rate card", () => {
         when: "late_overtime",
         afterMinutes: 120,
       },
+      // Once a day (owner, 14/11/2026); hours after only matter for late overtime.
+      { name: "Daily", payCents: 100, when: "each_day", afterMinutes: 0 },
     ]);
     expect(allowancesFrom(null)).toEqual([]);
   });

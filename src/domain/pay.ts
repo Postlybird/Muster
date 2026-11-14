@@ -463,6 +463,12 @@ export type CostRules = {
    * rates kept with bookings made before, which add it to every hour.
    */
   superPct?: number;
+  /**
+   * A long service levy on the work type's ordinary wages, part of the
+   * on-costs and, like super, left off overtime and allowances (owner,
+   * 14/11/2026: 1% for contract cleaning in NSW). Absent when there's none.
+   */
+  levyPct?: number;
   /** Shorter shifts are paid and billed up to this (brief §4.8). */
   minEngagementMinutes: number;
   /** Urgent call-out loadings, or null for an ordinary shift (plan question 7). */
@@ -483,6 +489,11 @@ export type CostAllowance = {
 export type ShiftFacts = {
   /** Overtime worked after the booked finish: nobody asked for it ahead. */
   lateOvertimeMinutes?: number;
+  /**
+   * The worker has an earlier shift with us that day (in the order their
+   * shifts were booked), so a once-a-day allowance is already paid.
+   */
+  earlierShiftToday?: boolean;
 };
 
 export type CostLine = {
@@ -533,7 +544,10 @@ export function percentOf(cents: number, pct: number): number {
   return roundCents((cents * basisPoints(pct)) / 10_000);
 }
 
-/** On-costs as one percent; a category's workers' comp rate replaces the standard one. */
+/**
+ * On-costs as one percent; a category's workers' comp rate replaces the
+ * standard one, and its long service levy is added.
+ */
 export function totalOnCostPct(
   onCosts: {
     super: number;
@@ -542,32 +556,51 @@ export function totalOnCostPct(
     insurance: number;
   },
   categoryWorkersCompPct: number | null,
+  levyPct = 0,
 ): number {
   const bp =
     basisPoints(onCosts.super) +
     basisPoints(categoryWorkersCompPct ?? onCosts.workers_comp) +
     basisPoints(onCosts.payroll_tax) +
-    basisPoints(onCosts.insurance);
+    basisPoints(onCosts.insurance) +
+    basisPoints(levyPct);
   return bp / 100;
 }
 
 /**
+ * The on-costs owed on ordinary time only: super, and any long service levy.
+ * Undefined for rates kept with bookings made before, which add them to
+ * every hour.
+ */
+export function ordinaryOnlyPct(
+  rules: Pick<CostRules, "superPct" | "levyPct">,
+): number | undefined {
+  if (rules.superPct === undefined) return undefined;
+  return (basisPoints(rules.superPct) + basisPoints(rules.levyPct ?? 0)) / 100;
+}
+
+/**
  * The on-costs on an hour of a rate type, as a percent of pay: all of them,
- * less super on the hours that are overtime (the card's superFreeTypes).
+ * less super and any levy on the hours that are overtime (the card's
+ * superFreeTypes).
  */
 export function onCostPctFor(
-  rules: Pick<CostRules, "card" | "onCostPct" | "superPct">,
+  rules: Pick<CostRules, "card" | "onCostPct" | "superPct" | "levyPct">,
   type: DayType,
 ): number {
-  if (rules.superPct === undefined) return rules.onCostPct;
+  const ordinaryOnly = ordinaryOnlyPct(rules);
+  if (ordinaryOnly === undefined) return rules.onCostPct;
   const superFree: readonly DayType[] =
     rules.card.superFreeTypes ?? DEFAULT_SUPER_FREE_TYPES;
   return superFree.includes(type)
-    ? (basisPoints(rules.onCostPct) - basisPoints(rules.superPct)) / 100
+    ? (basisPoints(rules.onCostPct) - basisPoints(ordinaryOnly)) / 100
     : rules.onCostPct;
 }
 
-/** An allowance's charge: its pay, with on-costs less super, and the margin. */
+/**
+ * An allowance's charge: its pay, with on-costs less those owed on ordinary
+ * time only (super and any levy), and the margin.
+ */
 export function allowanceBillCents(
   payCents: number,
   onCostPct: number,
@@ -590,11 +623,16 @@ export function shiftAllowances(
 ): CostAllowance[] {
   if (paidMinutes <= 0) return [];
   return (rules.allowances ?? [])
-    .filter(
-      (a) =>
-        a.when === "each_shift" ||
-        (facts.lateOvertimeMinutes ?? 0) > a.afterMinutes,
-    )
+    .filter((a) => {
+      switch (a.when) {
+        case "each_shift":
+          return true;
+        case "each_day":
+          return !facts.earlierShiftToday;
+        case "late_overtime":
+          return (facts.lateOvertimeMinutes ?? 0) > a.afterMinutes;
+      }
+    })
     .map(({ name, payCents, billCents }) => ({ name, payCents, billCents }));
 }
 
@@ -684,17 +722,16 @@ export function costShift(
   const allowancePay = allowances.reduce((sum, a) => sum + a.payCents, 0);
   const allowanceBill = allowances.reduce((sum, a) => sum + a.billCents, 0);
   const payCents = hoursPay + urgentPayCents + allowancePay;
-  // Less super on the overtime hours and allowances (none for rates kept
-  // from before).
+  // Less super and any levy on the overtime hours and allowances (none for
+  // rates kept from before).
   const superFreePay =
     lines
       .filter((l) => onCostPctFor(rules, l.type) !== rules.onCostPct)
       .reduce((sum, l) => sum + l.payCents, 0) + allowancePay;
+  const ordinaryOnly = ordinaryOnlyPct(rules);
   const onCostCents =
     percentOf(payCents, rules.onCostPct) -
-    (rules.superPct === undefined
-      ? 0
-      : percentOf(superFreePay, rules.superPct));
+    (ordinaryOnly === undefined ? 0 : percentOf(superFreePay, ordinaryOnly));
   const billCents = hoursBill + urgentBillCents + allowanceBill;
   const gstCents = percentOf(billCents, rules.gstPct);
   return {

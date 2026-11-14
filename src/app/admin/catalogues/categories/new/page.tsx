@@ -42,6 +42,7 @@ export default async function NewCategoryPage() {
           min_engagement_hours: 3,
           default_level: 1,
           workers_comp_pct: null,
+          long_service_levy_pct: 0,
           active: true,
           credential_type_ids: [],
           ppe_item_ids: [],

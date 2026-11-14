@@ -41,8 +41,13 @@ test.describe("admin catalogues", () => {
     await expect(page.getByLabel("White Card")).toBeChecked();
 
     await page.getByRole("switch", { name: /Police check required/ }).click();
+    // A long service levy, like NSW contract cleaning's 1% (owner,
+    // 14/11/2026).
+    await page.getByLabel("Long service levy %").fill("1");
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page.getByText("Category saved")).toBeVisible();
+    await page.reload();
+    await expect(page.getByLabel("Long service levy %")).toHaveValue("1");
 
     await page.goto("/admin/catalogues/categories");
     const row = page.getByRole("row", { name: new RegExp(name) });

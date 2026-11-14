@@ -107,6 +107,7 @@ export async function seedCatalogues(client: SeedClient) {
           description: c.description,
           police_check_required: c.policeCheckRequired,
           min_engagement_hours: c.minEngagementHours,
+          long_service_levy_pct: c.longServiceLevyPct ?? 0,
           sort_order: (i + 1) * 10,
           archived_at: c.archived ? now : null,
         })),

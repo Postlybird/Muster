@@ -25,7 +25,7 @@ export async function loadPricingData(
     client.from("public_holidays").select("date").eq("state", scope.state),
     client
       .from("categories")
-      .select("min_engagement_hours, workers_comp_pct")
+      .select("min_engagement_hours, workers_comp_pct, long_service_levy_pct")
       .eq("id", scope.categoryId)
       .maybeSingle(),
   ]);

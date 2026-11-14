@@ -101,6 +101,14 @@ describe("seed catalogues", () => {
     }
   });
 
+  it("give cleaners NSW's contract cleaning long service levy (owner, 14/11/2026)", () => {
+    const levy = (code: string) =>
+      CATEGORIES.find((c) => c.code === code)?.longServiceLevyPct ?? 0;
+    expect(levy("commercial_cleaner")).toBe(1);
+    expect(levy("builders_cleaner")).toBe(1);
+    expect(levy("general_labourer")).toBe(0);
+  });
+
   it("only reference tickets and PPE that exist", () => {
     for (const category of CATEGORIES) {
       for (const code of category.requiredCredentials)
