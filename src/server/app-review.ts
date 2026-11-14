@@ -111,8 +111,12 @@ const REVIEW_HOME = {
   home_lng: 151.0011,
   travel_radius_km: 30,
 };
-/** A number the regulator keeps for examples, so nobody gets texts. */
-const REVIEW_MOBILE = "+61491570157";
+/**
+ * A Sydney landline from the range the regulator keeps for examples: nobody
+ * gets texts, and no demo worker shares it (the example mobiles all have
+ * one each).
+ */
+const REVIEW_MOBILE = "+61255509999";
 const ANY_TIME = { start_time: "00:00", end_time: "23:59" };
 
 /**
