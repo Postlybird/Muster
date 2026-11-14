@@ -1,5 +1,12 @@
 import "server-only";
 
+import { subMonths } from "date-fns";
+
+import { FAIR_WORK_STATEMENTS } from "@/config/fair-work";
+import {
+  casualStatementDue,
+  FIRST_REISSUE_MONTHS,
+} from "@/domain/casual-statement";
 import type { IneligibleReason } from "@/domain/eligibility";
 import { isExpired, validUntil, warningDue } from "@/domain/expiry";
 import { addDays } from "@/domain/pay-runs";
@@ -16,7 +23,7 @@ import { allRows } from "@/lib/supabase/all-rows";
 import { workerName } from "@/lib/timesheet-format";
 
 import { refreshWorkerMatches } from "./matching";
-import { notify, notifyAdmins } from "./notifications";
+import { emailTemplate, notify, notifyAdmins } from "./notifications";
 import { getAllSettings } from "./settings";
 
 /**
@@ -24,9 +31,10 @@ import { getAllSettings } from "./settings";
  * again before they start), run hourly. It warns workers before tickets
  * and visas expire, marks them expired when they do (which takes them off
  * work that needs them), tells admins about VEVO re-checks coming due,
- * and alerts the worker and admins about any booked shift that no longer
- * passes the rules. Each message goes once. Reads workers' papers, so it
- * uses the service-role key.
+ * alerts the worker and admins about any booked shift that no longer
+ * passes the rules, and emails casuals the Casual Employment Information
+ * Statement again when it's due. Each message goes once. Reads workers'
+ * papers, so it uses the service-role key.
  */
 
 type Admin = ReturnType<typeof createAdminClient>;
@@ -75,6 +83,7 @@ export async function runCompliance(now = new Date()) {
     now,
     settings.police_check_max_age_months,
   );
+  const casualStatements = await reissueCasualStatements(admin, now);
   return {
     ticketWarnings: tickets.warned,
     ticketsExpired: tickets.expired.length,
@@ -82,7 +91,73 @@ export async function runCompliance(now = new Date()) {
     visasExpired: visas.expired.length,
     vevoRechecksDue: rechecks,
     bookingsAtRisk: atRisk,
+    casualStatements,
   };
+}
+
+/**
+ * The Casual Employment Information Statement again, at 6 months of
+ * employment, 12, then every 12 (casualStatementDue()), counted from when
+ * we activated the worker, by email as Fair Work allows (owner,
+ * 14/11/2026). Each one is recorded before it's sent, so it goes once; if
+ * the email fails, the record is taken back and the next hour tries again.
+ */
+async function reissueCasualStatements(admin: Admin, now: Date) {
+  const workers = await allRows("workers due a casual statement", (from, to) =>
+    admin
+      .from("workers")
+      .select("id, activated_at, profiles!inner(email)")
+      .in("status", ["active", "suspended"])
+      .lte("activated_at", subMonths(now, FIRST_REISSUE_MONTHS).toISOString())
+      .order("id")
+      .range(from, to),
+  );
+  if (workers.length === 0) return 0;
+  const given = await allRows("casual statements given", (from, to) =>
+    admin
+      .from("casual_statement_reissues")
+      .select("id, worker_id, months")
+      .order("id")
+      .range(from, to),
+  );
+  const done = new Set(given.map((row) => `${row.worker_id}:${row.months}`));
+  let sent = 0;
+  for (const worker of workers) {
+    if (!worker.activated_at) continue;
+    const months = casualStatementDue(new Date(worker.activated_at), now);
+    const email = worker.profiles?.email;
+    if (!months || !email || done.has(`${worker.id}:${months}`)) continue;
+    const { data: recorded, error } = await admin
+      .from("casual_statement_reissues")
+      .upsert(
+        { worker_id: worker.id, months, sent_at: now.toISOString() },
+        { onConflict: "worker_id,months", ignoreDuplicates: true },
+      )
+      .select("id");
+    if (error) {
+      console.error("Couldn't record a casual statement", error.message);
+      continue;
+    }
+    const record = recorded?.[0];
+    if (!record) continue; // Another run got there first.
+    try {
+      await emailTemplate("casual_statement_reissue", email, {
+        months: String(months),
+        ceis_link: FAIR_WORK_STATEMENTS.ceis,
+      });
+      sent++;
+    } catch (emailError) {
+      console.error(
+        "Couldn't email the Casual Employment Information Statement",
+        emailError,
+      );
+      await admin
+        .from("casual_statement_reissues")
+        .delete()
+        .eq("id", record.id);
+    }
+  }
+  return sent;
 }
 
 /**

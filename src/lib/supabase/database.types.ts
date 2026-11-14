@@ -990,6 +990,36 @@ export type Database = {
           },
         ];
       };
+      casual_statement_reissues: {
+        Row: {
+          id: string;
+          months: number;
+          sent_at: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          id?: string;
+          months: number;
+          sent_at?: string;
+          worker_id: string;
+        };
+        Update: {
+          id?: string;
+          months?: number;
+          sent_at?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "casual_statement_reissues_worker_id_fkey";
+            columns: ["worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       categories: {
         Row: {
           active: boolean;

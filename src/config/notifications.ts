@@ -438,6 +438,18 @@ export const TEMPLATES = {
     title: "Your Fair Work information statements",
     body: "As your employer, we must give you these two statements from the Fair Work Ombudsman. Keep this email to read them any time.\n\nFair Work Information Statement: {{fwis_link}}\n\nCasual Employment Information Statement: {{ceis_link}}",
   }),
+  casual_statement_reissue: define({
+    audience: "worker",
+    category: "account",
+    label: "Casual Employment Information Statement, again",
+    when: "A worker has been with us 6 months, then 12 months, then every year. Sent by email, as the law asks.",
+    values: {
+      months: "12",
+      ceis_link: "https://www.fairwork.gov.au/ceis",
+    },
+    title: "Your Casual Employment Information Statement",
+    body: "You've been with us for {{months}} months, so here's the Casual Employment Information Statement from the Fair Work Ombudsman again: {{ceis_link}}\n\nIt explains your rights as a casual employee, including how to ask to become permanent.",
+  }),
   activated: define({
     audience: "worker",
     category: "account",

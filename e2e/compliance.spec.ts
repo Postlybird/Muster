@@ -221,3 +221,64 @@ test("admins are told when a VEVO re-check is due", async ({
     .filter({ hasText: "Aisha Rahman" });
   await expect(row.getByText(formatCalendarDate(due))).toBeVisible();
 });
+
+test("a casual with us for 6 months is emailed the Casual Employment Information Statement again, once", async ({
+  request,
+}) => {
+  const service = serviceClient();
+  const { data: worker } = await service
+    .from("workers")
+    .select("id, activated_at, profile_id")
+    .eq("legal_first_name", "Ahmed")
+    .eq("legal_last_name", "Hassan")
+    .single();
+  const { data: profile } = await service
+    .from("profiles")
+    .select("email")
+    .eq("id", worker!.profile_id)
+    .single();
+  const email = profile!.email as string;
+  undo.push(() =>
+    service
+      .from("workers")
+      .update({ activated_at: worker!.activated_at })
+      .eq("id", worker!.id),
+  );
+  undo.push(() =>
+    service
+      .from("casual_statement_reissues")
+      .delete()
+      .eq("worker_id", worker!.id),
+  );
+  const since = new Date().toISOString();
+  const sevenMonthsAgo = new Date();
+  sevenMonthsAgo.setMonth(sevenMonthsAgo.getMonth() - 7);
+  await service
+    .from("workers")
+    .update({ activated_at: sevenMonthsAgo.toISOString() })
+    .eq("id", worker!.id);
+
+  const sent = async () => {
+    const { data } = await service
+      .from("dev_outbox")
+      .select("body")
+      .eq("recipient", email)
+      .eq("subject", "Your Casual Employment Information Statement")
+      .gte("created_at", since);
+    return data ?? [];
+  };
+  await runChecks(request);
+  const emails = await sent();
+  expect(emails).toHaveLength(1);
+  expect(emails[0]!.body).toContain("with us for 6 months");
+  expect(emails[0]!.body).toContain("https://www.fairwork.gov.au/ceis");
+
+  // It's recorded, as proof it was given, and doesn't go twice.
+  const { data: given } = await service
+    .from("casual_statement_reissues")
+    .select("months")
+    .eq("worker_id", worker!.id);
+  expect(given).toEqual([{ months: 6 }]);
+  await runChecks(request);
+  expect(await sent()).toHaveLength(1);
+});
