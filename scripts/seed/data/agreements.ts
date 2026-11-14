@@ -30,13 +30,14 @@ export const AGREEMENT_VERSION = "0.1-draft";
 export const AGREEMENTS: SeedAgreement[] = [
   {
     kind: "labour_hire_services",
-    // 0.2 (owner, 03/11/2026): a placement fee for hiring our workers
-    // directly. 0.3 (owner, 14/11/2026): 7-day terms, interest and costs on
-    // late payments, the cancellation charge, who's responsible for what,
+    // 0.3 (owner, 14/11/2026): 7-day terms, interest and costs on late
+    // payments, the cancellation charge, who's responsible for what,
     // vehicles and forklifts, 30 days' notice of rate changes and checks on
     // request; each checked against the law's examples of unfair terms
-    // (Australian Consumer Law, section 25).
-    version: "0.3-draft",
+    // (Australian Consumer Law, section 25). 0.4 (owner, 14/11/2026): no
+    // placement fee, so businesses can hire our workers directly for free,
+    // as the website says (the fee came in with 0.2).
+    version: "0.4-draft",
     title: "Labour Hire Services Agreement (draft)",
     body: `${draftNote}
 
@@ -78,10 +79,10 @@ If you'd like a worker checked beyond what we do for everyone, such as a police 
 Where a state requires a labour hire licence, our licence number appears on this agreement and our invoices.
 
 ## 11. Hiring our workers yourself
-Our workers are our employees. If you employ a worker who has worked for you through us, or take them on through another agency or as a contractor, within 180 days after the last shift they worked for you, you'll pay us a placement fee of 15% of the pay you agree with them for their first year, plus GST. Talk to us first: we're happy to agree the fee before they start.
+You're welcome to offer any of our workers a job directly, with no placement fee.
 
 ## 12. Ending this agreement
-Either of us can end this agreement by written notice. Work already completed is still payable, and section 11 still applies for its 180 days.
+Either of us can end this agreement by written notice. Work already completed is still payable.
 `,
   },
   {

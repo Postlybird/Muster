@@ -133,10 +133,10 @@ export const SETTINGS = {
     help: "A business cancelling within this many hours of the start is charged.",
     group: "cancellations",
     schema: z.number().int().min(0).max(168),
+    // Confirmed by the owner, 14/11/2026.
     defaultValue: 12,
     input: { kind: "number", unit: "hours", min: 0, max: 168 },
     isPublic: true,
-    placeholder: true,
   }),
   business_late_cancel_charge_hours: define({
     label: "Late cancellation charge",
