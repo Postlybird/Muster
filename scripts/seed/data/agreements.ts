@@ -1,3 +1,4 @@
+import { brand } from "@/config/brand";
 import { FAIR_WORK_STATEMENTS } from "@/config/fair-work";
 
 /**
@@ -86,23 +87,50 @@ Either of us can end this agreement by written notice. Work already completed is
   },
   {
     kind: "casual_employment_contract",
+    // 0.2 (14/11/2026): checked against Fair Work's rules as they stand,
+    // including the casual definition and the employee choice pathway to
+    // permanent work (Fair Work Act, from 2024 and 2025), for the owner to
+    // approve.
+    version: "0.2-draft",
     title: "Casual Employment Contract (draft)",
     body: `${draftNote}
 
-## 1. Your employment
-This offer of casual employment is conditional on us verifying your identity, right to work and the tickets you've provided. As a casual employee, there's no firm advance commitment to ongoing work. You can accept or decline any shift we offer.
+## 1. Your job
+We're a labour hire business. We employ you as a casual employee to work shifts at businesses that book our workers (hosts). You stay our employee the whole time: we pay you, and we hold workers' compensation insurance for you.
 
-## 2. Pay
-You're paid the hourly rate shown for each shift, which includes casual loading, through our payroll provider.
+This offer depends on our checks: your identity, your right to work in Australia, the tickets and licences the work needs and, where the work needs it, a police check. Your employment starts when we activate your account after the checks.
 
-## 3. Safety
-Follow the safety instructions and use the PPE required for each shift. Use the "Report a safety issue" button if something isn't right.
+## 2. Casual employment
+There's no firm advance commitment to ongoing work: we offer shifts when hosts need workers, and you choose which to take. You can turn down any shift, and we don't guarantee any hours.
 
-## 4. Privacy and confidentiality
-Keep information about the businesses you work for confidential. We handle your personal information as described in our privacy policy.
+After 6 months (12 months while we have fewer than 15 employees), if you believe you're no longer a casual employee, for example because you work a regular pattern of hours, you can tell us in writing that you'd like to become permanent. We'll talk with you and reply in writing within 21 days. The Casual Employment Information Statement explains this. You get it when you start, and we email it to you again at 6 months, 12 months and every year after.
 
-## 5. Ending employment
-Either of us can end your employment with the notice required by law.
+## 3. Pay and super
+For each shift you're paid at least the casual rate for the work under its award, which includes the casual loading paid instead of leave and some other entitlements of permanent staff. Weekend, public holiday, overtime and shift rates, and allowances, are paid as the award says. Each shift shows its hourly rate before you take it, and your timesheet shows how your pay adds up.
+
+If the Fair Work Commission has made a "same job, same pay" order covering a host, you're paid at least what the order requires while you work there.
+
+We pay you each week, into your bank account through our payroll provider, for the hours approved the week before, with a payslip. We pay super into your chosen fund on payday.
+
+## 4. Hours and timesheets
+You're paid for at least the minimum hours the award sets for each shift, even if the work finishes early. Take your breaks as the award says. Clock in and out in the app; the host approves your hours, and you can query them if they're wrong.
+
+If your visa limits the hours you can work, don't take shifts that would go over it, and tell us straight away if your visa changes.
+
+## 5. Safety
+Follow the host's safety instructions and site induction, wear the PPE the job needs, and stop work and tell us if something's unsafe ("Report a safety issue" in the app). Only drive a vehicle, operate a forklift or use other plant if you hold the licence or ticket it needs and we've agreed the host can ask you to.
+
+## 6. At a host's site
+Follow the host's reasonable directions about the work. Keep the host's and their customers' information confidential, during and after your employment, and don't take their property.
+
+## 7. Your information
+We handle your personal information as our privacy policy and collection notice explain.
+
+## 8. Your rights
+This contract never takes away your rights under the Fair Work Act, the National Employment Standards or your award: if anything in it gives you less, the law applies instead. You can ask the Fair Work Ombudsman about your rights at any time, on 13 13 94.
+
+## 9. Ending your employment
+Either of us can end your employment by telling the other, with any notice your award requires. Shifts you've already worked are paid.
 `,
   },
   {
@@ -123,14 +151,34 @@ We also email you this link, so you keep a copy.
   },
   {
     kind: "privacy_collection_notice",
+    // 0.2 (14/11/2026): checked against the Australian Privacy Principles
+    // (APP 5's notice, and APP 1's new rule on decisions made by computer
+    // programs, from 10/12/2026), for the owner to approve.
+    version: "0.2-draft",
     title: "Privacy collection notice (draft)",
     body: `${draftNote}
 
-We collect your contact details, identity documents, right to work details, tickets and licences, police checks (where needed), and your location when you clock in and out.
+${brand.name} is the labour hire business that employs you. Contact us about your information at ${brand.supportEmail}.
 
-We use this information to check you can legally and safely do the work, to offer you shifts, and to pay you. We share limited details (your preferred name, photo, rating and verified tickets) with businesses you apply to work for.
+## What we collect, and why
+- Your name, date of birth, contact details, suburb and photo, to employ you and offer you work near you.
+- Your right to work: citizenship evidence, or your passport and visa details, which we check with the Department of Home Affairs (VEVO). The law requires us to check it.
+- Photo ID and a selfie, which our team checks to confirm who you are. We delete the images once they're checked.
+- Your tickets and licences, and police check results only with your consent and where the work needs it. We delete police certificates once they're checked.
+- Your availability, the shifts you take, your hours, ratings and reliability, safety reports, and where your phone is when you clock in and out.
 
-Our email and text message providers may process your contact details overseas. You can ask to see or correct your information at any time.
+We also get information about you from others: visa details from Home Affairs, police check results, and ratings and reports from businesses you work for.
+
+If you don't give us your identity, right to work and the tickets the work needs, we can't employ you or offer you that work.
+
+## Who sees it
+Businesses you're offered to or work for see your preferred name, photo, rating, reliability and verified tickets, never your documents. Our payroll provider gets what it needs to pay you. Our email, text, address search, bot check and app notification providers handle some of your details overseas, mainly in the United States.
+
+## Decisions the app makes
+The app decides which shifts you're offered, from your tickets, right to work, location, availability and reliability, and puts your account on hold after two no-shows within 30 days until our team reviews it.
+
+## Your choices
+You can see and update most of your details in the app, and ask us for a copy, a correction, or to make a complaint. Our [privacy policy](/privacy) explains more, including how to complain to the Australian Information Commissioner.
 `,
   },
   {
