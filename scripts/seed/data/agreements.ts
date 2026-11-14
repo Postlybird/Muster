@@ -1,8 +1,11 @@
+import { FAIR_WORK_STATEMENTS } from "@/config/fair-work";
+
 /**
  * DRAFT documents so the sign-up flows work end to end. None of this is
- * legal advice: every document must be written or reviewed by a lawyer
- * before launch (brief §12). The Fair Work statements are official
- * documents; we link to the current versions rather than copying them.
+ * legal advice: every document is checked against the official guidance
+ * and approved by the owner before launch (no lawyer: owner, 04/11/2026).
+ * The Fair Work statements are official documents; we link to the current
+ * versions rather than copying them.
  */
 type SeedAgreement = {
   kind:
@@ -81,17 +84,17 @@ Either of us can end your employment with the notice required by law.
   {
     kind: "fair_work_information_statement",
     title: "Fair Work Information Statement",
-    body: `As your employer we must give you the Fair Work Information Statement. Read the current version on the Fair Work Ombudsman's website (fairwork.gov.au) by searching for "Fair Work Information Statement".
+    body: `As your employer we must give you the Fair Work Information Statement. Read the current version on the Fair Work Ombudsman's website: ${FAIR_WORK_STATEMENTS.fwis}
 
-[Placeholder: attach or link the current official statement before launch.]
+We also email you this link, so you keep a copy.
 `,
   },
   {
     kind: "casual_employment_information_statement",
     title: "Casual Employment Information Statement",
-    body: `As your employer we must give casual employees the Casual Employment Information Statement. Read the current version on the Fair Work Ombudsman's website (fairwork.gov.au) by searching for "Casual Employment Information Statement".
+    body: `As your employer we must give casual employees the Casual Employment Information Statement. Read the current version on the Fair Work Ombudsman's website: ${FAIR_WORK_STATEMENTS.ceis}
 
-[Placeholder: attach or link the current official statement before launch.]
+We also email you this link, so you keep a copy.
 `,
   },
   {

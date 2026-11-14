@@ -424,7 +424,19 @@ export const TEMPLATES = {
     when: "Our team adds the worker to payroll.",
     values: {},
     title: "Check your email",
-    body: "Check your email for an invitation from our payroll provider, Employment Hero, to add your tax, super and bank details.",
+    body: "Check your email for an invitation from our payroll provider to add your tax, super and bank details.",
+  }),
+  fair_work_statements: define({
+    audience: "worker",
+    category: "account",
+    label: "Fair Work information statements",
+    when: "A worker accepts their employment paperwork. Sent by email, so they keep a copy.",
+    values: {
+      fwis_link: "https://www.fairwork.gov.au/FWIS",
+      ceis_link: "https://www.fairwork.gov.au/ceis",
+    },
+    title: "Your Fair Work information statements",
+    body: "As your employer, we must give you these two statements from the Fair Work Ombudsman. Keep this email to read them any time.\n\nFair Work Information Statement: {{fwis_link}}\n\nCasual Employment Information Statement: {{ceis_link}}",
   }),
   activated: define({
     audience: "worker",

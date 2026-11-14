@@ -1,7 +1,9 @@
 "use server";
 
+import { FAIR_WORK_STATEMENTS } from "@/config/fair-work";
 import { failure, type ActionState } from "@/lib/forms";
 import { recordAcceptances } from "@/server/agreements";
+import { emailTemplate } from "@/server/notifications";
 import {
   finishStep,
   getMyWorker,
@@ -31,5 +33,20 @@ export async function acceptPaperwork(
     outstanding.map((document) => document.id),
   );
   if (problem) return failure(problem);
+  // Their own copy of the Fair Work statements, by email (owner,
+  // 14/11/2026). A failed email doesn't hold up the step.
+  const statements = outstanding.some(
+    (document) =>
+      document.kind === "fair_work_information_statement" ||
+      document.kind === "casual_employment_information_statement",
+  );
+  if (statements && user.email) {
+    await emailTemplate("fair_work_statements", user.email, {
+      fwis_link: FAIR_WORK_STATEMENTS.fwis,
+      ceis_link: FAIR_WORK_STATEMENTS.ceis,
+    }).catch((error: unknown) =>
+      console.error("Couldn't email the Fair Work statements", error),
+    );
+  }
   return finishStep(worker, "paperwork");
 }

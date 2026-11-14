@@ -7,6 +7,7 @@ import {
   randomEmail,
   registerAs,
   releaseTestJob,
+  serviceClient,
   signInAsDemo,
 } from "./helpers";
 
@@ -129,6 +130,16 @@ async function signUpAndGetReady(page: Page) {
   for (const box of await page.getByRole("checkbox").all()) await box.check();
   await expectAccessible(page);
   await next(page);
+  await expect(page).toHaveURL(/\/submit$/);
+  // A copy of the Fair Work statements to keep (owner, 14/11/2026).
+  const { data: statements } = await serviceClient()
+    .from("dev_outbox")
+    .select("body")
+    .eq("recipient", email)
+    .eq("subject", "Your Fair Work information statements");
+  expect(statements).toHaveLength(1);
+  expect(statements![0]!.body).toContain("https://www.fairwork.gov.au/FWIS");
+  expect(statements![0]!.body).toContain("https://www.fairwork.gov.au/ceis");
 
   // 6. Check and submit
   await expect(page).toHaveURL(/\/submit$/);
