@@ -1,6 +1,6 @@
 # Questions to settle before launch
 
-_Last updated: 04/11/2026_
+_Last updated: 14/11/2026_
 
 Everything we still need to settle before real shifts. There's no paid accountant, lawyer, insurance broker or payroll professional (owner, 04/11/2026): you make every decision, and we work each one out together. For each question I research the official sources and give a recommendation; you decide, or check it with the free government services below first. When you decide, tell me in chat: I'll tick it off here with the date, note the decision in `PROGRESS.md`, and make any change it needs.
 
@@ -8,7 +8,7 @@ Some answers are set by law rather than by choice: workers' compensation insuran
 
 Never put keys, passwords or the margin in chat or in this file. The margin goes straight into Admin → Settings → Pay and billing, because the code is public.
 
-For Claude, each session: read this file at the start. Tick decided questions (`[x]`, with the date and the decision), record decisions in `PROGRESS.md`, add new questions here as they come up, and research each from official sources before recommending. Some NSW government sites are blocked from the build environment (nsw.gov.au, longservice.nsw.gov.au); say so when a recommendation rests on search summaries rather than the official page.
+For Claude, each session: read this file at the start. Tick decided questions (`[x]`, with the date and the decision), record decisions in `PROGRESS.md`, add new questions here as they come up, and research each from official sources before recommending. Some official sites are blocked from the build environment (nsw.gov.au, longservice.nsw.gov.au, accc.gov.au); say so when a recommendation rests on search summaries rather than the official page.
 
 ## Free help
 
@@ -25,10 +25,10 @@ These cost nothing, and their answers carry more weight than mine:
 
 - [x] **Company or sole trader?** Decided 04/11/2026: a company, Shifta Pty Ltd, which you'll register with ASIC in January 2027, when you're back from Brazil. Until then there's no ABN, so real shifts, the paid accounts and the text sender name wait for it.
 - [x] **GST.** Decided 04/11/2026: register in January 2027, with the company (free, with the ATO).
-- [ ] **GST basis.** Report GST when you invoice (accruals) or when businesses pay you (cash)? **Recommendation:** cash, which any business turning over less than $10 million can choose, and Shifta's Sales and GST page shows sales both ways. You choose it when you register.
+- [x] **GST basis.** Decided 14/11/2026: cash, reporting GST when businesses pay, which any business turning over less than $10 million can choose. Choose it when you register for GST in January; Shifta's Sales and GST page says what goes at G1 and 1A.
 - [ ] **PAYG withholding.** **The law:** register before the first pay run (free), with the company in January. The payroll app works out each worker's tax and reports it to the ATO every payday; you pay it with your BAS, quarterly while you withhold $25,000 a year or less.
-- [ ] **The BAS.** You can lodge it yourself, free, in the ATO's Online services for business: GST on sales from Shifta's Sales and GST page, GST on your own costs from receipts and bank statements, and tax withheld from the payroll app. **Recommendation:** quarterly, the default for small businesses.
-- [ ] **Payroll tax.** NSW charges 5.45%, but only on wages above $1.2 million a year (2026–27, unchanged). **Recommendation:** set the payroll tax on-cost to 0% for now (it's 5.45% as a placeholder), so prices aren't higher than they need to be, and I'll add a warning to the admin dashboard as wages near $100,000 a month.
+- [x] **The BAS.** Decided 14/11/2026: quarterly, lodged by you, free, in the ATO's Online services for business: GST on sales from Shifta's Sales and GST page, GST on your own costs from receipts and bank statements, and tax withheld from the payroll app.
+- [x] **Payroll tax.** Decided and built 14/11/2026: 0% in prices for now. NSW charges 5.45%, but only on wages above $1.2 million a year (2026–27, unchanged; Admin → Settings → Pay and billing has the threshold). The admin dashboard warns once wages with super pass 80% of it over the last 12 months, or of its monthly share over the last 30 days: then register with Revenue NSW and set the payroll tax on-cost.
 - [ ] **The company's tax return** (later: the first is for the year to 30 June 2027). It can't be lodged in the ATO's online services: it's a paper return, tax software, or a tax agent. Not needed to launch.
 - [ ] **Bank account and cash.** A business bank account, and cash for 2–3 weeks of wages: workers are paid weekly, and businesses pay after their invoice is due (see payment terms, section 6).
 - [ ] **The margin.** **Recommendation:** we work it out from your yearly costs (insurance, the payroll app, texts and email, hosting, unpaid invoices) and what you want to earn, checked against what other agencies charge for the same work. I'll list the costs once the quotes are in; you type the result into Admin.
@@ -38,7 +38,7 @@ These cost nothing, and their answers carry more weight than mine:
 
 - [ ] **Workers' compensation.** **The law:** in NSW you need it before anyone works. Buy it straight from icare online; there's no need for a broker. The premium is wages times the rate for your industry: about 1.8% across all NSW industries, usually higher for building, warehouse and removal work. **Recommendation:** get icare's quote describing us as labour hire supplying labourers, cleaners, restoration, warehouse and removalist workers to other businesses, and ask how on-hired workers are classified (whether by the business they go to). Then I'll show you where each work type's rate goes (Admin → Catalogues → Work types); it's a 5% placeholder until then.
 - [ ] **Public liability.** Not required by law for everyone, but businesses, building sites especially, ask for $20 million cover and a certificate of currency before workers arrive. For $20 million, small businesses pay roughly $750–$1,800 a year at low risk and $2,400–$5,000 or more at higher risk; labour hire sits at the higher end. **Recommendation:** get two or three quotes online for "labour hire" with $20 million cover, and check the policy covers our workers at other businesses' sites. Its cost goes into the insurance on-cost.
-- [ ] **Anything else** (professional indemnity, cyber, vehicles and equipment). **Recommendation:** not at launch. The business agreement should say the business insures its own vehicles, forklifts and tools (section 5).
+- [x] **Anything else** (professional indemnity, cyber, vehicles and equipment). Decided 14/11/2026: not at launch. The business agreement will say the business insures its own vehicles, forklifts and tools (section 5).
 
 ## 3. Payroll
 
@@ -67,12 +67,13 @@ The rates for the launch work types were checked by your accountant (01/11/2026)
 - [ ] **Overtime rules.** For casuals: overtime after 7.6 hours a day (cleaning, and removalist offsiders on the road transport award) and after 8 hours (building); after 38 ordinary hours a week, Monday to Sunday; and ordinary hours of 7 am to 6 pm (building) and 5:30 am to 6:30 pm (road transport) on weekdays. **Recommendation:** keep them (they follow the awards as we read them) and send them to the Employer Advisory Service. Each is a box on the rate card.
 - [ ] **Which rates are overtime for super.** Super isn't owed on overtime, so we charge it without super. **Recommendation:** ask the Employer Advisory Service whether the building award's Saturday and Sunday rates count as overtime, and tick them on its card if so.
 - [ ] **Cleaners' meal allowance.** Shifta pays it when a cleaner works more than 2 hours past the booked finish, standing in for "more than 2 hours of overtime without notice the day before". **Recommendation:** keep, and include it in the enquiry.
-- [ ] **General labourers' fares and travel allowance.** Shifta pays it on every shift; the award says each day worked. **Recommendation:** pay it once a day when a worker has two shifts in a day (a small change), and include it in the enquiry.
+- [x] **General labourers' fares and travel allowance.** Decided and built 14/11/2026: paid once a day, as the award says each day worked: with the first shift booked that day, so the business whose booking came first is charged it. It stays in the Employer Advisory Service enquiry.
 - [ ] **Furniture carter allowance.** Does the road transport award's weekly allowance ($27.39 a week) apply to removalist offsiders? **Recommendation:** include it in the enquiry; if it applies, I'll add weekly allowances.
 - [ ] **The warehouse award.** Send me the Storage Services and Wholesale Award pay guide from the Fair Work website; I'll prepare the rate cards and you check them against the pay guide. Pick-packers, storepersons and forklift drivers can't be booked until then.
 - [ ] **Super.** **The law:** 12% of ordinary pay since 1 July 2025; that's the setting.
-- [ ] **Each 1 July.** Award rates change every year from 1 July. **Recommendation:** each June, you send me the new pay guides, I prepare the new rate cards with a 1 July start date, and you check them before then.
-- [ ] **Cleaners' long service leave.** NSW's contract cleaning scheme: employers register their business and cleaners, lodge returns and pay a levy of 1% of cleaners' ordinary wages (check the current rate when registering). **Recommendation:** register before cleaners start, and I'll add 1% to cleaners' on-costs (a small change). Ask the Long Service Corporation whether it also covers restoration technicians, who are paid under the cleaning award.
+- [x] **Each 1 July.** Decided 14/11/2026: each June, you send me the new pay guides, I prepare the new rate cards with a 1 July start date, and you check them before then.
+- [x] **Cleaners' long service leave.** Decided and built 14/11/2026: NSW's contract cleaning scheme's levy, 1% of cleaners' ordinary wages, is an on-cost on commercial and builders cleaners (Admin → Catalogues → Work types, "Long service levy %"), left off overtime like super. Register the business and cleaners with the Long Service Corporation before cleaners start (January), and check the current rate then.
+- [ ] **Restoration and the cleaning scheme.** Does NSW's contract cleaning long service scheme also cover restoration labourers and technicians, who are paid under the cleaning award? **Recommendation:** ask the Long Service Corporation when you register; if it does, I'll set their levy to 1% too.
 - [ ] **Building workers' long service leave.** NSW's building and construction scheme covers labour hire workers doing building work. The employer registers and records their days, but pays no levy (whoever orders building work of $250,000 or more pays 0.25%). **Recommendation:** register before general labourers work on building sites.
 
 ## 5. The documents and the law
@@ -80,42 +81,44 @@ The rates for the launch work types were checked by your accountant (01/11/2026)
 Without a lawyer, I check each draft against the official guidance and fix what I find; you read and approve it; then we take "draft" off. The biggest risk is the business agreement: it's a standard form contract with small businesses, and since November 2023 unfair terms in those carry penalties, so I'll check every clause against the ACCC's guide.
 
 - [ ] **Privacy policy and the collection notice** workers see when they sign up, checked against the OAIC's guide. We hold ID and visa details, so we follow the Privacy Act's principles even if our size would exempt us.
-- [ ] **What we keep about workers.** We delete ID photos, selfies, citizenship evidence and police certificates once checked, keeping the outcome, date and reference, and keep ticket documents and the record of each visa check. **Recommendation:** keep this rule; it holds the least we need.
+- [x] **What we keep about workers.** Decided 14/11/2026: keep the rule. We delete ID photos, selfies, citizenship evidence and police certificates once checked, keeping the outcome, date and reference, and keep ticket documents and the record of each visa check.
 - [ ] **Casual employment contract,** checked against Fair Work's templates and the awards. Workers sign it before we've checked them, so it's worded as conditional on our checks passing.
-- [ ] **The Fair Work Information Statement and Casual Employment Information Statement.** Workers read them in the app's paperwork step. **Recommendation:** also email each new worker a copy, so they keep one.
-- [ ] **Our duties to casuals,** like their right to ask to become permanent after a time. I'll check the app and contract against Fair Work's guide.
+- [x] **The Fair Work Information Statement and Casual Employment Information Statement.** Decided and built 14/11/2026: workers read them in the app's paperwork step, which then emails them links to both on the Fair Work website, so they keep a copy.
+- [ ] **Our duties to casuals,** like their right to ask to become permanent after a time. I'll check the app and contract against Fair Work's guide. Found so far (14/11/2026), **the law:** an employer with 15 or more employees gives each casual the Casual Employment Information Statement again after 6 months, after 12 months, and every 12 months after that (a smaller employer, only after 12 months). We'll pass 15 quickly, as every worker is our employee. **Recommendation:** the app emails each worker the link again on those dates (a small change, with the documents).
 - [ ] **Information for workers supplied in South Australia.** Only if we open in SA.
-- [ ] **Labour hire services agreement** (draft 0.2, waiting unpublished in Admin → Agreements). My recommendations, for you to approve:
-  - **Hiring our workers directly:** keep 15% of the first year's pay, plus GST, within 180 days of their last shift through us. It's common in labour hire; I'll check it reads fairly.
-  - **Payment terms:** 7 days rather than 14, as workers are paid weekly; it shortens how long you're out of pocket. Other agencies give 7 to 14 days, so be ready to agree to 14 for a large business. Add interest on late payments at a modest stated rate, and the reasonable cost of collecting.
-  - **Late cancellations:** keep the 3 hours charged for each booking cancelled late.
+- [ ] **Labour hire services agreement.** Draft 0.3 (14/11/2026) is in Admin → Agreements for you to read and approve, listed as Published but not Current: nobody is asked to accept it until it's made current. It has what you decided on 14/11/2026, each clause checked against the law's examples of unfair terms (Australian Consumer Law, section 25) and summaries of the ACCC's guide (its website is blocked from the build environment), and states the 12-hour late cancellation window (still a placeholder setting) for you to confirm:
+  - **Hiring our workers directly:** keep 15% of the first year's pay, plus GST, within 180 days of their last shift through us.
+  - **Payment terms:** 7 days. A large business can have 14, set on the business in Admin → Businesses.
+  - **Late payments:** interest at 4% a year above the Reserve Bank's cash rate (the rate NSW courts use on debts before judgment), and the reasonable cost of collecting; neither on an amount disputed in good faith.
+  - **Late cancellations:** keep the 3 hours charged for each booking cancelled late, which the worker is paid.
   - **Vehicles and forklifts:** our workers drive them only if the business asks in writing and its insurance covers them.
   - **Supervision:** the business directs and supervises the work, and is responsible for damage, losses, and cash or valuables it gives our workers to handle.
   - **Rate changes:** rates can change with 30 days' notice, such as each 1 July when awards change, and the business can end the agreement instead (so the term is fair).
   - **Checks on request:** police checks, driving records or drug tests when a business asks, at its cost.
-- [ ] **Texts and emails.** Our messages are about sign-in, bookings, hours and pay, which workers and businesses asked for, each says it's from Shifta, and workers can turn them off. **Recommendation:** no marketing messages unless people opt in, with an unsubscribe link.
-- [ ] **The trade mark "Shifta"** (likely classes 35, 9 and 42, a few hundred dollars each with IP Australia). **Recommendation:** later, when funds allow; search IP Australia's register now, which is free.
+- [ ] **The website and the direct-hire fee.** The website tells businesses there's no placement fee ("Offer them a permanent job. No placement fee and no agency contract", your selling point of 31/10/2026), but the agreement keeps the 15% fee (decided 14/11/2026). That's true today, as the agreement businesses accept now has no fee, but not once draft 0.3 is published. **Recommendation:** keep the fee, and when draft 0.3 is published, change the website to say so plainly (for example: "Want to keep someone? Hire them yourself: a one-off fee if it's within 180 days of their last shift with you, then nothing"). Or drop the fee and keep the selling point.
+- [x] **Texts and emails.** Decided 14/11/2026: no marketing messages unless people opt in, with an unsubscribe link. Our messages are about sign-in, bookings, hours and pay, which workers and businesses asked for; each says it's from Shifta, and workers can turn them off.
+- [x] **The trade mark "Shifta".** Decided 14/11/2026: later, when funds allow (likely classes 35, 9 and 42, a few hundred dollars each with IP Australia). Search IP Australia's register now, which is free.
 - [ ] **Labour hire licences.** NSW has no licence scheme yet, though the government has promised one; we'll update its settings if it passes. QLD, VIC, SA and the ACT need a licence before we open there. Only when opening another state.
 
 ## 6. How Shifta works
 
 Until you decide, Shifta uses the default shown, and each can change later.
 
-- [ ] **Payment terms for businesses:** 14 days now. **Recommendation:** 7 days (section 5), in Admin → Settings → Pay and billing and in the agreement.
-- [ ] **Weekly run day:** Monday now. Businesses have 48 hours to approve hours, so weekend shifts often miss Monday's run and are paid a week later. **Recommendation:** Wednesday, so every shift of the week is paid and invoiced together.
-- [ ] **Texts for bookings and reminders:** workers with the app get them as app notifications; workers without it get texts, a few cents each. **Recommendation:** keep the texts; a missed shift costs more.
-- [ ] **Late cancellations:** should a worker who hadn't arrived yet be paid the 3 hours the business is charged? Not now; a worker who has arrived is always paid at least the minimum engagement. **Recommendation:** yes: the business pays for it, and workers who lose a shift late will stay with us.
-- [ ] **Early starts and late finishes:** paid time starts at the rostered start even if a worker clocks in early, and a late finish is paid as clocked unless the business changes it. **Recommendation:** keep this rule.
-- [ ] **Changing a posted job:** a business can only cancel and post again now, because workers decide on what they were shown. **Recommendation:** later, allow changes that don't change the pay, times or place (instructions, who to report to), and tell booked workers.
+- [x] **Payment terms for businesses.** Decided and built 14/11/2026: 7 days (Admin → Settings → Pay and billing, and the agreement). A large business can have 14, set on the business in Admin → Businesses.
+- [x] **Weekly run day.** Decided and built 14/11/2026: Wednesday, so weekend shifts approved within the 48 hours are paid and invoiced with the rest of their week.
+- [x] **Texts for bookings and reminders.** Decided 14/11/2026: keep them. Workers with the app get app notifications; workers without it get texts, a few cents each.
+- [x] **Late cancellations.** Decided and built 14/11/2026: a worker who hadn't arrived is paid the 3 hours the business is charged for cancelling late. A worker who has arrived is always paid at least the minimum engagement.
+- [x] **Early starts and late finishes.** Decided 14/11/2026: keep the rule. Paid time starts at the rostered start even if a worker clocks in early, and a late finish is paid as clocked unless the business changes it.
+- [x] **Changing a posted job.** Decided 14/11/2026: later. For now a business cancels and posts again; later, allow changes that don't change the pay, times or place (instructions, who to report to), and tell booked workers.
 - [x] **Invoice extras.** Decided and built 04/11/2026: a row for each rate (hours, rate and amount), the job number and the business's PO or reference number (on the last posting step, or on the job page at any time), the site, and the award and level on each line. Still to come: separate invoices for each branch, before the first business with several branches signs up.
 - [x] **Restoration:** decided and built 04/11/2026: "Restoration labourer" is back at the cleaning award's level 1 for labouring like strip-outs and pack-outs, and restoration technicians stay at level 2 for certified work. Both need a White Card, and a job asks for IICRC tickets when it needs them.
-- [ ] **How quickly we check new workers:** the app says "usually within two business days". **Recommendation:** keep it if you can check workers most weekdays; otherwise "within three business days".
+- [x] **How quickly we check new workers.** Decided 14/11/2026: keep "usually within two business days", which means checking new workers most weekdays.
 - [ ] **Contact phone number** for the website and messages. **Recommendation:** a mobile you can answer, or email only at launch.
 - [ ] **Support email:** set up forwarding for support@shifta.com.au to your own inbox; most domain sellers offer it free.
 - [ ] **Photos of people for the home page:** allow the photo library in this environment, or send photos you have the rights to.
-- [ ] **Public or private code:** the GitHub repository is public. Nothing secret is in it, and a private one would soon pay for its test runs. **Recommendation:** keep it public for now.
+- [x] **Public or private code.** Decided 14/11/2026: public for now. Nothing secret is in it, and a private one would soon pay for its test runs.
 - [x] **App Store and Google Play apps.** Decided 08/11/2026: yes, around launch, by wrapping the existing app with the phone's own notifications, location and camera. They follow the company (both stores ask a business for a free D-U-N-S number), so the steps are in January's list in `PROGRESS.md`. US$99 a year for Apple and US$25 once for Google.
-- [ ] **The 10 questions in `docs/plan.md`:** Shifta uses our recommendations. **Recommendation:** keep them.
+- [x] **The 10 questions in `docs/plan.md`.** Decided 14/11/2026: keep our recommendations.
 
 ### Later (not needed to launch)
 

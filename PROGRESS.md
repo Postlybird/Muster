@@ -1,12 +1,12 @@
 # Progress
 
-_Last updated: 03/11/2026_
+_Last updated: 14/11/2026_
 
 ## Status
 
 **Phase 0: Foundations, complete** (28/10/2026). CI is green on GitHub, and `muster-dev` has the schema and demo data, deployed by the database workflow. The site is live on Vercel at https://www.shifta.com.au (01/11/2026; first at https://muster-two-mauve.vercel.app, which still works).
 
-**Phase 1: Run real shifts, built** (28/10/2026). All 17 steps are done, and the Phase 1 acceptance run passes: 3 businesses and 10 workers sign up and are approved, 20 shifts are filled and worked, and the payroll file and invoices are made, all through the app (the run only fast-forwards the week). Before real shifts, the owner items under Next are needed (hosting, scheduled jobs, the payroll template, our company details, and a lawyer's check of the documents). The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
+**Phase 1: Run real shifts, built** (28/10/2026). All 17 steps are done, and the Phase 1 acceptance run passes: 3 businesses and 10 workers sign up and are approved, 20 shifts are filled and worked, and the payroll file and invoices are made, all through the app (the run only fast-forwards the week). Before real shifts, the owner items under Next are needed (hosting, scheduled jobs, the payroll template, our company details, and the documents checked against the official guides and approved by the owner). The 10 open questions in `docs/plan.md` use our recommendations unless the owner changes them.
 
 **Going live: stage 1 built** (03/11/2026). Real email (Resend), texts (Twilio), address search (Google Maps) and a bot check (Cloudflare Turnstile) are ready behind their adapters, waiting only for the accounts and keys. The live site's own database, sign-in settings and release workflow are ready, and invoicing gained overdue reminders, credit notes and a sales and GST report. The demo stays as it is, and moves to demo.shifta.com.au at the switch-over. Next is stage 2: the owner opens the accounts, one at a time (`docs/launch.md`).
 
@@ -423,6 +423,16 @@ _Last updated: 03/11/2026_
   - **A row for each rate on invoices:** each shift's hours, rate and amount by rate, then any call-out loading and allowances, with the job number, the business's PO or reference number, the site, and the award and level of the booking's rate card (Admin → Rates, "Award and level"). Businesses add the PO number on the last posting step or on the job page at any time, and "Post again" leaves it blank. Every job now has a number, from 1001. The PDF and the invoice pages show the same; invoices already sent keep their old lines.
   - **Restoration labourer is back,** at the cleaning award's level 1, for labouring such as strip-outs and pack-outs; restoration technicians stay at level 2 for certified work. Its checked rates were kept, so it can be booked straight away.
   - Tests: 538 pgTAP, 532 unit and 266 browser tests, plus the acceptance run.
+- **The owner's 22 decisions** (14/11/2026, the owner: "yes to all"; each is ticked in `docs/launch-questions.md`):
+  - **Pay and invoices run on Wednesday,** so weekend shifts approved within the 48 hours go with the rest of their week, and **businesses pay within 7 days** (a large business can have 14, set on the business in Admin → Businesses).
+  - **Late cancellations:** a worker who hadn't arrived is paid the 3 hours the business is charged for cancelling late.
+  - **Payroll tax is 0% in prices** until wages near NSW's threshold ($1.2 million a year, a new setting). The admin dashboard warns once wages with super pass 80% of it over the last 12 months, or of its monthly share over the last 30 days, and turns red past it.
+  - **The fares and travel allowance is paid once a day,** with the first shift booked that day: a new "once a day" choice for allowances on rate cards.
+  - **The cleaning long service levy,** 1% of cleaners' ordinary pay, is an on-cost on commercial and builders cleaners, left off overtime and allowances like super: a new "Long service levy %" on each work type (Admin → Catalogues → Work types).
+  - **The Fair Work statements:** after the paperwork step, each new worker gets an email with links to both on the Fair Work website, so they keep a copy.
+  - **The Sales and GST page** says what goes on the BAS on the cash basis.
+  - The changed settings also change on the demo, where nobody had set them. The rest keep what Shifta does now, or come later: the quarterly BAS lodged by the owner, no extra insurance at launch, the June pay guide routine, texts for workers without the app, paid time from the rostered start, deleting ID photos once checked, the direct-hire fee, marketing messages only with opt-in, the trade mark and changes to posted jobs later, "usually within two business days", the public code and the plan's 10 answers. The agreement's additions are in its draft 0.3, written in plain English and checked clause by clause against the law's examples of unfair terms (Australian Consumer Law, section 25; the ACCC's site is blocked from the build environment), for the owner to approve (in Admin → Agreements on the demo, not current, so nobody is asked to accept it yet).
+  - Tests: 542 pgTAP, 544 unit and 266 browser tests, plus the acceptance run.
 
 ## Next
 
@@ -431,7 +441,7 @@ _Last updated: 03/11/2026_
   2. I'll prepare the rate cards from it, for you to check against the pay guide.
   3. Once you approve them, I'll load the rates, and the three work types can be posted.
 - **Owner: stage 2, the accounts.** One service at a time, starting with Twilio, I'll send click-by-click steps; you type the keys into Vercel and GitHub, never into chat. The full list is in `docs/launch.md`: Twilio, Resend, Google Cloud, Cloudflare Turnstile, the ABN Lookup GUID, Supabase Pro with a new `shifta-live` project in Sydney, and Vercel Pro with a second project for the live site. The paid plans, and Twilio's sender name (registered against the company's ABN), wait for the company in January 2027 (owner, 04/11/2026); the free ones can be set up any time.
-- **Owner and Claude: work through `docs/launch-questions.md` together** (owner, 04/11/2026: no paid specialists; you decide each one). Each question has my recommendation from the official sources, and the free government services (Fair Work's helpline and Employer Advisory Service, icare, the ATO, the Long Service Corporation) check what needs checking. First, section 1: whether the business is a company or a sole trader, its legal name and ABN, and whether it's registered for GST and PAYG withholding.
+- **Owner and Claude: work through `docs/launch-questions.md` together** (owner, 04/11/2026: no paid specialists; you decide each one). Each question has my recommendation from the official sources, and the free government services (Fair Work's helpline and Employer Advisory Service, icare, the ATO, the Long Service Corporation) check what needs checking. The recommendations were decided on 14/11/2026 ("yes to all"). Next: your OK on the services agreement's draft 0.3, then I check the other documents against the official guides for your OK, and write the award questions for Fair Work's Employer Advisory Service.
 - **Owner: choose the payroll provider** (section 3 of `docs/launch-questions.md`). Employment Hero charges for at least 10 people, about $100 a month, and Xero Payroll only comes with a Xero accounting plan, so my recommendation (04/11/2026) is Payroller's free trial first: the cheapest, with super on payday in every plan. Microkeeper is next if it fails the checks. Then send me its timesheet import template, so the payroll file matches it exactly. Nothing else in Shifta depends on which one.
 - **Owner: enter the margin** on the live site: sign in as an admin, open Admin → Settings → Pay and billing, set "Default margin" to the margin you chose, and save. The figure is kept out of the code because the code is public. Until then, charges use the old placeholder margin.
 - **Owner: photos of people for the home page.** Either allow the photo library in this environment (steps in our chat, 01/11/2026), and I'll pick free photos of people at work; or send me photos you have the rights to, like your own workers with their permission. Each person in the pictures (Laura, Jack, Priya, Daniel and Mei) then shows a photo instead of initials.
@@ -595,6 +605,15 @@ _Last updated: 03/11/2026_
 | 04/11/2026 | Restoration labourer is back at the cleaning award's level 1, beside restoration technicians at level 2 (owner's OK). | Another agency bills restoration labouring at level 1, so the technician rate alone would cost restoration businesses more. |
 | 04/11/2026 | Invoices show a row for each rate (hours, rate, amount), with the job number, the business's PO or reference number, the site, and the award and level; job numbers are an identity column nobody sets or changes, and the PO can change any time until the hours are invoiced (owner's OK). | Restoration and cleaning businesses get this from other agencies and check invoices against it; a PO is often needed for payment. Lines keep what they were invoiced with, so a later change never alters a sent invoice. |
 | 08/11/2026 | Shifta gets App Store and Google Play apps around launch (changes brief §10), made by wrapping the existing app with the phone's own notifications, location and camera, rather than building separate apps. | Workers look for work in the app stores and trust apps there, notifications reach iPhones without the home-screen step, and app notifications are free where texts aren't. Wrapping keeps one app to look after, and most changes reach it without a store review. |
+| 14/11/2026 | GST on a cash basis, and the BAS quarterly, lodged by the owner in the ATO's online services (owner's choice). | GST is paid only once businesses have paid us, and quarterly is the small business default; Shifta's Sales and GST page gives the sales figures. |
+| 14/11/2026 | Payroll tax is 0% in prices until wages near NSW's threshold ($1.2 million a year, a setting); the admin dashboard warns at 80% of it over 12 months, or of its monthly share over 30 days (owner's choice). | Prices aren't higher than they need to be, and the warning leaves time to register with Revenue NSW and add the on-cost. |
+| 14/11/2026 | Pay and invoices run on Wednesday, and businesses pay within 7 days (owner's choice). | Businesses have 48 hours to approve hours, so Wednesday's run catches the weekend; 7 days shortens the time we pay workers before businesses pay us. |
+| 14/11/2026 | A worker who hadn't arrived is paid the 3 hours the business is charged for cancelling late (owner's choice). | The business pays for it, and workers who lose a shift late stay with us. |
+| 14/11/2026 | An allowance can be paid once a day, with the first shift booked that day; the fares and travel allowance is (owner's choice). | The building award pays it for each day worked. Booking order is how a worker's hours are shared between businesses for overtime too. |
+| 14/11/2026 | A work type can carry a long service levy, an on-cost on ordinary pay that's left off overtime and allowances like super: 1% for commercial and builders cleaners (owner's choice). | NSW's contract cleaning scheme levies 1% of cleaners' ordinary wages. Whether it covers restoration work is asked when registering. |
+| 14/11/2026 | New workers get an email with links to the Fair Work Information Statement and Casual Employment Information Statement after the paperwork step (owner's choice). | They keep their own copy, not only what they read in the app. |
+| 14/11/2026 | Kept as they are: texts for workers without the app, paid time from the rostered start, deleting ID photos once checked, the 15% direct-hire fee, "usually within two business days", the public code and the plan's 10 answers. Later: the trade mark, extra insurance and changes to posted jobs. Marketing messages only with opt-in. | The owner's "yes to all" to our recommendations in `docs/launch-questions.md`. |
+| 14/11/2026 | The services agreement's draft 0.3 adds 7-day terms, interest and collection costs on late payments, vehicles and forklifts only on written request with the business's insurance, the business's supervision and responsibility for damage and losses, 30 days' notice of rate changes (with the right to end the agreement), and checks on request at the business's cost (owner's choice). | Each is checked against the ACCC's guide to unfair contract terms before the owner approves the draft. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
@@ -609,7 +628,7 @@ _Now, from anywhere (free, no company needed):_
 
 1. **A director ID** (free, online through the ABRS with myID): a new director needs one before the company is registered.
 2. **Check "Shifta Pty Ltd" is free** on ASIC's register (a free search).
-3. **Decide the recommendations** in `docs/launch-questions.md` (sections 1, 2, 5 and 6), all at once or one by one.
+3. ~~**Decide the recommendations** in `docs/launch-questions.md`~~: done 14/11/2026 ("yes to all").
 4. **The warehouse award's pay guide**, if warehouse work is to launch (see Next).
 5. **Small things:** a contact phone number (or email only), forwarding for support@shifta.com.au, and photos of people (optional).
 6. **Free accounts, any time:** Cloudflare Turnstile, and the ABN Lookup GUID if it hasn't come.
@@ -619,11 +638,11 @@ Meanwhile we check each document against the official guides for the owner's OK,
 _January 2027, once back from Brazil, in this order:_
 
 1. **Register Shifta Pty Ltd** with ASIC.
-2. **The company's ABN, GST (cash basis recommended) and PAYG withholding:** free, one online application.
+2. **The company's ABN, GST (cash basis, decided 14/11/2026) and PAYG withholding:** free, one online application.
 3. **A business bank account,** and cash for 2–3 weeks of wages.
 4. **Workers' compensation from icare** (required by law before anyone works); its rate for each work type goes into Admin.
 5. **Public liability:** two or three quotes for labour hire, $20 million cover.
-6. **The Long Service Corporation:** register for the contract cleaning scheme, and the building scheme if labourers will work on building sites.
+6. **The Long Service Corporation:** register for the contract cleaning scheme (and ask whether it covers restoration work), and the building scheme if labourers will work on building sites.
 7. **Payroll:** choose the provider (Payroller's free trial first), set it up, and send us its timesheet import template.
 8. **The accounts, one at a time with our steps:** Twilio (the sender name, with the ABN), Resend, Google Cloud, Supabase Pro with `shifta-live`, Vercel Pro with the live project, and the locked GitHub environment (`docs/launch.md`).
 9. **The margin,** worked out together from the quotes and costs, then the Fair Work enquiry about the award questions.
@@ -662,5 +681,5 @@ _Launch:_
 - [x] Domain shifta.com.au bought (30/10/2026).
 - [x] Domain connected in Vercel (01/11/2026): www.shifta.com.au is the main address and shifta.com.au leads to it. The DNS records are at VentraIP: an A record for shifta.com.au and a CNAME for www, as Vercel shows them; the NS records stay VentraIP's.
 - [ ] Email forwarding for support@shifta.com.au to your own inbox.
-- [ ] Decide whether the GitHub repository should be private. It's public now, so anyone can read the code and BRIEF.md.
+- [x] Keep the GitHub repository public (owner, 14/11/2026). Anyone can read the code and BRIEF.md, so nothing secret goes in them.
 - [ ] Optional: allow `ui.shadcn.com` and `abr.business.gov.au` in the cloud environment's network settings, so the shadcn CLI and the live ABN lookup work from the build container.
