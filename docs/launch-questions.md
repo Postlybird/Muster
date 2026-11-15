@@ -45,10 +45,10 @@ These cost nothing, and their answers carry more weight than mine:
 The options (03/11/2026; check prices when you sign up):
 
 - **Payroller:** 99c per worker a month for the first 6 months (a current offer), then $3.99 per worker a month paid yearly ($15.96 minimum) or $5.50 monthly ($22 minimum). It says super on payday is included in every plan.
-- **Microkeeper:** from $2.25 per worker a month for payroll only; $6 for the standard plan.
-- **Xero Payroll:** only with a Xero accounting plan, about $143 a month for 10 people. Not worth it without an accountant who works in Xero.
+- **Microkeeper:** from $2.25 per worker a month for payroll only; $6 for the standard plan (its prices changed in October 2026, so check). Its help pages (15/11/2026) show a CSV import of shifts (worker, date, start, finish, break, location, job, notes and allowances), which replaces earlier imported shifts for the same dates, and an API that adds shifts. It works out the pay from the start and finish times with its own award rules, so the test week must show the same pay as Shifta.
+- **Xero Payroll:** only with a Xero accounting plan: Ultimate, $143 a month since 1 July 2026, pays up to 10 people a month. As far as we can find, it can't load hours from a file in Australia (15/11/2026). Not worth it without an accountant who works in Xero.
 
-- [ ] **Which one?** **Recommendation:** Payroller's free trial first, as the cheapest with super on payday included. If it fails the checks below, try Microkeeper.
+- [ ] **Which one?** **Recommendation:** Payroller's free trial first, as the cheapest with super on payday included. If it fails the checks below, try Microkeeper. **Trialling both, free** (owner, 15/11/2026): nothing is paid for before January 2027.
 
 In the trial, check:
 
