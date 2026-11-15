@@ -15,11 +15,13 @@ export const brand = {
   supportEmail: "support@shifta.com.au",
   /**
    * The company behind the brand (owner, 15/11/2026), named with its ACN in
-   * the agreements, the legal pages and the footer. Its ABN goes in Admin →
-   * Settings → "Our details on invoices" once it arrives.
+   * the agreements, the legal pages and the footer. Its ABN (active from
+   * 15/11/2026) is the live site's starting value for "Our details on
+   * invoices".
    */
   legalName: "Shifta Pty Ltd",
   acn: "704 151 360",
+  abn: "93 704 151 360",
   /** The live website, which the phone apps open (docs/apps.md). */
   website: "https://www.shifta.com.au",
   /** The phone apps' ID in both stores. It can't change once published. */

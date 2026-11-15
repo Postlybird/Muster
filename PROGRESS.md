@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 15/11/2026_
+_Last updated: 16/11/2026_
 
 ## Status
 
@@ -10,7 +10,7 @@ _Last updated: 15/11/2026_
 
 **Going live: stage 1 built** (03/11/2026). Real email (Resend), texts (Twilio), address search (Google Maps) and a bot check (Cloudflare Turnstile) are ready behind their adapters, waiting only for the accounts and keys. The live site's own database, sign-in settings and release workflow are ready, and invoicing gained overdue reminders, credit notes and a sales and GST report. The demo stays as it is, and moves to demo.shifta.com.au at the switch-over. Next is stage 2: the owner opens the accounts, one at a time (`docs/launch.md`).
 
-**Launch timing** (owner, 04/11/2026): the company, Shifta Pty Ltd, is registered with ASIC, and for GST and PAYG withholding, in January 2027, when the owner is back from Brazil. Real shifts start after that, once workers' compensation is in place; until then the work continues on the demo, and the paid accounts can wait. On 14/11/2026 the owner said they're now looking at launching in November 2026: the same steps, sooner. The company was registered on 14/11/2026 (owner), ACN 704 151 360; its ABN is on its way. On 15/11/2026 the owner set the start for the beginning of January 2027, when they're back in Australia: workers and businesses join then, and nothing is paid for before it (no subscriptions). Until then, only free steps, the payroll trials among them.
+**Launch timing** (owner, 04/11/2026): the company, Shifta Pty Ltd, is registered with ASIC, and for GST and PAYG withholding, in January 2027, when the owner is back from Brazil. Real shifts start after that, once workers' compensation is in place; until then the work continues on the demo, and the paid accounts can wait. On 14/11/2026 the owner said they're now looking at launching in November 2026: the same steps, sooner. The company was registered on 14/11/2026 (owner), ACN 704 151 360, and its ABN is 93 704 151 360 (active from 15/11/2026; the ABN letter came on 16/11/2026, listing contract labour supply as the business activity). On 15/11/2026 the owner set the start for the beginning of January 2027, when they're back in Australia: workers and businesses join then, and nothing is paid for before it (no subscriptions). Until then, only free steps, the payroll trials among them.
 
 ## Done
 
@@ -671,7 +671,7 @@ Meanwhile we write the award questions for Fair Work's Employer Advisory Service
 _Before launch, in this order (January 2027 in the first plan; the owner is now looking at November 2026):_
 
 1. ~~**Register the company** with ASIC~~: done 14/11/2026 (owner), ACN 704 151 360. Its name and ACN are in the business agreement, the casual contract and the privacy collection notice (version 1.1 of each), the privacy policy, the terms of use and the website's footer (15/11/2026).
-2. **The company's ABN, GST (cash basis, decided 14/11/2026) and PAYG withholding:** the ABN is on its way (14/11/2026); check the application included GST and PAYG withholding, or add them once it arrives. It ends with the ACN's 9 digits, and goes in Admin → Settings → "Our details on invoices" on the live site.
+2. **The company's ABN, GST (cash basis, decided 14/11/2026) and PAYG withholding:** ~~the ABN~~: 93 704 151 360, active from 15/11/2026 (owner, 16/11/2026); the live site starts with it in "Our details on invoices". The ABN letter doesn't list GST or PAYG withholding, so unless ABN Lookup shows GST, register both (free, the Business Registration Service with myID), starting 1 January 2027 as decided: now if the form takes a future date, otherwise in the first days of January, before the first invoice and pay run.
 2a. **The D-U-N-S number** (free, about a week), which Apple and Google ask for: requested 14/11/2026 through Apple's D-U-N-S lookup; waiting for Dun & Bradstreet's email. Then the Apple Developer and Google Play accounts (`docs/apps.md`).
 3. **A business bank account,** and cash for 2–3 weeks of wages.
 4. **Workers' compensation from icare** (required by law before anyone works); its rate for each work type goes into Admin.

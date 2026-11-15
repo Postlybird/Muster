@@ -434,11 +434,11 @@ export const SETTINGS = {
       email: z.union([z.literal(""), z.email("Enter an email address")]),
       phone: z.string().trim().max(20),
     }),
-    // The company's name from the start (owner, 15/11/2026); invoices wait
-    // for its ABN.
+    // The company's name and ABN from the start (owner, 15/11/2026);
+    // invoices wait for the bank details.
     defaultValue: {
       legal_name: brand.legalName,
-      abn: "",
+      abn: brand.abn.replace(/\s/g, ""),
       address: "",
       email: "",
       phone: "",

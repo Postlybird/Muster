@@ -329,9 +329,14 @@ function isValidAcn(acn: string): boolean {
 }
 
 describe("seed agreements", () => {
-  it("name the company with a valid ACN (owner, 15/11/2026)", () => {
+  it("name the company with a valid ACN and ABN (owner, 15/11/2026)", () => {
     expect(isValidAcn(brand.acn)).toBe(true);
     expect(isValidAcn("704 151 361")).toBe(false);
+    // A company's ABN is two check digits and its ACN.
+    expect(isValidAbn(brand.abn)).toBe(true);
+    expect(brand.abn.replace(/\s/g, "").slice(2)).toBe(
+      brand.acn.replace(/\s/g, ""),
+    );
     for (const kind of [
       "labour_hire_services",
       "casual_employment_contract",
