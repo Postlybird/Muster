@@ -13,6 +13,13 @@ export const brand = {
   description:
     "Connecting great businesses with great people, one shift at a time. Sydney businesses book checked, job-ready staff in minutes; workers pick up shifts on their phone and get paid every week.",
   supportEmail: "support@shifta.com.au",
+  /**
+   * The company behind the brand (owner, 15/11/2026), named with its ACN in
+   * the agreements, the legal pages and the footer. Its ABN goes in Admin →
+   * Settings → "Our details on invoices" once it arrives.
+   */
+  legalName: "Shifta Pty Ltd",
+  acn: "704 151 360",
   /** The live website, which the phone apps open (docs/apps.md). */
   website: "https://www.shifta.com.au",
   /** The phone apps' ID in both stores. It can't change once published. */
@@ -30,6 +37,11 @@ export const brand = {
 } as const;
 
 export type Brand = typeof brand;
+
+/** "Shifta Pty Ltd (ACN 704 151 360)": who we are, in documents. */
+export function legalEntity(): string {
+  return `${brand.legalName} (ACN ${brand.acn})`;
+}
 
 /** "Questions? Email … or call …", leaving out the phone until there is one. */
 export function contactLine(): string {

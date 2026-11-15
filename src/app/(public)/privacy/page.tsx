@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LegalPage } from "@/components/layout/legal-page";
-import { brand } from "@/config/brand";
+import { brand, legalEntity } from "@/config/brand";
 
 export const metadata: Metadata = { title: "Privacy policy" };
 
@@ -37,21 +37,21 @@ const EMAIL = (
  * Principles (14/11/2026), including APP 1's rule on decisions made by
  * computer programs, from 10/12/2026. The collection notice section says
  * what the `privacy_collection_notice` agreement says. Approved by the
- * owner (14/11/2026); the company's name and ABN go in once it's
- * registered.
+ * owner (14/11/2026); names the company with its ACN (15/11/2026).
  */
 export default function PrivacyPage() {
   return (
     <LegalPage title="Privacy policy">
-      <p className="text-sm text-muted-foreground">Last updated 14/11/2026</p>
+      <p className="text-sm text-muted-foreground">Last updated 15/11/2026</p>
       <p>
-        {brand.name} supplies workers to businesses as a labour hire provider:
-        workers are our casual employees. To do that we need some personal
-        information about the people who work with us and the businesses we work
-        for. This policy explains what we collect, why, where it comes from, who
-        we share it with, the decisions our app makes with it, and how you can
-        see or correct it. We follow the Australian Privacy Principles in the
-        Privacy Act 1988. Contact us about your information at {EMAIL}.
+        {legalEntity()} supplies workers to businesses as a labour hire
+        provider: workers are our casual employees. To do that we need some
+        personal information about the people who work with us and the
+        businesses we work for. This policy explains what we collect, why, where
+        it comes from, who we share it with, the decisions our app makes with
+        it, and how you can see or correct it. We follow the Australian Privacy
+        Principles in the Privacy Act 1988. Contact us about your information at{" "}
+        {EMAIL}.
       </p>
 
       <Section id="collection-notice" title="Collection notice">

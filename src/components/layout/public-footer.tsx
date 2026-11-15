@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { brand } from "@/config/brand";
+import { brand, legalEntity } from "@/config/brand";
 import { listIndustries } from "@/server/industries";
 
 import { BrandMark } from "./brand-mark";
@@ -55,7 +55,7 @@ export async function PublicFooter() {
           </p>
           <p className="max-w-xs text-deep-foreground/80">{brand.strapline}</p>
           <p className="text-deep-foreground/80">
-            © {new Date().getFullYear()} {brand.name}
+            © {new Date().getFullYear()} {legalEntity()}
           </p>
           {/* The pictures of the app carry no labels (owner, 01/11/2026). */}
           <p className="max-w-xs text-xs text-deep-foreground/80">

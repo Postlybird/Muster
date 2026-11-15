@@ -1,6 +1,6 @@
 import { allowancesToRow } from "../../../src/domain/rates";
 import { check, must, type SeedClient } from "../client";
-import { AGREEMENT_VERSION, AGREEMENTS } from "../data/agreements";
+import { AGREEMENT_VERSION, AGREEMENTS, takesOver } from "../data/agreements";
 import { JURISDICTIONS } from "../data/compliance";
 import {
   AWARD_RATE_CARDS,
@@ -63,7 +63,7 @@ export async function seedCompliance(
     "public holidays",
   );
 
-  // Agreements: insert the draft versions once, published and current.
+  // Agreements: add each version once, published (current when it takes over).
   const existing = check(
     await client.from("agreements").select("kind, jurisdiction, version"),
     "agreements",
@@ -79,13 +79,12 @@ export async function seedCompliance(
         `${a.kind}|${a.jurisdiction ?? ""}|${a.version ?? AGREEMENT_VERSION}`,
       ),
   );
-  const isDraft = (version: string) => version.endsWith("-draft");
   for (const agreement of missingAgreements) {
     const version = agreement.version ?? AGREEMENT_VERSION;
     const current = check(
       await client
         .from("agreements")
-        .select("id, version")
+        .select("id, version, created_by")
         .eq("kind", agreement.kind)
         .eq("is_current", true)
         .maybeSingle(),
@@ -108,9 +107,9 @@ export async function seedCompliance(
         .single(),
       `agreement ${agreement.kind}`,
     );
-    // A version the owner approved (no "-draft") takes over from a current
-    // draft, the way an admin makes a version current.
-    if (current && isDraft(current.version) && !isDraft(version)) {
+    // A version the owner approved takes over from a draft or an earlier
+    // version of the seed's, never from one an admin made.
+    if (current && takesOver(version, current)) {
       check(
         await client.rpc("set_current_agreement", {
           p_agreement_id: inserted.id,

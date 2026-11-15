@@ -28,7 +28,8 @@ const DEMO_VALUES: { [K in SettingKey]?: SettingValue<K> } = {
 /**
  * Default policy settings, from the registry in src/config/settings.ts. The
  * demo gets made-up company and bank details; the live site starts with
- * them blank, so no invoice goes out until the owner enters the real ones.
+ * only our legal name, so no invoice goes out until the owner enters the
+ * ABN and bank details.
  */
 export function seedSettingValues({ demo }: { demo: boolean }) {
   return settingKeys.map((key) => {

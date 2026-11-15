@@ -7,7 +7,10 @@ import { isDemoEmail } from "@/config/demo";
 import { findSuburb } from "@/data/suburbs";
 import { normaliseAuMobile, normaliseAuPhone } from "@/lib/phone";
 
+import { brand, legalEntity } from "@/config/brand";
 import { INDUSTRY_ICONS } from "@/config/industry-icons";
+
+import { AGREEMENTS, takesOver } from "./agreements";
 
 import {
   CATEGORIES,
@@ -312,5 +315,46 @@ describe("launch award rate cards", () => {
       // The night hours setting adds nothing to an award card.
       expect(columns.night_multiplier).toBe(columns.ordinary_multiplier);
     }
+  });
+});
+
+/** ASIC's check digit: weights 8 to 1 on the first eight digits. */
+function isValidAcn(acn: string): boolean {
+  const digits = acn.replace(/\s/g, "").split("").map(Number);
+  if (digits.length !== 9 || digits.some(Number.isNaN)) return false;
+  const sum = digits
+    .slice(0, 8)
+    .reduce((total, digit, i) => total + digit * (8 - i), 0);
+  return (10 - (sum % 10)) % 10 === digits[8];
+}
+
+describe("seed agreements", () => {
+  it("name the company with a valid ACN (owner, 15/11/2026)", () => {
+    expect(isValidAcn(brand.acn)).toBe(true);
+    expect(isValidAcn("704 151 361")).toBe(false);
+    for (const kind of [
+      "labour_hire_services",
+      "casual_employment_contract",
+      "privacy_collection_notice",
+    ]) {
+      const agreement = AGREEMENTS.find((a) => a.kind === kind);
+      expect(agreement?.body, kind).toContain(legalEntity());
+    }
+  });
+
+  it("only take over from a draft or an earlier version of the seed's", () => {
+    const seeded = (version: string) => ({ version, created_by: null });
+    const byAdmin = (version: string) => ({ version, created_by: "admin" });
+    expect(takesOver("1.0", seeded("0.4-draft"))).toBe(true);
+    expect(takesOver("1.0", byAdmin("0.2-draft"))).toBe(true);
+    expect(takesOver("1.1", seeded("1.0"))).toBe(true);
+    expect(takesOver("1.10", seeded("1.9"))).toBe(true);
+    expect(takesOver("2.0", seeded("1.1"))).toBe(true);
+    // Never from a version an admin made, a later one, or with a draft.
+    expect(takesOver("1.1", byAdmin("1.0"))).toBe(false);
+    expect(takesOver("1.1", seeded("1.2"))).toBe(false);
+    expect(takesOver("1.1", seeded("1.1"))).toBe(false);
+    expect(takesOver("1.2-draft", seeded("1.1"))).toBe(false);
+    expect(takesOver("0.2-draft", seeded("0.1-draft"))).toBe(false);
   });
 });

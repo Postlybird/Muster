@@ -1,4 +1,4 @@
-import { brand } from "@/config/brand";
+import { brand, legalEntity } from "@/config/brand";
 import { FAIR_WORK_STATEMENTS } from "@/config/fair-work";
 
 /**
@@ -28,6 +28,42 @@ const draftNote =
 
 export const AGREEMENT_VERSION = "0.1-draft";
 
+const isDraft = (version: string) => version.endsWith("-draft");
+
+/** "1.1" → [1, 1], and "0.4-draft" → [0, 4]. */
+const versionParts = (version: string) =>
+  version
+    .replace(/-draft$/, "")
+    .split(".")
+    .map((part) => Number.parseInt(part, 10) || 0);
+
+function isLaterVersion(version: string, than: string): boolean {
+  const [a, b] = [versionParts(version), versionParts(than)];
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const difference = (a[i] ?? 0) - (b[i] ?? 0);
+    if (difference !== 0) return difference > 0;
+  }
+  return false;
+}
+
+/**
+ * Whether a version the seed adds becomes current in place of the current
+ * one, the way an admin makes a version current. A version the owner
+ * approved (no "-draft") takes over from a current draft, and from an
+ * earlier version the seed added (no `created_by`). A version an admin made
+ * in Admin → Agreements stays current until an admin changes it.
+ */
+export function takesOver(
+  version: string,
+  current: { version: string; created_by: string | null },
+): boolean {
+  if (isDraft(version)) return false;
+  if (isDraft(current.version)) return true;
+  return (
+    current.created_by === null && isLaterVersion(version, current.version)
+  );
+}
+
 export const AGREEMENTS: SeedAgreement[] = [
   {
     kind: "labour_hire_services",
@@ -38,10 +74,13 @@ export const AGREEMENTS: SeedAgreement[] = [
     // (Australian Consumer Law, section 25). 0.4 (owner, 14/11/2026): no
     // placement fee, so businesses can hire our workers directly for free,
     // as the website says (the fee came in with 0.2). 1.0: 0.4 as the owner
-    // approved it (14/11/2026), without the draft label.
-    version: "1.0",
+    // approved it (14/11/2026), without the draft label. 1.1 (owner,
+    // 15/11/2026): names the company, with its ACN.
+    version: "1.1",
     title: "Labour Hire Services Agreement",
-    body: `## 1. What we provide
+    body: `This agreement is between ${legalEntity()} ("we" or "us") and the business that accepts it ("you").
+
+## 1. What we provide
 We supply workers we employ to work at your sites under your day-to-day direction. We remain their employer: we pay their wages and super, withhold their tax, and hold workers' compensation insurance for them.
 
 ## 2. Safety
@@ -90,10 +129,13 @@ Either of us can end this agreement by written notice. Work already completed is
     // 0.2 (14/11/2026): checked against Fair Work's rules as they stand,
     // including the casual definition and the employee choice pathway to
     // permanent work (Fair Work Act, from 2024 and 2025). 1.0: 0.2 as the
-    // owner approved it (14/11/2026), without the draft label.
-    version: "1.0",
+    // owner approved it (14/11/2026), without the draft label. 1.1 (owner,
+    // 15/11/2026): names your employer, the company, with its ACN.
+    version: "1.1",
     title: "Casual Employment Contract",
-    body: `## 1. Your job
+    body: `This contract is between you and your employer, ${legalEntity()} ("we" or "us").
+
+## 1. Your job
 We're a labour hire business. We employ you as a casual employee to work shifts at businesses that book our workers (hosts). You stay our employee the whole time: we pay you, and we hold workers' compensation insurance for you.
 
 This offer depends on our checks: your identity, your right to work in Australia, the tickets and licences the work needs and, where the work needs it, a police check. Your employment starts when we activate your account after the checks.
@@ -158,10 +200,11 @@ We also email you this link, so you keep a copy.
     // 0.2 (14/11/2026): checked against the Australian Privacy Principles
     // (APP 5's notice, and APP 1's new rule on decisions made by computer
     // programs, from 10/12/2026). 1.0: 0.2 as the owner approved it
-    // (14/11/2026), without the draft label.
-    version: "1.0",
+    // (14/11/2026), without the draft label. 1.1 (owner, 15/11/2026): names
+    // the company, with its ACN.
+    version: "1.1",
     title: "Privacy collection notice",
-    body: `${brand.name} is the labour hire business that employs you. Contact us about your information at ${brand.supportEmail}.
+    body: `${legalEntity()} is the labour hire business that employs you. Contact us about your information at ${brand.supportEmail}.
 
 ## What we collect, and why
 - Your name, date of birth, contact details, suburb and photo, to employ you and offer you work near you.

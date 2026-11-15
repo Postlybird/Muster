@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { brand } from "./brand";
+
 /**
  * Every admin-managed policy value (brief §12: "make these settings or
  * placeholders"). This registry is the one source of truth: the seed loads
@@ -432,8 +434,10 @@ export const SETTINGS = {
       email: z.union([z.literal(""), z.email("Enter an email address")]),
       phone: z.string().trim().max(20),
     }),
+    // The company's name from the start (owner, 15/11/2026); invoices wait
+    // for its ABN.
     defaultValue: {
-      legal_name: "",
+      legal_name: brand.legalName,
       abn: "",
       address: "",
       email: "",

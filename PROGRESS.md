@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 14/11/2026_
+_Last updated: 15/11/2026_
 
 ## Status
 
@@ -10,7 +10,7 @@ _Last updated: 14/11/2026_
 
 **Going live: stage 1 built** (03/11/2026). Real email (Resend), texts (Twilio), address search (Google Maps) and a bot check (Cloudflare Turnstile) are ready behind their adapters, waiting only for the accounts and keys. The live site's own database, sign-in settings and release workflow are ready, and invoicing gained overdue reminders, credit notes and a sales and GST report. The demo stays as it is, and moves to demo.shifta.com.au at the switch-over. Next is stage 2: the owner opens the accounts, one at a time (`docs/launch.md`).
 
-**Launch timing** (owner, 04/11/2026): the company, Shifta Pty Ltd, is registered with ASIC, and for GST and PAYG withholding, in January 2027, when the owner is back from Brazil. Real shifts start after that, once workers' compensation is in place; until then the work continues on the demo, and the paid accounts can wait. On 14/11/2026 the owner said they're now looking at launching in November 2026: the same steps, sooner. The company was registered on 14/11/2026 (owner); its ABN is on its way.
+**Launch timing** (owner, 04/11/2026): the company, Shifta Pty Ltd, is registered with ASIC, and for GST and PAYG withholding, in January 2027, when the owner is back from Brazil. Real shifts start after that, once workers' compensation is in place; until then the work continues on the demo, and the paid accounts can wait. On 14/11/2026 the owner said they're now looking at launching in November 2026: the same steps, sooner. The company was registered on 14/11/2026 (owner), ACN 704 151 360; its ABN is on its way.
 
 ## Done
 
@@ -449,6 +449,8 @@ _Last updated: 14/11/2026_
 - **The app stores' reviewers' sign-in** (14/11/2026; the owner: "ok"): one account, named in the live site's settings with its 6-digit code (never in the code), signs in with that code instead of an emailed one, only while "Let the app stores' reviewers sign in" is on in Admin → Settings → Workers. Switching it on gets the account ready as a worker we haven't checked, through the quick sign-up, so reviewers see shifts near them and the pay but can't apply or see businesses. Every try is recorded, and ten wrong codes switch it off.
 - **The phone apps** (14/11/2026, docs/apps.md): Android and iPhone projects around the website (Capacitor 8), with the name, icon and opening screen from the brand, a "no connection" screen, and the permissions for location, the camera and notifications. GitHub builds them on every change: an Android test app to install from the run's page, and a check the iPhone app builds. Notifications on the phone: workers turn them on in Settings inside the app, the phone registers with Firebase, and messages go there instead of by text, opening their page when tapped; until Firebase is set up, phones get texts as before (in the demo, the outbox).
   - Tests: 582 pgTAP, 563 unit and 286 browser tests, and both phone apps build on GitHub.
+- **The company's name and ACN in the documents** (15/11/2026; the owner sent the ACN and confirmed "Shifta Pty Ltd"): the services agreement, the casual contract and the privacy collection notice are version 1.1, opening with "Shifta Pty Ltd (ACN 704 151 360)", and the privacy policy, the terms of use (updated 15/11/2026) and the website's footer name it too. On the demo the new versions take over from 1.0, and demo businesses and workers accept them; the seed now lets an approved version replace an earlier one it added itself, never one an admin made. The ABN only goes on invoices: the live site starts with "Shifta Pty Ltd" in Admin → Settings → "Our details on invoices", and the ABN goes in when it arrives, so the documents don't change again for it.
+  - Tests: 565 unit tests, and the browser tests for sign-up, agreements and the public pages.
 
 ## Next
 
@@ -643,6 +645,7 @@ _Last updated: 14/11/2026_
 | 14/11/2026 | The stores' reviewers sign in to one account with a fixed code, only while an admin has switched review sign-in on; it's a worker we haven't checked (owner: "ok"). The one exception to "no passwords". | Reviewers can't receive our emailed codes. Switched off, nobody can use it, and as an unchecked worker it can't apply for real shifts or see businesses. |
 | 14/11/2026 | All restoration work, pack-outs and contents included, comes under the Cleaning Services Award (owner, "as we know"): restoration labourers at level 1 and technicians at level 2, as built. | The owner's knowledge of the industry, and how the rates were built. Whether the cleaners' long service scheme also covers restoration depends on the work, not the award, so it stays a question for the Long Service Corporation. |
 | 14/11/2026 | The owner approved the website's terms of use. | Brought up to date with the app (email sign-in, when each side accepts its agreement, uploads, messages), and fair under the Australian Consumer Law: anyone who doesn't accept a change can stop using the app. |
+| 15/11/2026 | The company is Shifta Pty Ltd, ACN 704 151 360 (owner). Its name and ACN open the services agreement, the casual contract and the privacy collection notice (version 1.1), and appear on the privacy policy, the terms of use and the website's footer; its ABN goes on invoices once it arrives. | ASIC asks a company to show its name and its ACN, or its ABN (which ends with the ACN), on documents such as agreements and invoices, and a tax invoice needs the ABN. The footer is good practice rather than a rule. |
 | 28/10/2026 | The acceptance run moves the booked week back in time, and the owners enter the rostered hours, instead of waiting a week for workers to clock in and out. | Clocking in and out uses the real time and the phone's location, so a run can't do it for last week. The on-the-day tests cover clocking and the timesheets it makes. Everything else in the run is done in the app. |
 
 ## Open questions for the owner
@@ -666,8 +669,8 @@ Meanwhile we write the award questions for Fair Work's Employer Advisory Service
 
 _Before launch, in this order (January 2027 in the first plan; the owner is now looking at November 2026):_
 
-1. ~~**Register the company** with ASIC~~: done 14/11/2026 (owner). When the ABN arrives, we add the company's name, ACN and ABN to the business agreement, the casual contract and the privacy documents (version 1.1 of each), and to the terms of use, in one go.
-2. **The company's ABN, GST (cash basis, decided 14/11/2026) and PAYG withholding:** the ABN is on its way (14/11/2026); check the application included GST and PAYG withholding, or add them once it arrives.
+1. ~~**Register the company** with ASIC~~: done 14/11/2026 (owner), ACN 704 151 360. Its name and ACN are in the business agreement, the casual contract and the privacy collection notice (version 1.1 of each), the privacy policy, the terms of use and the website's footer (15/11/2026).
+2. **The company's ABN, GST (cash basis, decided 14/11/2026) and PAYG withholding:** the ABN is on its way (14/11/2026); check the application included GST and PAYG withholding, or add them once it arrives. It ends with the ACN's 9 digits, and goes in Admin → Settings → "Our details on invoices" on the live site.
 2a. **The D-U-N-S number** (free, about a week), which Apple and Google ask for: requested 14/11/2026 through Apple's D-U-N-S lookup; waiting for Dun & Bradstreet's email. Then the Apple Developer and Google Play accounts (`docs/apps.md`).
 3. **A business bank account,** and cash for 2–3 weeks of wages.
 4. **Workers' compensation from icare** (required by law before anyone works); its rate for each work type goes into Admin.

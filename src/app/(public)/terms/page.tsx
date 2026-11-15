@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LegalPage } from "@/components/layout/legal-page";
-import { brand } from "@/config/brand";
+import { brand, legalEntity } from "@/config/brand";
 
 export const metadata: Metadata = { title: "Terms of use" };
 
@@ -28,16 +28,17 @@ function Section({
 /**
  * The rules for using the website and app. Checked 14/11/2026 against the
  * Australian Consumer Law (unfair terms) and the approved agreements, and
- * approved by the owner (14/11/2026); the company's name and ABN go in once
- * it's registered.
+ * approved by the owner (14/11/2026); names the company with its ACN
+ * (15/11/2026).
  */
 export default function TermsPage() {
   return (
     <LegalPage title="Terms of use">
-      <p className="text-sm text-muted-foreground">Last updated 14/11/2026</p>
+      <p className="text-sm text-muted-foreground">Last updated 15/11/2026</p>
       <p>
-        These terms cover using the {brand.name} website and app. By signing up
-        or using them, you agree to these terms and to our{" "}
+        These terms cover using the {brand.name} website and app, run by{" "}
+        {legalEntity()}. By signing up or using them, you agree to these terms
+        and to our{" "}
         <Link href="/privacy" className="text-primary underline">
           privacy policy
         </Link>
