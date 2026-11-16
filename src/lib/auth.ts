@@ -48,7 +48,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
 });
 
 /** Redirects to sign-in if nobody is signed in. */
-export async function requireUser(next?: string): Promise<SessionUser> {
+async function requireUser(next?: string): Promise<SessionUser> {
   const user = await getSessionUser();
   if (!user) {
     redirect(next ? `/login?next=${encodeURIComponent(next)}` : "/login");

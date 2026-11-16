@@ -12,7 +12,7 @@ export type BoardShift = {
 
 export type BoardGroup = "in_progress" | "needs_workers" | "filled";
 
-export const ATTENTION_HOURS = 24;
+const ATTENTION_HOURS = 24;
 
 export function boardGroup(shift: BoardShift, now: Date): BoardGroup {
   if (shift.startsAt <= now) return "in_progress";

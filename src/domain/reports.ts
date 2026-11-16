@@ -39,7 +39,7 @@ export function periodOf(kind: PeriodKind, today: string): Period {
 }
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
-export const MAX_PERIOD_DAYS = 366;
+const MAX_PERIOD_DAYS = 366;
 
 /** A period someone chose, if it's real dates in order and at most a year. */
 export function customPeriod(from: string, to: string): Period | null {

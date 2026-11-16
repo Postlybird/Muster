@@ -18,7 +18,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const SETTING = "app_review_sign_in";
 /** Wrong codes, since review sign-in was switched on, that switch it off. */
-export const MAX_WRONG_CODES = 10;
+const MAX_WRONG_CODES = 10;
 
 type ReviewAccount = { email: string; code: string };
 

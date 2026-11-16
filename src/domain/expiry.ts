@@ -65,7 +65,7 @@ export function validUntil(
  * and papers. Travel, availability and blocks were settled when they were
  * booked.
  */
-export const AT_RISK_REASONS: readonly IneligibleReason[] = [
+const AT_RISK_REASONS: readonly IneligibleReason[] = [
   "not_active",
   "ticket_missing",
   "ticket_expired",

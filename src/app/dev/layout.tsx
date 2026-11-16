@@ -6,7 +6,7 @@ import { isDemoMode } from "@/lib/env";
 // straight away.
 export const dynamic = "force-dynamic";
 
-/** Demo-mode tools (outbox, UI kit). They don't exist outside demo mode. */
+/** Demo-mode tools (the outbox). They don't exist outside demo mode. */
 export default function DevLayout({ children }: LayoutProps<"/dev">) {
   if (!isDemoMode()) notFound();
   return children;

@@ -39,7 +39,7 @@ const EXTENSIONS: Record<string, string> = {
   "application/pdf": "pdf",
 };
 
-export function extensionFor(contentType: string): string | null {
+function extensionFor(contentType: string): string | null {
   return EXTENSIONS[contentType] ?? null;
 }
 

@@ -22,8 +22,6 @@ test.describe("accessibility (WCAG 2.1 AA)", () => {
     "/register",
     "/register/worker",
     "/register/business",
-    "/dev/ui",
-    "/dev/ui/wizard",
     "/dev/outbox",
   ]) {
     test(`public page ${path}`, async ({ page }) => {

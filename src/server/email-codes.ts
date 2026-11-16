@@ -19,7 +19,7 @@ import { requestOrigin } from "./request";
 export type EmailCodeResult =
   { ok: true; destination: string } | { ok: false; error: string };
 
-export function friendlyAuthError(error: AuthError): string {
+function friendlyAuthError(error: AuthError): string {
   switch (error.code) {
     case "over_email_send_rate_limit":
     case "over_request_rate_limit":

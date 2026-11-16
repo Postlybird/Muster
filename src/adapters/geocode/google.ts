@@ -26,7 +26,7 @@ export type GooglePlace = {
 };
 
 /** Google's session tokens: letters, numbers and dashes. */
-export function validSession(value: string | null | undefined): string | null {
+function validSession(value: string | null | undefined): string | null {
   return value && /^[A-Za-z0-9-]{8,64}$/.test(value) ? value : null;
 }
 

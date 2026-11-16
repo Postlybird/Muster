@@ -11,7 +11,7 @@ import { matchJob } from "../src/lib/matching";
 import type { Database } from "../src/lib/supabase/database.types";
 
 /** A random Australian mobile number in the 04xx range. */
-export function randomMobile(): { local: string; e164: string } {
+function randomMobile(): { local: string; e164: string } {
   const rest = String(Math.floor(Math.random() * 1e8)).padStart(8, "0");
   return { local: `04${rest}`, e164: `+614${rest}` };
 }
@@ -183,24 +183,6 @@ export async function signInAsNewBusiness(page: Page) {
   const email = randomEmail("owner");
   await signInWithEmailCode(page, email);
   return email;
-}
-
-/**
- * On the work types step: opens the industry (they start closed) and ticks
- * one of its work types.
- */
-export async function chooseWorkType(
-  page: Page,
-  industry: string,
-  workType: string,
-) {
-  const section = page
-    .locator("details")
-    .filter({ has: page.getByText(industry, { exact: true }) });
-  if (!(await section.evaluate((el) => (el as HTMLDetailsElement).open))) {
-    await section.locator("summary").click();
-  }
-  await section.getByLabel(new RegExp(`^${workType}`)).check();
 }
 
 /**

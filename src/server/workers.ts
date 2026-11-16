@@ -82,7 +82,7 @@ export async function unacceptedEmploymentDocuments(
 }
 
 /** Everything needed to know which required steps are still missing. */
-export async function onboardingSnapshot(
+async function onboardingSnapshot(
   user: SessionUser,
   worker: WorkerRow,
 ): Promise<OnboardingSnapshot> {

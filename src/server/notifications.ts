@@ -45,7 +45,7 @@ const loadOverrides = cache(async () => {
 });
 
 /** A template as it's sent: an admin's wording, or the standard one. */
-export async function templateText(
+async function templateText(
   key: TemplateKey,
 ): Promise<{ title: string; body: string }> {
   const override = (await loadOverrides()).get(key);

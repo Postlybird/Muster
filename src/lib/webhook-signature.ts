@@ -11,7 +11,7 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
  * supabaseHookSecret() writes it. The live workflow does the same in bash.
  */
 
-export const WEBHOOK_TOLERANCE_SECONDS = 5 * 60;
+const WEBHOOK_TOLERANCE_SECONDS = 5 * 60;
 
 /** The signing key for a secret string. */
 export function webhookKey(secret: string): Buffer {

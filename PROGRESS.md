@@ -53,7 +53,7 @@ _Last updated: 16/11/2026_
     - worker app with bottom tabs and a menu
     - business and admin areas with a sidebar on desktop and a slide-out menu on phones
   - Every page in the plan is reachable. Unbuilt pages say which Phase 1 step builds them.
-  - Demo-only `/dev/ui` (UI kit) and `/dev/ui/wizard` for design review.
+  - Demo-only `/dev/ui` (UI kit) and `/dev/ui/wizard` for design review (removed in the audit, 16/11/2026).
   - Draft privacy, terms, FAQ and contact pages, marked for legal review.
   - Automated accessibility checks (axe, WCAG 2.1 AA) on public pages, the UI kit, the wizard and the worker and business areas: zero violations. 36 browser tests pass on phone and desktop sizes.
 
@@ -455,6 +455,7 @@ _Last updated: 16/11/2026_
   - **Businesses choose the tickets:** the industry pages, the worker's work types step, tickets step and home screen no longer say a work type needs a White Card (or any ticket). Workers add the tickets they hold; a work type's usual tickets are only pre-ticked when a business posts work, and it can untick them. Only construction work (general labourer, and builders cleaner, which works on building sites) pre-ticks a White Card; restoration starts with none ticked, as its jobs need no ticket unless they're specialised (owner, 16/11/2026; migration `20261116010000_restoration_tickets.sql`). Admin → Catalogues calls them "Usual tickets".
   - **The footer** no longer says the people in pictures of the app are illustrative.
   - **Worker photos:** already required before a worker can be checked (and so apply), and businesses see them on applicants, booked workers and worker profiles. The photo step now says businesses see it when they apply, so a clear, friendly photo helps them get picked.
+  - **Unused code removed** (a scan of every file for code nothing uses): the demo-only design gallery (`/dev/ui`), four empty placeholder adapters (identity, police check, right to work and payments: v1 does these by hand in Admin, so they'll be written when a provider is chosen), the unused `react-hook-form` packages (forms use server actions with Zod), unused parts of the UI kit (separator, card footer, select groups, sheet header and close, table caption) and a few functions nothing called. Exports used only inside their own file are no longer exported.
 - **Texts only for call-outs, and none until Twilio** (owner, 16/11/2026): workers without app notifications now get emails instead of texts, and texts go only to urgent call-outs, on top. The live site builds and runs without Twilio: it sends no texts at all, the quick sign-up (and the contact step) saves the mobile as typed instead of texting a code, and call-out wording on the website and screens says "app notification or email" until texts are on. The demo keeps texting call-outs and mobile codes to the outbox. When Twilio is set up, mobiles saved meanwhile weren't confirmed by a code; asking those workers to confirm is a small follow-up then.
 
 ## Next

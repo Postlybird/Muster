@@ -47,10 +47,6 @@ export const STEP_KEYS: OnboardingStepKey[] = ONBOARDING_STEPS.map(
   (step) => step.key,
 );
 
-export function isStepKey(value: string): value is OnboardingStepKey {
-  return (STEP_KEYS as string[]).includes(value);
-}
-
 export function stepTitle(key: OnboardingStepKey): string {
   return ONBOARDING_STEPS.find((step) => step.key === key)?.title ?? key;
 }

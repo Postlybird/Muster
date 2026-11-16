@@ -78,7 +78,7 @@ src/
   config/brand.ts    name, colours, contact
   app/               (public) · worker/ · business/ · admin/ · dev/outbox · api/cron/[job]
   domain/            pure logic + tests
-  adapters/          abn, email, sms, push, geocode, identity, police-check, right-to-work, payroll, payments
+  adapters/          abn, email, sms, push, app-push, geocode, payroll (identity, police and right-to-work checks are manual for v1, and payments are account terms, so they need none yet)
   server/            server actions and queries per area
   components/        ui/ · layout/ · forms/ · status/
   lib/               supabase clients, guards, AU formatting, zod schemas

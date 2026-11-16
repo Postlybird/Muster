@@ -26,23 +26,6 @@ export type IneligibleReason =
   | "overlapping_shift"
   | "overtime";
 
-/** Plain words for admins looking at why someone wasn't offered a shift. */
-export const INELIGIBLE_REASONS: Record<IneligibleReason, string> = {
-  not_active: "Not active",
-  blocked: "Blocked by this business",
-  no_work_type: "Doesn't do this type of work",
-  level: "Level too low for this job",
-  ticket_missing: "Missing a required ticket",
-  ticket_expired: "A required ticket expires before the shift",
-  right_to_work: "Right to work not confirmed for the shift date",
-  police_check: "No current police check",
-  too_far: "Outside their travel distance",
-  date_blocked: "Not available that day",
-  overlapping_shift: "Already booked at that time",
-  overtime:
-    "Their other shifts would put this one into overtime, which the business hasn't allowed",
-};
-
 export type WorkerFacts = {
   id: string;
   status: string;

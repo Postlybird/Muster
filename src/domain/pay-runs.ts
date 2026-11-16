@@ -21,7 +21,7 @@ import type { DayType } from "./rates";
  * are yyyy-mm-dd calendar dates.
  */
 
-export const WEEKDAYS = [
+const WEEKDAYS = [
   "monday",
   "tuesday",
   "wednesday",

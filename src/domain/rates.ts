@@ -59,7 +59,7 @@ export const dayTypeLabels: Record<DayType, string> = {
 };
 
 /** What an award rate type falls back to on a card that doesn't set it. */
-export const PAY_FALLBACK: Record<AwardDayType, CoreDayType> = {
+const PAY_FALLBACK: Record<AwardDayType, CoreDayType> = {
   saturday_after: "saturday",
   overtime_after: "overtime",
   early_late: "ordinary",
@@ -225,18 +225,6 @@ export function hourlyPayTable(card: RateCard): Record<DayType, number> {
   return Object.fromEntries(
     DAY_TYPES.map((d) => [d, hourlyPayCents(card, d)]),
   ) as Record<DayType, number>;
-}
-
-/** The rate types a card actually uses: the core ones, and any its award rules add. */
-export function cardDayTypes(card: RateCard): DayType[] {
-  return DAY_TYPES.filter((type) => {
-    if (!(type in PAY_FALLBACK)) return true;
-    const award = card.award;
-    if (!award || card.multipliers[type] === undefined) return false;
-    if (type === "early_late") return award.earlyLate !== null;
-    if (type === "night_shift") return award.nightShiftFinishesBy !== null;
-    return true;
-  });
 }
 
 function hoursText(minutes: number): string {

@@ -6,7 +6,7 @@ type Role = Database["public"]["Enums"]["user_role"];
 
 type Person = { email: string; fullName: string; role: Role; phone?: string };
 
-export function demoPeople(): Person[] {
+function demoPeople(): Person[] {
   return [
     ...ADMINS.map((a) => ({
       email: a.email,

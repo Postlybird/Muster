@@ -33,7 +33,7 @@ import { costTimesheets } from "./timesheets";
 type Admin = ReturnType<typeof createAdminClient>;
 
 /** What's missing from our details that every tax invoice needs. */
-export function missingInvoiceDetails(settings: SettingsValues): string[] {
+function missingInvoiceDetails(settings: SettingsValues): string[] {
   const { company_details: company, bank_details: bank } = settings;
   return [
     !company.legal_name && "our legal name",

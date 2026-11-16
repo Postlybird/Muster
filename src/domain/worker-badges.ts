@@ -27,11 +27,11 @@ export type BadgeKey =
 
 export type Badge = { key: BadgeKey; label: string; description: string };
 
-export const TOP_RATED = { minRating: 4.7, minRatings: 5 } as const;
-export const VERY_RELIABLE = { minScore: 95, minShifts: 10 } as const;
-export const EXPERIENCED_YEARS = 5;
+const TOP_RATED = { minRating: 4.7, minRatings: 5 } as const;
+const VERY_RELIABLE = { minScore: 95, minShifts: 10 } as const;
+const EXPERIENCED_YEARS = 5;
 /** Fewer shifts than this with us and they're new. */
-export const NEW_WORKER_SHIFTS = 3;
+const NEW_WORKER_SHIFTS = 3;
 
 /** The badges a worker has earned, most telling first. */
 export function workerBadges(facts: BadgeFacts): Badge[] {

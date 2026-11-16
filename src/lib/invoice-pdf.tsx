@@ -157,7 +157,7 @@ function hoursText(hours: number): string {
   });
 }
 
-export function InvoiceDocument({ data }: { data: InvoicePdfData }) {
+function InvoiceDocument({ data }: { data: InvoicePdfData }) {
   const { from, to, bank } = data;
   return (
     <Document
@@ -323,7 +323,7 @@ export type CreditNotePdfData = {
   invoicePaid: boolean;
 };
 
-export function CreditNoteDocument({ data }: { data: CreditNotePdfData }) {
+function CreditNoteDocument({ data }: { data: CreditNotePdfData }) {
   const { from, to } = data;
   return (
     <Document

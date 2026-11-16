@@ -35,7 +35,7 @@ export type StateCode = keyof typeof STATE_TIME_ZONES;
  * Rate types from highest to lowest priority. Without award rules each
  * minute takes the first that applies; with them, ties go to the first.
  */
-export const RATE_PRECEDENCE: readonly DayType[] = [
+const RATE_PRECEDENCE: readonly DayType[] = [
   "public_holiday",
   "sunday",
   "saturday_after",
@@ -373,7 +373,7 @@ function splitWithAward(
   return minutes;
 }
 
-export function totalMinutes(minutes: MinutesByType): number {
+function totalMinutes(minutes: MinutesByType): number {
   return Object.values(minutes).reduce((sum, value) => sum + value, 0);
 }
 
@@ -616,7 +616,7 @@ export function allowanceBillCents(
 }
 
 /** The allowances a shift earns: those for each shift, and late overtime's. */
-export function shiftAllowances(
+function shiftAllowances(
   rules: Pick<CostRules, "allowances">,
   paidMinutes: number,
   facts: ShiftFacts = {},

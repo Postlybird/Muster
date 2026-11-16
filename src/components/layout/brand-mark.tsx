@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
  * 01/11/2026). It takes the text colour, so it's deep blue on light pages
  * and white on dark ones. The S icon is only for app and browser-tab icons.
  */
-export function Wordmark({ className }: { className?: string }) {
+function Wordmark({ className }: { className?: string }) {
   return (
     <svg
       viewBox={wordmark.viewBox}

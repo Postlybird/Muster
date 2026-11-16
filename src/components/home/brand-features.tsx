@@ -7,7 +7,7 @@ import { brand } from "@/config/brand";
  * The four things the app does for every shift, by name. Each is something
  * the app really does: keep them that way when the app changes.
  */
-export const BRAND_FEATURES = [
+const BRAND_FEATURES = [
   {
     name: `${brand.name} Verified`,
     icon: BadgeCheck,

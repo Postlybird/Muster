@@ -69,10 +69,6 @@ export type PostStepKey = (typeof POST_STEPS)[number]["key"];
 
 const STEP_KEYS: PostStepKey[] = POST_STEPS.map((step) => step.key);
 
-export function isPostStep(value: string): value is PostStepKey {
-  return (STEP_KEYS as string[]).includes(value);
-}
-
 /** Where to pick up a draft: the first step not done yet. */
 export function resumePostStep(done: readonly string[]): PostStepKey {
   return STEP_KEYS.find((key) => !done.includes(key)) ?? "review";
@@ -81,13 +77,13 @@ export function resumePostStep(done: readonly string[]): PostStepKey {
 export const MAX_WORKERS = 50;
 export const MAX_SHIFTS = 40;
 export const MAX_SHIFT_HOURS = 14;
-export const MAX_BREAK_MINUTES = 120;
+const MAX_BREAK_MINUTES = 120;
 export const MAX_JOB_PHOTOS = 3;
 
 /** How long favourites get first look before everyone else (brief §4.3). */
 export const FAVOURITES_FIRST_OPTIONS = [15, 30, 60, 120, 240] as const;
 /** How far ahead work can be posted. */
-export const MAX_DAYS_AHEAD = 180;
+const MAX_DAYS_AHEAD = 180;
 
 const DAY = 86_400_000;
 

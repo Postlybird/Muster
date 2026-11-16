@@ -298,7 +298,7 @@ export async function postWork(page: Page, posting: Posting): Promise<string> {
 }
 
 /** Signs a worker in again with a code emailed to them. */
-export async function signInWorker(page: Page, worker: Worker) {
+async function signInWorker(page: Page, worker: Worker) {
   await signInWithEmailCode(page, worker.email, {
     as: "worker",
     home: /\/worker$/,

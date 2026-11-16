@@ -6,7 +6,7 @@
  */
 
 /** Warn from this share of the threshold. */
-export const PAYROLL_TAX_WARN_SHARE = 0.8;
+const PAYROLL_TAX_WARN_SHARE = 0.8;
 
 export type PayrollTaxWages = {
   /** Wages paid in the last 365 days (pay runs), without super. */
