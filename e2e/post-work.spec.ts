@@ -58,11 +58,12 @@ test("a manager posts a shift and sees the cost first", async ({ page }) => {
   await expectAccessible(page);
   await page.getByRole("button", { name: "Save and continue" }).click();
 
-  // Tickets and instructions: the usual tickets are already ticked.
+  // Tickets and instructions: restoration starts with none ticked (owner,
+  // 16/11/2026), so the business ticks what this job needs.
   await expect(page).toHaveURL(/\/needs$/);
-  await expect(
-    page.getByRole("checkbox", { name: /White Card/ }),
-  ).toBeChecked();
+  const whiteCard = page.getByRole("checkbox", { name: /White Card/ });
+  await expect(whiteCard).not.toBeChecked();
+  await whiteCard.check();
   await page
     .getByLabel(/Instructions for workers/)
     .fill("Move drying equipment between floors.");

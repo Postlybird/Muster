@@ -44,7 +44,7 @@ export default async function CategoriesPage() {
           <TableRow>
             <TableHead>Category</TableHead>
             <TableHead>Industry</TableHead>
-            <TableHead>Required tickets</TableHead>
+            <TableHead>Usual tickets</TableHead>
             <TableHead>Police check</TableHead>
             <TableHead className="text-right">Min. hours</TableHead>
             <TableHead>Status</TableHead>

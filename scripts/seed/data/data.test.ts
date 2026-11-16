@@ -97,11 +97,12 @@ describe("seed catalogues", () => {
     }
   });
 
-  it("ask restoration labourers and technicians for a White Card, and jobs for IICRC tickets", () => {
-    for (const code of ["restoration_labourer", "restoration_technician"]) {
-      const workType = CATEGORIES.find((c) => c.code === code)!;
-      expect(workType.requiredCredentials).toEqual(["white_card"]);
-    }
+  it("pre-tick a White Card for construction work, and nothing for restoration (owner, 16/11/2026)", () => {
+    const usual = (code: string) =>
+      CATEGORIES.find((c) => c.code === code)!.requiredCredentials;
+    expect(usual("general_labourer")).toEqual(["white_card"]);
+    expect(usual("restoration_labourer")).toEqual([]);
+    expect(usual("restoration_technician")).toEqual([]);
   });
 
   it("give cleaners NSW's contract cleaning long service levy (owner, 14/11/2026)", () => {

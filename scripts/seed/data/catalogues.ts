@@ -451,6 +451,10 @@ export type SeedCategory = {
   policeCheckRequired: boolean;
   /** PLACEHOLDER minimum engagement; to be confirmed by a payroll professional. */
   minEngagementHours: number;
+  /**
+   * The usual tickets, pre-ticked when posting work; businesses can untick
+   * them (owner, 16/11/2026).
+   */
   requiredCredentials: string[];
   defaultPpe: string[];
   /** Outside the focus (owner, 02/11/2026): added archived. */
@@ -470,7 +474,9 @@ export const CATEGORIES: SeedCategory[] = [
       "General labour on water, fire and storm damage jobs: strip-outs, pack-outs, moving equipment and removing debris.",
     policeCheckRequired: false,
     minEngagementHours: 4,
-    requiredCredentials: ["white_card"],
+    // Restoration needs no ticket unless the job is specialised, so none is
+    // pre-ticked (owner, 16/11/2026).
+    requiredCredentials: [],
     defaultPpe: [
       "steel_cap_boots",
       "nitrile_gloves",
@@ -488,7 +494,7 @@ export const CATEGORIES: SeedCategory[] = [
       "Skilled water, fire, mould and storm damage work: drying, moisture readings, and mould and fire clean-ups. Jobs can ask for IICRC tickets.",
     policeCheckRequired: false,
     minEngagementHours: 4,
-    requiredCredentials: ["white_card"],
+    requiredCredentials: [],
     defaultPpe: [
       "steel_cap_boots",
       "nitrile_gloves",

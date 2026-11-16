@@ -7,16 +7,19 @@ test.describe("admin catalogues", () => {
     await signInAsDemo(page, "Alex Morgan");
   });
 
-  test("lists the seeded categories with their required tickets", async ({
+  test("lists the seeded categories with their usual tickets", async ({
     page,
   }) => {
     await page.goto("/admin/catalogues");
     await expect(page).toHaveURL(/\/admin\/catalogues\/categories$/);
-    const row = page.getByRole("row", { name: /Restoration technician/ });
-    await expect(row).toContainText("White Card");
-    // A job that needs a certified technician asks for IICRC tickets itself
-    // (owner, 02/11/2026).
-    await expect(row).not.toContainText("IICRC WRT");
+    await expect(
+      page.getByRole("row", { name: /General labourer/ }),
+    ).toContainText("White Card");
+    // Restoration needs no ticket unless the job is specialised, when the
+    // business ticks it (owner, 16/11/2026).
+    await expect(
+      page.getByRole("row", { name: /Restoration technician/ }),
+    ).toContainText("None");
     await expect(
       page.getByRole("row", { name: /Forklift driver/ }),
     ).toContainText("Forklift licence (LF)");

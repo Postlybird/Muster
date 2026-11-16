@@ -171,10 +171,10 @@ export function CategoryForm({
       </div>
 
       <fieldset className="space-y-3">
-        <legend className="text-sm font-medium">Required tickets</legend>
+        <legend className="text-sm font-medium">Usual tickets</legend>
         <p className="text-sm text-muted-foreground">
-          Pre-filled on every job in this category. Businesses can add more per
-          job.
+          Pre-ticked when posting work. Businesses choose what each job needs,
+          so they can untick these or add others.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {tickets.map((ticket) => (
