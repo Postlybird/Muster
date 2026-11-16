@@ -40,6 +40,7 @@ async function main() {
 
   const compliance = await seedCompliance(client, {
     placeholderRates: !referenceOnly,
+    openNsw: !referenceOnly,
   });
   console.log("  rates and compliance added:", compliance);
 

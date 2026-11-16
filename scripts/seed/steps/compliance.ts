@@ -19,12 +19,21 @@ export async function seedCompliance(
   client: SeedClient,
   {
     placeholderRates = true,
+    openNsw = true,
   }: {
     /**
      * The demo's placeholder rate cards, for shifts dated before the
      * checked ones. The live site has only checked rates.
      */
     placeholderRates?: boolean;
+    /**
+     * Whether NSW starts open for work. The live site starts with every
+     * state closed, so no shifts can be posted until the owner opens NSW
+     * (Admin → Licences) once workers' compensation is in place (owner,
+     * 16/11/2026). Only a new database takes it: later runs keep what
+     * admins chose.
+     */
+    openNsw?: boolean;
   } = {},
 ) {
   const jurisdictions = check(
@@ -39,7 +48,7 @@ export async function seedCompliance(
           worker_notice_required: j.workerNoticeRequired ?? false,
           show_licence_on_invoice: j.licenceRequired,
           // We start in NSW; admins open other states (Admin → Licences).
-          open_for_work: j.code === "NSW",
+          open_for_work: openNsw && j.code === "NSW",
           notes: j.notes ?? "",
         })),
         { onConflict: "code", ignoreDuplicates: true },

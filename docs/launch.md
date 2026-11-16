@@ -8,6 +8,8 @@ The live site runs next to the demo (owner, 03/11/2026):
 
 The owner gets click-by-click steps for each account in chat, one at a time, and types keys into Vercel and GitHub, never into chat.
 
+The owner said go on 16/11/2026, to leave the demo before real shifts start in January 2027: about US$45 a month (Supabase Pro US$25, Vercel Pro US$20) from switch-over day, and Twilio's texts as they're sent (a US$20 first top-up). The order: Resend; Twilio (its sender name takes days to approve); Cloudflare Turnstile; the ABN Lookup GUID; Google Cloud; the GitHub environment `live`; Supabase Pro with `shifta-live`; Vercel Pro with the live project; then stage 3. The paid plans come last, so their monthly charges start at the switch-over.
+
 ## Stage 2: accounts
 
 | Service | What it's for | What we need from it |
@@ -89,8 +91,9 @@ The workflows also refuse to run from any branch but `main`.
 3. In `deploy/muster-dev/supabase/config.toml`, set `site_url` to https://demo.shifta.com.au and push: the demo's sign-in links and scheduled jobs follow it. Set the demo Vercel project's `NEXT_PUBLIC_SITE_URL` to match.
 4. Run `live-deploy.yml` again (Actions → "Deploy the live site" → Run workflow), so the scheduled jobs check passes against the live site.
 5. The owner signs in on the live site once; run "Make an admin on the live site" with their email. They set up an authenticator app at their next sign-in.
-6. The owner enters, in Admin → Settings: company details, bank account, margin, on-costs (including the workers' compensation rate) and anything else marked as a placeholder; and the approved documents in Admin → Agreements.
-7. Run-through with the owner's own email and mobile: sign-in code by email (the bot check first: it couldn't be tried from the build environment, where Cloudflare is blocked), the mobile code by text, a site address search, a test shift booked, and its messages. Then archive the test records.
+6. The owner enters, in Admin → Settings: company details (the legal name and ABN are already there), bank account, margin, on-costs (including the workers' compensation rate) and anything else marked as a placeholder; and checks the approved documents in Admin → Agreements.
+7. Run-through with the owner's own email and mobile: sign-in code by email (the bot check first: it couldn't be tried from the build environment, where Cloudflare is blocked), the mobile code by text, a site address search, a test shift booked (open NSW for it, then close it again), and its messages. Then archive the test records.
+8. **No shifts before workers' compensation** (owner, 16/11/2026): the live site starts with every state closed, so businesses can sign up and set up shifts but can't post them. Workers can sign up and send their documents, but approve none until the cover starts, as approving a worker starts their employment. Once icare's cover is in place, open NSW in Admin → Licences.
 
 ## Releasing after that
 
