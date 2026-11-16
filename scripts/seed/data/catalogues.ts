@@ -780,7 +780,9 @@ export const CATEGORIES: SeedCategory[] = [
     policeCheckRequired: false,
     minEngagementHours: 4,
     longServiceLevyPct: 1,
-    requiredCredentials: ["white_card"],
+    // Nothing pre-ticked: the business ticks what each job needs (owner,
+    // 16/11/2026).
+    requiredCredentials: [],
     defaultPpe: ["steel_cap_boots", "hi_vis", "p2_disposable"],
   },
   {
