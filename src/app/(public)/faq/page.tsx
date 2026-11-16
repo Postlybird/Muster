@@ -93,9 +93,10 @@ export default async function FaqPage() {
             Affairs.
           </p>
           <p>
-            Add the tickets your work needs, like an RSA, a White Card or a
-            forklift licence. Some jobs also need a National Police Check no
-            older than {settings.police_check_max_age_months} months.
+            Add the tickets and licences you hold, like an RSA, a White Card or
+            a forklift licence. Each business chooses what its jobs need, and
+            some ask for a National Police Check no older than{" "}
+            {settings.police_check_max_age_months} months.
           </p>
         </>
       ),

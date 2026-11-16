@@ -26,38 +26,6 @@ export function groupByIndustry<T extends { industries: IndustryRef }>(
     .map(({ name, items: grouped }) => ({ name, items: grouped }));
 }
 
-/** A work type as read with its required tickets. */
-export type WorkTypeNeedsRow = {
-  police_check_required: boolean;
-  category_credentials: {
-    credential_types: {
-      name: string;
-      /** Shared by each state's version of a ticket issued state by state. */
-      family?: string | null;
-      sort_order: number;
-      active: boolean;
-    } | null;
-  }[];
-};
-
-/**
- * What a work type needs, in the tickets' order: its active required
- * tickets (by family for one issued state by state, since each state asks
- * for its own), and a police check where one is required.
- */
-export function workTypeNeeds(category: WorkTypeNeedsRow): string[] {
-  const needs = category.category_credentials
-    .map((link) => link.credential_types)
-    .filter((type): type is NonNullable<typeof type> => !!type?.active)
-    .sort((a, b) => a.sort_order - b.sort_order)
-    .map((type) => type.family ?? type.name)
-    .filter((need, i, all) => all.indexOf(need) === i);
-  if (category.police_check_required && !needs.some((n) => /police/i.test(n))) {
-    needs.push("National Police Check");
-  }
-  return needs;
-}
-
 /** "warehousing_logistics" → "warehousing-logistics", for page addresses. */
 export function industrySlug(code: string): string {
   return code.replaceAll("_", "-");

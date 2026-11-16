@@ -129,7 +129,7 @@ export function AboutForm({
         id="photo"
         name="photo_path"
         label="A photo of your face"
-        hint="Supervisors use it to know who's arriving. Face the camera in good light, with no sunglasses or hat."
+        hint="Businesses see it when you apply, so a clear, friendly photo helps you get picked. Face the camera in good light, with no sunglasses or hat."
         error={errors?.photo_path}
         bucket="worker-photos"
         folder={workerId}

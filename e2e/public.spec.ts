@@ -138,7 +138,7 @@ test("we're in Sydney for now, with no state-by-state pages", async ({
   expect(gone?.status()).toBe(404);
 });
 
-test("each industry has a page with the work and the tickets it needs", async ({
+test("each industry has a page with the work, and businesses choose the tickets", async ({
   page,
 }) => {
   await page.goto("/");
@@ -153,12 +153,17 @@ test("each industry has a page with the work and the tickets it needs", async ({
       name: "Restoration staff, sorted.",
     }),
   ).toBeVisible();
+  // Businesses choose the tickets each job needs (owner, 16/11/2026), so
+  // work types don't list any.
+  await expect(
+    page.getByText(/^You choose the tickets and licences each job needs\./),
+  ).toBeVisible();
   // Restoration labourers and technicians (owner, 04/11/2026), both bookable.
   for (const name of ["Restoration labourer", "Restoration technician"]) {
     const workType = page.getByRole("listitem").filter({
       has: page.getByRole("heading", { name }),
     });
-    await expect(workType).toContainText("Needs: White Card");
+    await expect(workType).not.toContainText("Needs:");
     await expect(workType).not.toContainText("Coming soon");
   }
 
@@ -171,7 +176,6 @@ test("each industry has a page with the work and the tickets it needs", async ({
   const forklift = page
     .getByRole("listitem")
     .filter({ has: page.getByRole("heading", { name: "Forklift driver" }) });
-  await expect(forklift).toContainText("Needs: Forklift licence (LF)");
   await expect(forklift).toContainText("Coming soon");
   await expect(
     page.getByRole("listitem").filter({

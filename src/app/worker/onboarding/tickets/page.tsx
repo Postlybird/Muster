@@ -24,18 +24,8 @@ export default async function TicketsPage({
 
   const police = rows.filter((r) => r.type.kind === "police_check");
   const others = rows.filter((r) => r.type.kind !== "police_check");
-  const needed = others.filter((r) => r.neededFor.length > 0);
-  const extra = others.filter(
-    (r) => r.neededFor.length === 0 && r.summary.state !== "missing",
-  );
-  const addable = others.filter(
-    (r) => r.neededFor.length === 0 && r.summary.state === "missing",
-  );
-  const missingNeeded = [...needed, ...police.filter((r) => r.neededFor.length)]
-    .filter(
-      (r) => r.summary.state === "missing" || r.summary.state === "expired",
-    )
-    .map((r) => r.type.name);
+  const held = others.filter((r) => r.summary.state !== "missing");
+  const addable = others.filter((r) => r.summary.state === "missing");
   const savedRow = rows.find((r) => r.type.code === saved);
 
   return (
@@ -44,7 +34,7 @@ export default async function TicketsPage({
       step="tickets"
       completed={worker.onboarding_steps}
       title="Tickets"
-      description="Add the tickets and licences you have. We check each one before you can take shifts that need it."
+      description="Add the tickets and licences you have. Each business chooses the tickets its job needs, and we check each one before you can take shifts that need it."
     >
       <div className="max-w-2xl space-y-8">
         {savedRow ? (
@@ -55,55 +45,21 @@ export default async function TicketsPage({
           </Alert>
         ) : null}
 
-        <section aria-labelledby="needed" className="space-y-3">
-          <h2 id="needed" className="text-lg font-semibold">
-            Needed for your work types
+        <section aria-labelledby="yours" className="space-y-3">
+          <h2 id="yours" className="text-lg font-semibold">
+            Your tickets
           </h2>
-          {needed.length > 0 ? (
+          {held.length > 0 ? (
             <ul className="space-y-3">
-              {needed.map((row) => (
+              {held.map((row) => (
                 <TicketCard key={row.type.id} row={row} />
               ))}
             </ul>
           ) : (
             <p className="text-muted-foreground">
-              {police.some((r) => r.neededFor.length > 0)
-                ? "Apart from a police check (below), the work types you chose don't need any tickets."
-                : "The work types you chose don't need any tickets."}
+              You haven&apos;t added any tickets yet.
             </p>
           )}
-        </section>
-
-        {police.length > 0 ? (
-          <section aria-labelledby="police" className="space-y-3">
-            <h2 id="police" className="text-lg font-semibold">
-              Police check
-            </h2>
-            <p className="text-muted-foreground">
-              {police.some((r) => r.neededFor.length > 0)
-                ? `Some of your work types need a National Police Check issued in the last ${policeMaxAgeMonths} months.`
-                : `Some businesses ask for one. If you have a National Police Check from the last ${policeMaxAgeMonths} months, add it now.`}{" "}
-              Ordering a check through us is coming later.
-            </p>
-            <ul className="space-y-3">
-              {police.map((row) => (
-                <TicketCard key={row.type.id} row={row} />
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        <section aria-labelledby="other" className="space-y-3">
-          <h2 id="other" className="text-lg font-semibold">
-            Other tickets
-          </h2>
-          {extra.length > 0 ? (
-            <ul className="space-y-3">
-              {extra.map((row) => (
-                <TicketCard key={row.type.id} row={row} />
-              ))}
-            </ul>
-          ) : null}
           {addable.length > 0 ? (
             <form
               action="/worker/onboarding/tickets/add"
@@ -111,7 +67,7 @@ export default async function TicketsPage({
               className="flex flex-wrap items-end gap-3"
             >
               <div className="min-w-60 flex-1 space-y-2">
-                <Label htmlFor="add-ticket">Add another ticket</Label>
+                <Label htmlFor="add-ticket">Add a ticket</Label>
                 <NativeSelect id="add-ticket" name="code" defaultValue="">
                   <option value="" disabled>
                     Choose a ticket
@@ -130,18 +86,25 @@ export default async function TicketsPage({
           ) : null}
         </section>
 
-        {mode === "wizard" ? (
-          <div className="space-y-3">
-            {missingNeeded.length > 0 ? (
-              <p className="text-sm text-muted-foreground">
-                You can carry on without {missingNeeded.join(", ")} and add them
-                later. Until they&apos;re verified, you won&apos;t be offered
-                shifts that need them.
-              </p>
-            ) : null}
-            <ContinueForm step="tickets" />
-          </div>
+        {police.length > 0 ? (
+          <section aria-labelledby="police" className="space-y-3">
+            <h2 id="police" className="text-lg font-semibold">
+              Police check
+            </h2>
+            <p className="text-muted-foreground">
+              Some businesses ask for one. If you have a National Police Check
+              from the last {policeMaxAgeMonths} months, add it now. Ordering a
+              check through us is coming later.
+            </p>
+            <ul className="space-y-3">
+              {police.map((row) => (
+                <TicketCard key={row.type.id} row={row} />
+              ))}
+            </ul>
+          </section>
         ) : null}
+
+        {mode === "wizard" ? <ContinueForm step="tickets" /> : null}
       </div>
     </StepFrame>
   );

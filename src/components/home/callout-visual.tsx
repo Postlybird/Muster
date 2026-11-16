@@ -46,7 +46,7 @@ const EXAMPLE_HOURS = 4;
 /**
  * A phone showing a call-out text (or, while texts are off, the app
  * notification), worded as the real message is, and the booking that
- * follows. The details are illustrative (the footer says so); the pay
+ * follows. The details are illustrative; the pay
  * follows a restoration technician's current rate (`hourlyCents`) and the
  * call-out loading.
  */

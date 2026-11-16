@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
 
-import {
-  groupByIndustry,
-  workTypeNeeds,
-  type WorkTypeNeedsRow,
-} from "@/lib/industries";
+import { groupByIndustry } from "@/lib/industries";
 import { createClient } from "@/lib/supabase/server";
 
 import { loadStep, StepFrame } from "../step-frame";
-import { WorkTypesForm, type CategoryOption } from "./work-types-form";
+import { WorkTypesForm } from "./work-types-form";
 
 export const metadata: Metadata = { title: "Work types" };
 
@@ -18,9 +14,7 @@ export default async function WorkTypesPage() {
   const [{ data: categories }, { data: mine }] = await Promise.all([
     supabase
       .from("categories")
-      .select(
-        "id, name, description, police_check_required, sort_order, industries(name, sort_order), category_credentials(credential_types(name, family, sort_order, active))",
-      )
+      .select("id, name, description, sort_order, industries(name, sort_order)")
       .eq("active", true)
       .is("archived_at", null)
       .order("sort_order")
@@ -33,7 +27,11 @@ export default async function WorkTypesPage() {
 
   const groups = groupByIndustry(categories ?? []).map((group) => ({
     name: group.name,
-    categories: group.items.map(toOption),
+    categories: group.items.map(({ id, name, description }) => ({
+      id,
+      name,
+      description,
+    })),
   }));
 
   return (
@@ -54,19 +52,4 @@ export default async function WorkTypesPage() {
       />
     </StepFrame>
   );
-}
-
-type CategoryRow = WorkTypeNeedsRow & {
-  id: string;
-  name: string;
-  description: string;
-};
-
-function toOption(category: CategoryRow): CategoryOption {
-  return {
-    id: category.id,
-    name: category.name,
-    description: category.description,
-    needs: workTypeNeeds(category),
-  };
 }

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * The people in the website's pictures of the app (owner, 01/11/2026: no
- * "Example" labels on them). They're illustrative, and the footer says so.
+ * "Example" labels on them). They're illustrative.
  * A `photo` is a file in public/people/, used only with the rights to it;
  * until one is added, the avatar shows initials.
  */

@@ -118,7 +118,7 @@ function ReadyList({
 /**
  * The home page's picture of the app: workers ready to book, one of them's
  * profile, and a booking going through, on the brand's blue curve. The
- * people are illustrative (the footer says so); it's one image to screen
+ * people are illustrative; it's one image to screen
  * readers. It lays itself out by its own width, so it fits a narrow column
  * (sign-in) as well as the home page's.
  */

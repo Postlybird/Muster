@@ -109,10 +109,11 @@ async function signUpAndGetReady(page: Page) {
   await expectAccessible(page);
   await next(page);
 
-  // 4. Tickets: add the White Card their work needs.
+  // 4. Tickets: add the White Card they hold.
   await expect(page).toHaveURL(/\/tickets$/);
   await expectAccessible(page);
-  await page.getByRole("link", { name: "Add: White Card" }).click();
+  await page.getByLabel("Add a ticket").selectOption({ label: "White Card" });
+  await page.getByRole("button", { name: "Add", exact: true }).click();
   await expect(page.getByRole("heading", { name: "White Card" })).toBeVisible();
   await page.getByLabel("Ticket or licence number").fill("WC-123456");
   await page.getByLabel(/Date issued/).fill("2022-05-01");

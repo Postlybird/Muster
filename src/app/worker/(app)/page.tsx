@@ -204,36 +204,29 @@ async function verificationItems(worker: WorkerRow): Promise<ChecklistItem[]> {
     },
   ];
 
+  // The tickets they've added; each business chooses what its jobs need.
   for (const row of tickets.rows) {
     const s = row.summary;
-    if (s.state === "missing" && row.neededFor.length === 0) continue;
+    if (s.state === "missing") continue;
     const status: StatusInfo =
-      s.state === "missing"
+      s.state === "verified" && s.expiringSoon
         ? {
-            ...notAdded,
-            next: `Add it to take ${row.neededFor.join(", ")} shifts.`,
+            label: "Expires soon",
+            tone: "warning",
+            next: "Upload the renewed ticket so you can keep taking shifts that need it.",
           }
-        : s.state === "verified" && s.expiringSoon
-          ? {
-              label: "Expires soon",
-              tone: "warning",
-              next: "Upload the renewed ticket so you can keep taking shifts that need it.",
-            }
-          : checkStatuses[s.state];
+        : checkStatuses[s.state];
     items.push({
       title: row.type.name,
       status,
       detail: s.state === "rejected" ? s.reason : null,
       href: `/worker/onboarding/tickets/${row.type.code}`,
       action:
-        s.state === "missing"
-          ? "Add it"
-          : s.state === "rejected"
-            ? "Fix it"
-            : s.state === "expired" ||
-                (s.state === "verified" && s.expiringSoon)
-              ? "Add renewed ticket"
-              : undefined,
+        s.state === "rejected"
+          ? "Fix it"
+          : s.state === "expired" || (s.state === "verified" && s.expiringSoon)
+            ? "Add renewed ticket"
+            : undefined,
     });
   }
 

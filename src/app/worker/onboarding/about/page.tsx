@@ -22,7 +22,7 @@ export default async function AboutPage() {
       step="about"
       completed={worker.onboarding_steps}
       title="About you"
-      description="Your name as it appears on your ID, and a photo so supervisors know who's arriving."
+      description="Your name as it appears on your ID, and a photo of you: businesses see it when you apply, and supervisors know who's arriving."
     >
       <AboutForm
         mode={mode}

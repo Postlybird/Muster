@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import { industrySlug, workTypeNeeds } from "@/lib/industries";
+import { industrySlug } from "@/lib/industries";
 import { createClient } from "@/lib/supabase/server";
 
 import { workTypesWithRates } from "./pricing";
@@ -12,7 +12,6 @@ export type PublicWorkType = {
   code: string;
   name: string;
   description: string;
-  needs: string[];
   /** False while it waits for its pay rates: it can't be booked yet. */
   bookable: boolean;
 };
@@ -39,7 +38,7 @@ export const listIndustries = cache(async (): Promise<PublicIndustry[]> => {
     supabase
       .from("industries")
       .select(
-        "code, name, summary, description, icon, categories(id, code, name, description, sort_order, active, archived_at, police_check_required, category_credentials(credential_types(name, family, sort_order, active)))",
+        "code, name, summary, description, icon, categories(id, code, name, description, sort_order, active, archived_at)",
       )
       .eq("active", true)
       .is("archived_at", null)
@@ -71,7 +70,6 @@ export const listIndustries = cache(async (): Promise<PublicIndustry[]> => {
         code: c.code,
         name: c.name,
         description: c.description,
-        needs: workTypeNeeds(c),
         bookable: withRates ? withRates.has(c.id) : true,
       })),
   }));

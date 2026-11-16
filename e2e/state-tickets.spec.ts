@@ -68,7 +68,7 @@ test.afterAll(async () => {
     .eq("id", workType.id);
 });
 
-test("a worker in Victoria is asked for Victoria's check, not the NSW one", async ({
+test("a worker in Victoria is offered Victoria's check, not the NSW one", async ({
   page,
 }) => {
   await registerAs(page, "worker", {
@@ -83,15 +83,13 @@ test("a worker in Victoria is asked for Victoria's check, not the NSW one", asyn
   });
 
   await page.goto("/worker/onboarding/tickets");
-  const needed = page.getByRole("region", {
-    name: "Needed for your work types",
-  });
+  const add = page.getByLabel("Add a ticket");
   await expect(
-    needed.getByText("Working with Children Check (Victoria)"),
-  ).toBeVisible();
-  await expect(page.getByText("Working with Children Check (NSW)")).toHaveCount(
-    0,
-  );
+    add.getByRole("option", { name: "Working with Children Check (Victoria)" }),
+  ).toHaveCount(1);
+  await expect(
+    add.getByRole("option", { name: "Working with Children Check (NSW)" }),
+  ).toHaveCount(0);
   await expectAccessible(page);
 });
 

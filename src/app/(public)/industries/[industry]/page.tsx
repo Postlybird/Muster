@@ -1,4 +1,4 @@
-import { ArrowRight, Clock, IdCard } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -99,8 +99,8 @@ export default async function IndustryPage({
               Who you can book
             </h2>
             <p className="text-lg text-muted-foreground">
-              Only workers who hold the tickets a job needs can take it, and we
-              check every ticket.
+              You choose the tickets and licences each job needs. Only workers
+              who hold them can take it, and we check every ticket.
             </p>
           </div>
           <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -127,15 +127,6 @@ export default async function IndustryPage({
                     {workType.description}
                   </p>
                 ) : null}
-                <p className="mt-auto flex items-start gap-2 text-sm font-medium text-foreground">
-                  <IdCard
-                    className="mt-0.5 size-4 shrink-0 text-primary"
-                    aria-hidden
-                  />
-                  {workType.needs.length > 0
-                    ? `Needs: ${workType.needs.join(", ")}`
-                    : "No tickets needed"}
-                </p>
               </li>
             ))}
           </ul>

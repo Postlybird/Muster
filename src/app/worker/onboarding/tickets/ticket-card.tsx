@@ -69,11 +69,6 @@ export function TicketCard({ row }: { row: TicketRow }) {
           <h3 className="font-medium">{row.type.name}</h3>
           <Badge variant={badge.variant}>{badge.label}</Badge>
         </div>
-        {row.neededFor.length > 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Needed for {row.neededFor.join(", ")}
-          </p>
-        ) : null}
         {detail ? <p className="text-sm">{detail}</p> : null}
       </div>
       {action ? (

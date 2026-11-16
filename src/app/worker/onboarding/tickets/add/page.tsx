@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** The "Add another ticket" picker posts here (works without JavaScript). */
+/** The "Add a ticket" picker posts here (works without JavaScript). */
 export default async function AddTicketPage({
   searchParams,
 }: PageProps<"/worker/onboarding/tickets/add">) {

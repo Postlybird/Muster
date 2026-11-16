@@ -57,10 +57,6 @@ export async function PublicFooter() {
           <p className="text-deep-foreground/80">
             © {new Date().getFullYear()} {legalEntity()}
           </p>
-          {/* The pictures of the app carry no labels (owner, 01/11/2026). */}
-          <p className="max-w-xs text-xs text-deep-foreground/80">
-            People and details in pictures of the app are illustrative.
-          </p>
         </div>
         <nav
           aria-label="Footer"

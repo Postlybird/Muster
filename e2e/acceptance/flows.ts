@@ -150,7 +150,10 @@ export async function signUpWorker(
 
   await expect(page).toHaveURL(/\/tickets$/);
   if (person.ticket) {
-    await page.getByRole("link", { name: `Add: ${person.ticket}` }).click();
+    await page
+      .getByLabel("Add a ticket")
+      .selectOption({ label: person.ticket });
+    await page.getByRole("button", { name: "Add", exact: true }).click();
     await page
       .getByLabel("Ticket or licence number")
       .fill(`WC-${Math.floor(Math.random() * 1e6)}`);

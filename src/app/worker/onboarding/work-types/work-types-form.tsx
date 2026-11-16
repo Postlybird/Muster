@@ -19,7 +19,6 @@ export type CategoryOption = {
   id: string;
   name: string;
   description: string;
-  needs: string[];
 };
 
 export type IndustryOptions = { name: string; categories: CategoryOption[] };
@@ -139,7 +138,6 @@ export function WorkTypesForm({
                               })
                             }
                             className="mt-0.5"
-                            aria-describedby={`category-${category.id}-needs`}
                           />
                           <Label
                             htmlFor={`category-${category.id}`}
@@ -153,14 +151,6 @@ export function WorkTypesForm({
                             ) : null}
                           </Label>
                         </div>
-                        <p
-                          id={`category-${category.id}-needs`}
-                          className="pl-9 text-sm text-muted-foreground"
-                        >
-                          {category.needs.length > 0
-                            ? `Needs: ${category.needs.join(", ")}`
-                            : "No tickets needed"}
-                        </p>
                         {isChosen ? (
                           <div className="space-y-2 pl-9">
                             <Label htmlFor={`years-${category.id}`}>
