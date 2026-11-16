@@ -16,11 +16,14 @@ export function ConsoleShell({
   area,
   user,
   areaLabel,
+  supervisor = false,
   children,
 }: {
   area: ConsoleArea;
   user: SessionUser;
   areaLabel: string;
+  /** A business's site supervisor: the menus leave out what they can't use. */
+  supervisor?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -31,7 +34,7 @@ export function ConsoleShell({
           <span className="text-sm text-muted-foreground">{areaLabel}</span>
         </div>
         <div className="flex-1 overflow-y-auto px-3 pb-4">
-          <ConsoleNav area={area} />
+          <ConsoleNav area={area} supervisor={supervisor} />
         </div>
         <div className="space-y-2 border-t p-4">
           <UserSummary user={user} />
@@ -45,7 +48,7 @@ export function ConsoleShell({
             <BrandMark href={`/${area}`} />
             <span className="text-sm text-muted-foreground">{areaLabel}</span>
           </div>
-          <ConsoleStripNav area={area} />
+          <ConsoleStripNav area={area} supervisor={supervisor} />
         </header>
         <main className="w-full flex-1 px-4 py-6 md:px-8 md:py-8 xl:px-12">
           {children}

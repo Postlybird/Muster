@@ -37,6 +37,8 @@ export type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
+  /** Only owners and managers use it, so supervisors' menus leave it out. */
+  managersOnly?: true;
 };
 
 export type NavGroup = { label?: string; items: NavItem[] };
@@ -96,6 +98,7 @@ export const businessPostWork: NavItem = {
   href: "/business/post",
   label: "Post work",
   icon: Plus,
+  managersOnly: true,
 };
 
 export const businessNav: NavGroup[] = [
@@ -120,6 +123,7 @@ export const businessNav: NavGroup[] = [
         href: "/business/workers",
         label: "Workers",
         icon: Users,
+        managersOnly: true,
       },
     ],
   },
@@ -140,6 +144,7 @@ export const businessNav: NavGroup[] = [
         href: "/business/invoices",
         label: "Invoices",
         icon: Receipt,
+        managersOnly: true,
       },
       {
         href: "/business/settings",

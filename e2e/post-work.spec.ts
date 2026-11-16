@@ -340,7 +340,19 @@ test("an urgent call-out texts workers nearby who opted in", async ({
 });
 
 test("supervisors see their sites' jobs but don't post", async ({ page }) => {
+  await signInAsDemo(page, "Lisa Nguyen");
+  const menu = page.getByRole("navigation", { name: "Main" });
+  for (const name of ["Post work", "Workers", "Invoices"]) {
+    await expect(menu.getByRole("link", { name })).toBeVisible();
+  }
+  await page.context().clearCookies();
+
+  // A supervisor's menu leaves out what only owners and managers use.
   await signInAsDemo(page, "Tom Walsh");
+  await expect(menu.getByRole("link", { name: "Jobs" })).toBeVisible();
+  for (const name of ["Post work", "Workers", "Invoices"]) {
+    await expect(menu.getByRole("link", { name })).toHaveCount(0);
+  }
   await page.goto("/business/post");
   await expect(page.getByText(/Owners and managers post work/)).toBeVisible();
   await page.goto("/business/jobs");

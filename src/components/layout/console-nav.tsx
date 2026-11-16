@@ -19,17 +19,28 @@ const navFor: Record<"business" | "admin", NavGroup[]> = {
   admin: adminNav,
 };
 
+/** The area's pages, leaving out those only owners and managers use. */
+function groupsFor(area: "business" | "admin", supervisor: boolean) {
+  return navFor[area].map((group) => ({
+    ...group,
+    items: group.items.filter((item) => !(supervisor && item.managersOnly)),
+  }));
+}
+
 export function ConsoleNav({
   area,
+  supervisor = false,
   onNavigate,
 }: {
   area: "business" | "admin";
+  /** A business's site supervisor, who doesn't post work or see invoices. */
+  supervisor?: boolean;
   onNavigate?: () => void;
 }) {
-  const groups = navFor[area];
+  const groups = groupsFor(area, supervisor);
   return (
     <nav aria-label="Main" className="space-y-5">
-      {area === "business" ? (
+      {area === "business" && !supervisor ? (
         <NavLink
           item={businessPostWork}
           onNavigate={onNavigate}
@@ -66,10 +77,16 @@ export function ConsoleNav({
  * On phones: every page in a row under the header, always on show (no
  * menu button). It scrolls sideways, starting at the current page.
  */
-export function ConsoleStripNav({ area }: { area: "business" | "admin" }) {
+export function ConsoleStripNav({
+  area,
+  supervisor = false,
+}: {
+  area: "business" | "admin";
+  supervisor?: boolean;
+}) {
   const items = [
-    ...(area === "business" ? [businessPostWork] : []),
-    ...navFor[area].flatMap((group) => group.items),
+    ...(area === "business" && !supervisor ? [businessPostWork] : []),
+    ...groupsFor(area, supervisor).flatMap((group) => group.items),
   ];
   const listRef = useRef<HTMLUListElement>(null);
   const pathname = usePathname();

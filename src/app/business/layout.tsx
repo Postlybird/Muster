@@ -1,12 +1,17 @@
 import { ConsoleShell } from "@/components/layout/console-shell";
-import { requireRole } from "@/lib/auth";
+import { getMyBusiness } from "@/server/businesses";
 
 export default async function BusinessLayout({
   children,
 }: LayoutProps<"/business">) {
-  const user = await requireRole("business_user");
+  const { user, role } = await getMyBusiness();
   return (
-    <ConsoleShell area="business" areaLabel="Business" user={user}>
+    <ConsoleShell
+      area="business"
+      areaLabel="Business"
+      user={user}
+      supervisor={role === "supervisor"}
+    >
       {children}
     </ConsoleShell>
   );
