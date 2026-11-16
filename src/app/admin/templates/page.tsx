@@ -21,7 +21,7 @@ const GROUPS: { audience: Audience; title: string; how: string }[] = [
   {
     audience: "worker",
     title: "To workers",
-    how: "By push notification in the app, or by text if they haven't installed it.",
+    how: "By push notification in the app, or by email if they haven't turned notifications on. Urgent call-outs go by text as well, once texts are on.",
   },
   { audience: "business", title: "To businesses", how: "By email." },
   { audience: "admin", title: "To our team", how: "By email." },

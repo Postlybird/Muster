@@ -81,7 +81,7 @@ export async function saveWeekly(
   return success("Availability saved");
 }
 
-/** Call-outs: urgent work nearby by text and app notification, or not. */
+/** Call-outs: urgent work nearby, straight away at any hour, or not. */
 export async function setCalloutOptIn(on: boolean): Promise<ActionState> {
   const { worker } = await getMyWorker();
   const supabase = await createClient();

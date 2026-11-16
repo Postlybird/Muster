@@ -99,7 +99,7 @@ export default async function AddHoursPage({
           }}
           note={{
             label: "A note for the worker",
-            hint: "We text them the hours you enter.",
+            hint: "We send them the hours you enter.",
             required: false,
           }}
           submitLabel="Approve these hours"

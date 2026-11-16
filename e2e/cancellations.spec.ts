@@ -96,13 +96,14 @@ test("a business cancels a shift late, and the booked worker is told", async ({
     page.getByText("Cancelled", { exact: true }).first(),
   ).toBeVisible();
 
-  const { data: texts } = await serviceClient()
+  const { data: emails } = await serviceClient()
     .from("dev_outbox")
     .select("body")
-    .eq("recipient", liam.phone)
+    .eq("channel", "email")
+    .eq("recipient", liam.email)
     .like("body", "%Cancelled: Harbour Restoration has cancelled%")
     .gte("created_at", new Date(Date.now() - 60_000).toISOString());
-  expect(texts?.length).toBeGreaterThan(0);
+  expect(emails?.length).toBeGreaterThan(0);
 });
 
 test("two no-shows put a worker's account on hold", async ({ page }) => {
@@ -147,13 +148,14 @@ test("two no-shows put a worker's account on hold", async ({ page }) => {
       .eq("id", ben.workerId)
       .single();
     expect(worker?.status).toBe("suspended");
-    const { data: texts } = await service
+    const { data: emails } = await service
       .from("dev_outbox")
       .select("body")
-      .eq("recipient", ben.phone)
+      .eq("channel", "email")
+      .eq("recipient", ben.email)
       .like("body", "%your account is on hold%")
       .gte("created_at", since);
-    expect(texts?.length).toBe(1);
+    expect(emails?.length).toBe(1);
   } finally {
     // Back to how the demo had him, so the test can run again.
     const shiftIds = jobs.map((job) => job.shiftId);

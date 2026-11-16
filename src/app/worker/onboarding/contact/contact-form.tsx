@@ -15,6 +15,7 @@ import { StepActions } from "../step-actions";
 import {
   confirmContactCode,
   continueFromContact,
+  saveContactMobile,
   sendContactCode,
   type ContactKind,
 } from "./actions";
@@ -30,7 +31,7 @@ const copy: Record<
 > = {
   phone: {
     label: "Mobile number",
-    why: "We text you about urgent work and send shift reminders.",
+    why: "So we can reach you, and text you urgent call-outs if you take them.",
     placeholder: "0412 345 678",
     inputMode: "tel",
   },
@@ -58,13 +59,19 @@ function Confirmed({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Adds the missing contact method with a code; the main button moves with each stage. */
+/**
+ * Adds the missing contact method with a code; the main button moves with
+ * each stage. While texts are off, a mobile is saved as typed (owner,
+ * 16/11/2026).
+ */
 function AddContact({
   kind,
   mode,
+  textsOn,
 }: {
   kind: ContactKind;
   mode: "wizard" | "edit";
+  textsOn: boolean;
 }) {
   const [destination, setDestination] = useState<string | null>(null);
   const [value, setValue] = useState("");
@@ -72,12 +79,17 @@ function AddContact({
   const [state, setState] = useState<ActionState>(idle);
   const [pending, startTransition] = useTransition();
   const text = copy[kind];
+  const withoutCode = kind === "phone" && !textsOn;
   const shown =
     destination && kind === "phone" ? formatAuPhone(destination) : destination;
 
   function send(event?: React.FormEvent) {
     event?.preventDefault();
     startTransition(async () => {
+      if (withoutCode) {
+        setState(await saveContactMobile(value));
+        return;
+      }
       const result = await sendContactCode(kind, value);
       if (result.ok) {
         setDestination(result.destination);
@@ -103,7 +115,9 @@ function AddContact({
         <div className="space-y-2">
           <Label htmlFor={`new-${kind}`}>{text.label}</Label>
           <p id={`new-${kind}-hint`} className="text-sm text-muted-foreground">
-            {text.why} We&apos;ll send a code to confirm it.
+            {withoutCode
+              ? "So we can reach you about your shifts."
+              : `${text.why} We'll send a code to confirm it.`}
           </p>
           <Input
             id={`new-${kind}`}
@@ -122,7 +136,7 @@ function AddContact({
           mode={mode}
           step="contact"
           pending={pending}
-          primaryLabel="Send code"
+          primaryLabel={withoutCode ? "Save" : "Send code"}
         />
       </form>
     );
@@ -190,10 +204,12 @@ export function ContactForm({
   mode,
   phone,
   email,
+  textsOn,
 }: {
   mode: "wizard" | "edit";
   phone: string | null;
   email: string | null;
+  textsOn: boolean;
 }) {
   const [state, setState] = useState<ActionState>(idle);
   const [pending, startTransition] = useTransition();
@@ -213,7 +229,12 @@ export function ContactForm({
       </div>
 
       {missing ? (
-        <AddContact key={missing} kind={missing} mode={mode} />
+        <AddContact
+          key={missing}
+          kind={missing}
+          mode={mode}
+          textsOn={textsOn}
+        />
       ) : mode === "wizard" ? (
         <form
           onSubmit={(event) => {

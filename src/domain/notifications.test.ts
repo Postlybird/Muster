@@ -94,27 +94,33 @@ describe("where messages go", () => {
   const worker = {
     audience: "worker" as const,
     hasPush: false,
-    hasPhone: true,
+    canText: true,
     hasEmail: true,
   };
   const reminders = NOTIFICATION_CATEGORIES.reminders;
+  const urgent = NOTIFICATION_CATEGORIES.urgent_work;
 
-  it("texts workers who haven't installed the app, and pushes to those who have", () => {
-    expect(channelsFor(worker, "reminders", reminders, {})).toEqual(["sms"]);
+  it("emails workers who haven't turned notifications on, and pushes to those who have", () => {
+    expect(channelsFor(worker, "reminders", reminders, {})).toEqual(["email"]);
     expect(
       channelsFor({ ...worker, hasPush: true }, "reminders", reminders, {}),
     ).toEqual(["push"]);
   });
 
-  it("texts urgent call-outs as well", () => {
+  it("texts only urgent call-outs, as well (owner, 16/11/2026)", () => {
     expect(
-      channelsFor(
-        { ...worker, hasPush: true },
-        "urgent_work",
-        NOTIFICATION_CATEGORIES.urgent_work,
-        {},
-      ),
+      channelsFor({ ...worker, hasPush: true }, "urgent_work", urgent, {}),
     ).toEqual(["push", "sms"]);
+    expect(channelsFor(worker, "urgent_work", urgent, {})).toEqual([
+      "email",
+      "sms",
+    ]);
+  });
+
+  it("sends no texts while they're off, or without a mobile", () => {
+    expect(
+      channelsFor({ ...worker, canText: false }, "urgent_work", urgent, {}),
+    ).toEqual(["email"]);
   });
 
   it("emails businesses and our team", () => {
@@ -134,7 +140,7 @@ describe("where messages go", () => {
     expect(channelsFor(worker, "reminders", reminders, prefs)).toEqual([]);
     expect(
       channelsFor(worker, "account", NOTIFICATION_CATEGORIES.account, prefs),
-    ).toEqual(["sms"]);
+    ).toEqual(["email"]);
   });
 });
 

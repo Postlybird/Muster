@@ -9,8 +9,11 @@ import {
 
 type Step = { icon: LucideIcon; title: string; text: string };
 
-/** How a call-out runs, from the business's side (brief §4.3, owner 31/10/2026). */
-export function calloutSteps(alertMinutes: number): Step[] {
+/**
+ * How a call-out runs, from the business's side (brief §4.3, owner
+ * 31/10/2026). Texts only once they're on (owner, 16/11/2026).
+ */
+export function calloutSteps(alertMinutes: number, textsOn: boolean): Step[] {
   return [
     {
       icon: Siren,
@@ -20,7 +23,9 @@ export function calloutSteps(alertMinutes: number): Step[] {
     {
       icon: BellRing,
       title: "Workers nearby hear straight away",
-      text: "Every available, qualified worker who takes call-outs gets a text and an app notification, at any hour.",
+      text: textsOn
+        ? "Every available, qualified worker who takes call-outs gets a text and an app notification, at any hour."
+        : "Every available, qualified worker who takes call-outs hears straight away, by app notification or email, at any hour.",
     },
     {
       icon: Hand,
@@ -39,17 +44,20 @@ export function calloutSteps(alertMinutes: number): Step[] {
 const EXAMPLE_HOURS = 4;
 
 /**
- * A phone showing a call-out text, worded as the real message is, and the
- * booking that follows. The details are illustrative (the footer says so);
- * the pay follows a restoration technician's current rate (`hourlyCents`) and
- * the call-out loading.
+ * A phone showing a call-out text (or, while texts are off, the app
+ * notification), worded as the real message is, and the booking that
+ * follows. The details are illustrative (the footer says so); the pay
+ * follows a restoration technician's current rate (`hourlyCents`) and the
+ * call-out loading.
  */
 export function CalloutPhone({
   payPct,
   hourlyCents,
+  textsOn,
 }: {
   payPct: number;
   hourlyCents: number | null;
+  textsOn: boolean;
 }) {
   const dollars =
     hourlyCents === null
@@ -63,7 +71,7 @@ export function CalloutPhone({
       <div className="rounded-[2.5rem] border-[10px] border-deep bg-background p-4 shadow-soft">
         <div className="mx-auto mb-4 h-1.5 w-16 rounded-full bg-deep/20" />
         <p className="text-center text-xs text-muted-foreground">
-          Text message · now
+          {textsOn ? "Text message" : "App notification"} · now
         </p>
         <p className="mt-2 rounded-2xl rounded-tl-sm bg-card p-3 text-sm shadow-xs">
           Urgent work: Restoration technician in Granville, today from 2:00 pm.

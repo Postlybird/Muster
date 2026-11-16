@@ -2,6 +2,7 @@ import { CalendarCheck, Check, Circle, Search } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { textsEnabled } from "@/adapters/sms";
 import { EmptyState } from "@/components/empty-state";
 import { MyShiftCard } from "@/components/shifts/my-shift-card";
 import { OfferCard } from "@/components/shifts/offer-card";
@@ -379,6 +380,7 @@ export default async function WorkerHomePage({
             <CalloutOptIn
               on={worker.urgent_opt_in}
               payPct={(await getAllSettings()).urgent_loading_pct.pay}
+              textsOn={textsEnabled()}
             />
             <AvailableNow
               on={availableNow}

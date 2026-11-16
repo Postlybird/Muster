@@ -86,12 +86,12 @@ export default async function SettingsPage() {
         {pushPublicKey() ? (
           <p className="text-sm">
             Set up. Workers who install the app and turn notifications on get
-            messages there instead of by text.
+            messages there instead of by email.
           </p>
         ) : (
           <>
             <p className="text-sm">
-              Not set up yet, so workers get texts (in the demo, messages that
+              Not set up yet, so workers get emails (in the demo, messages that
               would be pushed go to the outbox). Push notifications are free;
               they need a pair of keys added to the hosting settings.
             </p>

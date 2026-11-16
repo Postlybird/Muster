@@ -18,7 +18,7 @@ export const BRAND_FEATURES = [
     name: `${brand.name} FastFill`,
     icon: Zap,
     title: "Shifts filled fast",
-    text: "Post in about a minute. Matching workers see it on their phone straight away, your favourites first, and short-notice shifts go out by text.",
+    text: "Post in about a minute. Matching workers see it on their phone straight away, your favourites first, and short-notice shifts go out as call-outs.",
   },
   {
     name: `${brand.name} Live`,

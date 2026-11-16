@@ -81,7 +81,7 @@ export default async function FindShiftsPage() {
           description={
             worker.urgent_opt_in
               ? "New work shows here as soon as it's posted, and we'll text you about urgent call-outs."
-              : "New work shows here as soon as it's posted. Turn on urgent call-outs in Availability to hear about last-minute work by text."
+              : "New work shows here as soon as it's posted. Turn on urgent call-outs in Availability to hear about last-minute work straight away."
           }
         />
       ) : (

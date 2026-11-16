@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { textsEnabled } from "@/adapters/sms";
 import { ActionButton } from "@/components/forms/action-button";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { JobSummary } from "@/components/jobs/job-summary";
@@ -187,7 +188,7 @@ export default async function JobPage({
             <p className="text-sm">
               {reach === 0
                 ? "No one free and qualified who takes call-outs is nearby yet. We'll tell workers as they become available."
-                : `Sent to ${workersLabel(reach)} by text and app notification. The first to accept is booked, and we'll tell you straight away.`}
+                : `Sent to ${workersLabel(reach)} by ${textsEnabled() ? "text and app notification" : "app notification or email"}. The first to accept is booked, and we'll tell you straight away.`}
             </p>
           ) : null}
           <p className="text-sm">

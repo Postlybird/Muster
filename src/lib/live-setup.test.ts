@@ -34,16 +34,28 @@ describe("liveSetupProblems", () => {
     const problems = liveSetupProblems({
       ...READY,
       EMAIL_PROVIDER: "mock",
-      SMS_PROVIDER: undefined,
+      SMS_PROVIDER: "mock",
       GEOCODER_PROVIDER: "mock",
       PUSH_PROVIDER: "mock",
     });
     expect(problems).toEqual([
       "EMAIL_PROVIDER=resend (real emails)",
-      "SMS_PROVIDER=twilio (real texts)",
+      "SMS_PROVIDER=twilio, or unset for no texts (real texts)",
       "GEOCODER_PROVIDER=google (address search across Australia)",
       "PUSH_PROVIDER=webpush (app notifications)",
     ]);
+  });
+
+  it("goes live without texts until Twilio is set up (owner, 16/11/2026)", () => {
+    expect(
+      liveSetupProblems({
+        ...READY,
+        SMS_PROVIDER: undefined,
+        TWILIO_ACCOUNT_SID: undefined,
+        TWILIO_AUTH_TOKEN: undefined,
+        TWILIO_MESSAGING_SERVICE_SID: undefined,
+      }),
+    ).toEqual([]);
   });
 
   it("names each missing key, and wants the live address over https", () => {

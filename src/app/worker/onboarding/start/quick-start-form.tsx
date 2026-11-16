@@ -19,7 +19,12 @@ import { RADIUS_OPTIONS_KM } from "@/config/worker-options";
 import { formatAuPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
-import { confirmMobileCode, finishQuickStart, sendMobileCode } from "./actions";
+import {
+  confirmMobileCode,
+  finishQuickStart,
+  saveMobile,
+  sendMobileCode,
+} from "./actions";
 
 export type QuickIndustry = {
   name: string;
@@ -27,13 +32,18 @@ export type QuickIndustry = {
   workTypes: { id: string; name: string }[];
 };
 
-/** Step 1: the worker's mobile, confirmed with a texted code. */
+/**
+ * Step 1: the worker's mobile, confirmed with a texted code, or saved as
+ * typed while texts are off (owner, 16/11/2026).
+ */
 function MobileStep({
   confirmed,
   onConfirmed,
+  textsOn,
 }: {
   confirmed: string | null;
   onConfirmed: (phone: string) => void;
+  textsOn: boolean;
 }) {
   const [value, setValue] = useState("");
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -45,7 +55,7 @@ function MobileStep({
     return (
       <p className="flex items-center gap-2 rounded-xl border bg-card p-4 font-medium">
         <CheckCircle2 className="size-5 text-success" aria-hidden />
-        Mobile confirmed: {formatAuPhone(confirmed)}
+        Mobile {textsOn ? "confirmed" : "saved"}: {formatAuPhone(confirmed)}
       </p>
     );
   }
@@ -58,6 +68,12 @@ function MobileStep({
         event.preventDefault();
         setError(null);
         start(async () => {
+          if (!textsOn) {
+            const result = await saveMobile(value);
+            if (result.ok) onConfirmed(result.destination);
+            else setError(result.error);
+            return;
+          }
           if (!sentTo) {
             const result = await sendMobileCode(value);
             if (result.ok) setSentTo(result.destination);
@@ -96,8 +112,9 @@ function MobileStep({
         <div className="space-y-2">
           <Label htmlFor="mobile">Mobile number</Label>
           <p id="mobile-hint" className="text-sm text-muted-foreground">
-            We text you about shifts, call-outs and reminders. We&apos;ll send a
-            code to confirm it.
+            {textsOn
+              ? "So we can reach you, and text you urgent call-outs if you take them. We'll send a code to confirm it."
+              : "So we can reach you about your shifts."}
           </p>
           <Input
             id="mobile"
@@ -124,7 +141,7 @@ function MobileStep({
       <div className="flex flex-wrap gap-2">
         <Button type="submit" size="lg" disabled={pending}>
           {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
-          {sentTo ? "Confirm" : "Text me a code"}
+          {!textsOn ? "Save" : sentTo ? "Confirm" : "Text me a code"}
         </Button>
         {sentTo ? (
           <Button
@@ -152,12 +169,14 @@ function MobileStep({
  */
 export function QuickStartForm({
   phone,
+  textsOn,
   suburbLabel,
   radiusKm,
   industries,
   chosen,
 }: {
   phone: string | null;
+  textsOn: boolean;
   suburbLabel: string;
   radiusKm: number;
   industries: QuickIndustry[];
@@ -185,7 +204,11 @@ export function QuickStartForm({
         <h2 id="mobile-title" className="text-lg font-semibold">
           1. Your mobile
         </h2>
-        <MobileStep confirmed={confirmed} onConfirmed={setConfirmed} />
+        <MobileStep
+          confirmed={confirmed}
+          onConfirmed={setConfirmed}
+          textsOn={textsOn}
+        />
       </section>
 
       <section aria-labelledby="work-title" className="space-y-3">

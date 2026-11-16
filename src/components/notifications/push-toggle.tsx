@@ -179,8 +179,8 @@ export function PushToggle({
     <div className="space-y-3">
       <p className="text-sm">
         {state === "on"
-          ? "Notifications are on for this device. We send messages here instead of texting you."
-          : "Turn on notifications to get messages here instead of by text."}
+          ? "Notifications are on for this device. We send messages here instead of emailing you."
+          : "Turn on notifications to get messages here instead of by email."}
         {demo ? " (Demo: they go to the outbox, as push isn't set up.)" : ""}
       </p>
       {state === "on" ? (

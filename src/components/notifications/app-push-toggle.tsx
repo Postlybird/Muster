@@ -133,8 +133,8 @@ export function AppPushToggle({
     <div className="space-y-3">
       <p className="text-sm">
         {state === "on"
-          ? "Notifications are on for this phone. We send messages here instead of texting you."
-          : "Turn on notifications to get messages here instead of by text."}
+          ? "Notifications are on for this phone. We send messages here instead of emailing you."
+          : "Turn on notifications to get messages here instead of by email."}
       </p>
       {state === "on" ? (
         <Button variant="outline" onClick={off} disabled={pending}>

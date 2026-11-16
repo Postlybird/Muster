@@ -371,7 +371,7 @@ export function ActivateButton({
     <ConfirmAction
       trigger={<Button size="lg">Activate</Button>}
       title={`Activate ${name}?`}
-      description="They'll be texted, and can take shifts in work types where their tickets are verified."
+      description="We'll tell them, and they can take shifts in work types where their tickets are verified."
       confirmLabel="Activate"
       variant="default"
       action={activateWorker.bind(null, workerId)}

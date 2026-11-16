@@ -8,7 +8,7 @@ The live site runs next to the demo (owner, 03/11/2026):
 
 The owner gets click-by-click steps for each account in chat, one at a time, and types keys into Vercel and GitHub, never into chat.
 
-The owner said go on 16/11/2026, to leave the demo before real shifts start in January 2027: about US$45 a month (Supabase Pro US$25, Vercel Pro US$20) from switch-over day, and later Twilio's texts as they're sent (a US$20 first top-up). Texts come after the switch-over, and then only for call-outs (owner, 16/11/2026). Before the switch-over, the app changes so the live site runs without Twilio: it sends no texts, workers get app notifications or emails instead, and the sign-up skips the mobile code. The order: Resend; Cloudflare Turnstile; the ABN Lookup GUID; Google Cloud; the GitHub environment `live`; Supabase Pro with `shifta-live`; Vercel Pro with the live project; then stage 3. The paid plans come last, so their monthly charges start at the switch-over.
+The owner said go on 16/11/2026, to leave the demo before real shifts start in January 2027: about US$45 a month (Supabase Pro US$25, Vercel Pro US$20) from switch-over day, and later Twilio's texts as they're sent (a US$20 first top-up). Texts come after the switch-over, and then only for call-outs (owner, 16/11/2026). Without Twilio the live site sends no texts: workers get app notifications or emails, and the sign-up saves their mobile without a code. The order: Resend; Cloudflare Turnstile; the ABN Lookup GUID; Google Cloud; the GitHub environment `live`; Supabase Pro with `shifta-live`; Vercel Pro with the live project; then stage 3. The paid plans come last, so their monthly charges start at the switch-over.
 
 ## Stage 2: accounts
 
@@ -41,10 +41,11 @@ AUTH_HOOK_SECRET=<another new long random string; also LIVE_AUTH_HOOK_SECRET in 
 EMAIL_PROVIDER=resend
 RESEND_API_KEY=<Resend API key>
 EMAIL_FROM=Shifta <hello@shifta.com.au>
-SMS_PROVIDER=twilio
-TWILIO_ACCOUNT_SID=<…>
-TWILIO_AUTH_TOKEN=<…>
-TWILIO_MESSAGING_SERVICE_SID=<…>
+# Only once texts are set up (call-outs only; until then leave these out):
+# SMS_PROVIDER=twilio
+# TWILIO_ACCOUNT_SID=<…>
+# TWILIO_AUTH_TOKEN=<…>
+# TWILIO_MESSAGING_SERVICE_SID=<…>
 GEOCODER_PROVIDER=google
 GOOGLE_MAPS_API_KEY=<…>
 PUSH_PROVIDER=webpush

@@ -8,8 +8,19 @@ import { Switch } from "@/components/ui/switch";
 
 import { setCalloutOptIn } from "./actions";
 
-/** The call-outs switch: urgent work nearby, by text and app notification. */
-export function CalloutOptIn({ on, payPct }: { on: boolean; payPct: number }) {
+/**
+ * The call-outs switch: urgent work nearby, by app notification or email,
+ * and by text once texts are on (owner, 16/11/2026).
+ */
+export function CalloutOptIn({
+  on,
+  payPct,
+  textsOn,
+}: {
+  on: boolean;
+  payPct: number;
+  textsOn: boolean;
+}) {
   const [optimistic, setOptimistic] = useOptimistic(on);
   const [pending, startTransition] = useTransition();
 
@@ -18,9 +29,11 @@ export function CalloutOptIn({ on, payPct }: { on: boolean; payPct: number }) {
       <Label htmlFor="callouts" className="flex-col items-start gap-1">
         <span className="text-base">Call-outs</span>
         <span className="font-normal text-muted-foreground">
-          A text and an app notification, at any hour, when urgent work nearby
-          needs someone fast. The first to accept gets it, and call-outs pay{" "}
-          {payPct}% more.
+          {textsOn
+            ? "A text and an app notification, at any hour,"
+            : "An app notification or email, at any hour,"}{" "}
+          when urgent work nearby needs someone fast. The first to accept gets
+          it, and call-outs pay {payPct}% more.
         </span>
       </Label>
       <Switch

@@ -26,6 +26,15 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Texts a code to confirm a new mobile, at most a few a day per person. */
 export async function sendAuthText(event: AuthTextEvent): Promise<HookResult> {
+  // Mobiles are saved without a code while texts are off (owner, 16/11/2026).
+  const sms = getSmsSender();
+  if (!sms) {
+    return {
+      ok: false,
+      httpCode: 503,
+      message: "We aren't sending texts yet.",
+    };
+  }
   const admin = createAdminClient();
   const userId = event.user?.id;
   let sentToday = 0;
@@ -50,7 +59,7 @@ export async function sendAuthText(event: AuthTextEvent): Promise<HookResult> {
     .single();
   if (error) throw new Error(`Couldn't record the code text: ${error.message}`);
   try {
-    await getSmsSender().send({ to: decision.to, body: decision.body });
+    await sms.send({ to: decision.to, body: decision.body });
   } catch (problem) {
     await admin.from("auth_texts").delete().eq("id", claim.id);
     throw problem;

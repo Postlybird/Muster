@@ -72,7 +72,7 @@ export async function matchPostedJob(jobId: string) {
  * Brings a worker's offers up to date: when they're activated or a check is
  * decided, and when they open the shift feed after changing their work
  * types, travel distance or blocked dates. Someone already looking at their
- * offers isn't texted about them.
+ * offers isn't told about them.
  */
 export async function refreshWorkerMatches(
   workerId: string,

@@ -3,8 +3,10 @@
 import type { AuthError } from "@supabase/supabase-js";
 import { z } from "zod";
 
+import { textsEnabled } from "@/adapters/sms";
 import { normaliseAuMobile } from "@/lib/phone";
 import { failure, type ActionState } from "@/lib/forms";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { requestOrigin } from "@/server/request";
 import { finishStep, getMyWorker } from "@/server/workers";
@@ -77,6 +79,44 @@ export async function sendContactCode(
   );
   if (error) return { ok: false, error: friendly(error, kind) };
   return { ok: true, destination: email.data };
+}
+
+/**
+ * Saves the worker's own mobile as typed, while texts are off (owner,
+ * 16/11/2026): without a confirming text, only the service role can set it.
+ * Once texts are on, mobiles are confirmed with a code as before.
+ */
+export async function saveMobileWithoutCode(
+  value: string,
+): Promise<SendResult> {
+  if (textsEnabled()) {
+    return { ok: false, error: "Confirm your mobile with a texted code." };
+  }
+  const { user } = await getMyWorker();
+  if (user.phone) {
+    return { ok: false, error: "You've already added your mobile." };
+  }
+  const phone = normaliseAuMobile(value);
+  if (!phone) {
+    return {
+      ok: false,
+      error: "Enter an Australian mobile number, like 0412 345 678.",
+    };
+  }
+  const { error } = await createAdminClient().auth.admin.updateUserById(
+    user.id,
+    { phone, phone_confirm: true },
+  );
+  if (error) return { ok: false, error: friendly(error, "phone") };
+  return { ok: true, destination: phone };
+}
+
+/** The contact step's mobile, saved without a code while texts are off. */
+export async function saveContactMobile(value: string): Promise<ActionState> {
+  const result = await saveMobileWithoutCode(value);
+  if (!result.ok) return failure(result.error);
+  const { worker } = await getMyWorker();
+  return finishStep(worker, "contact");
 }
 
 /** Confirms the code, then carries on with onboarding. */

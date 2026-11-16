@@ -102,15 +102,17 @@ export function readPrefs(raw: unknown): NotificationPrefs {
 
 /**
  * Where a message goes (brief §5). Workers get push notifications in the
- * installed app, or texts if they haven't installed it, and urgent
- * call-outs by text as well. Businesses and our team get emails. A
- * category someone turned off stays in the app only, unless it's critical.
+ * installed app, or emails if they haven't turned them on. Texts are only
+ * for urgent call-outs, as well (owner, 16/11/2026), and only once texts
+ * are on and the worker has a mobile (`canText`). Businesses and our team
+ * get emails. A category someone turned off stays in the app only, unless
+ * it's critical.
  */
 export function channelsFor(
   recipient: {
     audience: Audience;
     hasPush: boolean;
-    hasPhone: boolean;
+    canText: boolean;
     hasEmail: boolean;
   },
   category: NotificationCategory,
@@ -123,12 +125,8 @@ export function channelsFor(
   }
   const channels: Channel[] = [];
   if (recipient.hasPush) channels.push("push");
-  if (
-    recipient.hasPhone &&
-    (!recipient.hasPush || category === "urgent_work")
-  ) {
-    channels.push("sms");
-  }
+  else if (recipient.hasEmail) channels.push("email");
+  if (recipient.canText && category === "urgent_work") channels.push("sms");
   return channels;
 }
 

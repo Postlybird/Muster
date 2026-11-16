@@ -1,6 +1,7 @@
 import { CircleCheck, HandCoins, LifeBuoy, Mail } from "lucide-react";
 import Link from "next/link";
 
+import { textsEnabled } from "@/adapters/sms";
 import { CalloutPhone, calloutSteps } from "@/components/home/callout-visual";
 import { DashboardFeatures } from "@/components/home/dashboard-features";
 import { HeroVisual } from "@/components/home/hero-visual";
@@ -250,7 +251,7 @@ export default async function HomePage() {
               intro={`For short notice, turn a shift into a call-out. Workers nearby who take call-outs hear straight away, the first to accept is booked, and they earn ${payPct}% more an hour for it.`}
             />
             <ol className="grid gap-6 sm:grid-cols-2">
-              {calloutSteps(settings.callout_alert_minutes).map(
+              {calloutSteps(settings.callout_alert_minutes, textsEnabled()).map(
                 (step, index) => (
                   <li key={step.title} className="flex gap-4">
                     <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-highlight-soft text-deep">
@@ -268,7 +269,11 @@ export default async function HomePage() {
               )}
             </ol>
           </div>
-          <CalloutPhone payPct={payPct} hourlyCents={technicianPay} />
+          <CalloutPhone
+            payPct={payPct}
+            hourlyCents={technicianPay}
+            textsOn={textsEnabled()}
+          />
         </Container>
       </section>
 

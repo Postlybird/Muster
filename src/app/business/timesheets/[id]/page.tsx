@@ -179,7 +179,7 @@ export default async function BusinessTimesheetPage({
               }}
               note={{
                 label: "What changed, for the worker",
-                hint: "We text it to them with the new hours.",
+                hint: "We send it to them with the new hours.",
                 required: true,
               }}
               submitLabel="Save and approve"

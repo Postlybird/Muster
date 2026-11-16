@@ -78,8 +78,8 @@ test("an admin checks a new worker and activates them", async ({ page }) => {
     page.getByRole("heading", { name: worker.name }).locator(".."),
   ).toContainText("Active");
 
-  // The worker is told by text.
-  await page.goto(`/dev/outbox?to=${encodeURIComponent(worker.mobile.e164)}`);
+  // The worker is told by email (no app notifications).
+  await page.goto(`/dev/outbox?to=${encodeURIComponent(worker.email)}`);
   await expect(
     page.getByText(/You're verified and ready to work/),
   ).toBeVisible();

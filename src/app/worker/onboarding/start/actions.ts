@@ -13,7 +13,11 @@ import { saveFailed } from "@/server/errors";
 import { signUpDetails } from "@/server/sign-up";
 import { getMyWorker } from "@/server/workers";
 
-import { sendContactCode, type SendResult } from "../contact/actions";
+import {
+  saveMobileWithoutCode,
+  sendContactCode,
+  type SendResult,
+} from "../contact/actions";
 
 /** Any time, every day, until the worker says otherwise (owner, 01/11/2026). */
 const ANY_TIME = { start_time: "00:00", end_time: "23:59" };
@@ -27,12 +31,20 @@ async function acceptCollectionNotice(profileId: string) {
   return notice ? recordAcceptances(profileId, [notice.id]) : null;
 }
 
-/** Texts a code to confirm the worker's mobile (we text call-outs and reminders). */
+/** Texts a code to confirm the worker's mobile (we text call-outs). */
 export async function sendMobileCode(value: string): Promise<SendResult> {
   const { user } = await getMyWorker();
   const problem = await acceptCollectionNotice(user.id);
   if (problem) return { ok: false, error: problem };
   return sendContactCode("phone", value);
+}
+
+/** Saves the worker's mobile without a code, while texts are off. */
+export async function saveMobile(value: string): Promise<SendResult> {
+  const { user } = await getMyWorker();
+  const problem = await acceptCollectionNotice(user.id);
+  if (problem) return { ok: false, error: problem };
+  return saveMobileWithoutCode(value);
 }
 
 export type ConfirmResult = { ok: true } | { ok: false; error: string };

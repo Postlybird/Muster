@@ -81,13 +81,15 @@ test("a worker applies, the business picks them, and they see the address", asyn
   ).toBeVisible();
   await expect(page.getByText("1 of 1 booked")).toBeVisible();
 
-  // He's texted, and now sees the address and who to report to.
-  const { data: texts } = await serviceClient()
+  // He's emailed (no app notifications), and now sees the address and who
+  // to report to.
+  const { data: emails } = await serviceClient()
     .from("dev_outbox")
     .select("body")
-    .eq("recipient", "+61491570006")
+    .eq("channel", "email")
+    .eq("recipient", "liam.obrien@demo.test")
     .like("body", `%You're booked%/worker/shifts/${jobId}`);
-  expect(texts).toHaveLength(1);
+  expect(emails).toHaveLength(1);
   await page.context().clearCookies();
   await signInAsDemo(page, "Liam O'Brien");
   await page.goto(`/worker/shifts/${jobId}`);

@@ -658,7 +658,7 @@ export async function bookTestWorker(shiftId: string, name: string) {
   const [first, ...rest] = name.split(" ");
   const { data: worker } = await supabase
     .from("workers")
-    .select("id, profile_id, profiles(phone)")
+    .select("id, profile_id, profiles(phone, email)")
     .eq("legal_first_name", first)
     .eq("legal_last_name", rest.join(" "))
     .single();
@@ -669,8 +669,15 @@ export async function bookTestWorker(shiftId: string, name: string) {
     p_check_visible: false,
   });
   expect(result).toBe("booked");
-  const profile = worker.profiles as unknown as { phone: string };
-  return { workerId: worker.id as string, phone: profile.phone };
+  const profile = worker.profiles as unknown as {
+    phone: string;
+    email: string;
+  };
+  return {
+    workerId: worker.id as string,
+    phone: profile.phone,
+    email: profile.email,
+  };
 }
 
 /** Moves a shift to start `hours` from now (negative: already started). */

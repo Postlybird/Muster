@@ -1,6 +1,5 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
 
-import { brand } from "../src/config/brand";
 import {
   bookTestWorker,
   expectAccessible,
@@ -63,7 +62,7 @@ async function shiftTomorrow(name: string) {
     fillMode: "auto",
   });
   posted.push(job.jobId);
-  const { phone } = await bookTestWorker(job.shiftId, name);
+  const { email } = await bookTestWorker(job.shiftId, name);
   const start = Date.now() + 20 * 3_600_000;
   await serviceClient()
     .from("shifts")
@@ -72,7 +71,7 @@ async function shiftTomorrow(name: string) {
       ends_at: new Date(start + 2 * 3_600_000).toISOString(),
     })
     .eq("id", job.shiftId);
-  return { jobId: job.jobId, phone };
+  return { jobId: job.jobId, email };
 }
 
 async function runJob(request: APIRequestContext, job: string) {
@@ -83,20 +82,28 @@ async function runJob(request: APIRequestContext, job: string) {
   expect(response.status()).toBe(200);
 }
 
-async function sent(channel: "sms" | "push", recipient: string, jobId: string) {
+/**
+ * What reached the worker about the job, by email (workers without app
+ * notifications; owner, 16/11/2026) or push.
+ */
+async function sent(
+  channel: "email" | "push",
+  recipient: string,
+  jobId: string,
+) {
   const { data } = await serviceClient()
     .from("dev_outbox")
     .select("subject, body")
     .eq("channel", channel)
     .eq("recipient", recipient)
     .like(
-      channel === "sms" ? "body" : "meta->>url",
+      channel === "email" ? "body" : "meta->>url",
       `%/worker/shifts/${jobId}`,
     );
   return data ?? [];
 }
 
-test("a worker who turns notifications on gets them in the app instead of texts", async ({
+test("a worker who turns notifications on gets them in the app instead of emails", async ({
   page,
   request,
 }) => {
@@ -111,12 +118,12 @@ test("a worker who turns notifications on gets them in the app instead of texts"
     page.getByRole("button", { name: "Turn off notifications" }),
   ).toBeVisible();
 
-  const { jobId, phone } = await shiftTomorrow(name);
+  const { jobId } = await shiftTomorrow(name);
   await runJob(request, "reminders");
   expect(await sent("push", email, jobId)).toEqual([
     expect.objectContaining({ subject: "Shift tomorrow" }),
   ]);
-  expect(await sent("sms", phone, jobId)).toEqual([]);
+  expect(await sent("email", email, jobId)).toEqual([]);
 
   await page.goto("/worker/notifications");
   const reminder = page
@@ -130,7 +137,7 @@ test("a worker who turns notifications on gets them in the app instead of texts"
   await expectAccessible(page);
 });
 
-test("a worker with the phone app gets reminders there instead of texts", async ({
+test("a worker with the phone app gets reminders there instead of emails", async ({
   request,
 }) => {
   const name = "Fatima Al-Sayed";
@@ -144,7 +151,7 @@ test("a worker with the phone app gets reminders there instead of texts", async 
       token: `e2e-${id}-phone-token`,
     });
 
-  const { jobId, phone } = await shiftTomorrow(name);
+  const { jobId } = await shiftTomorrow(name);
   await runJob(request, "reminders");
   const { data: pushed } = await serviceClient()
     .from("dev_outbox")
@@ -158,7 +165,7 @@ test("a worker with the phone app gets reminders there instead of texts", async 
       meta: expect.objectContaining({ app: "android" }),
     },
   ]);
-  expect(await sent("sms", phone, jobId)).toEqual([]);
+  expect(await sent("email", email, jobId)).toEqual([]);
 });
 
 test("a worker can turn reminders off, and still sees them in the app", async ({
@@ -167,7 +174,7 @@ test("a worker can turn reminders off, and still sees them in the app", async ({
 }) => {
   test.setTimeout(90_000);
   const name = "Priya Patel";
-  await personCalled(name);
+  const { email } = await personCalled(name);
   await signInAsDemo(page, name);
   await page.goto("/worker/settings");
   await page.getByLabel(/Shift reminders/).click();
@@ -176,9 +183,9 @@ test("a worker can turn reminders off, and still sees them in the app", async ({
     page.getByText("Saved. We'll send you what you've chosen."),
   ).toBeVisible();
 
-  const { jobId, phone } = await shiftTomorrow(name);
+  const { jobId } = await shiftTomorrow(name);
   await runJob(request, "reminders");
-  expect(await sent("sms", phone, jobId)).toEqual([]);
+  expect(await sent("email", email, jobId)).toEqual([]);
   await page.goto("/worker/notifications");
   await expect(page.getByText("Shift tomorrow").first()).toBeVisible();
 });
@@ -187,7 +194,7 @@ test("non-urgent messages wait for quiet hours to end", async ({ request }) => {
   test.setTimeout(90_000);
   const service = serviceClient();
   const name = "Hannah Schmidt";
-  await personCalled(name);
+  const { email } = await personCalled(name);
   // Quiet hours from an hour ago to an hour from now, Sydney time.
   const local = (offset: number) =>
     new Date(Date.now() + offset * 3_600_000).toLocaleTimeString("en-GB", {
@@ -200,9 +207,9 @@ test("non-urgent messages wait for quiet hours to end", async ({ request }) => {
     .update({ value: { start: local(-1), end: local(1) } })
     .eq("key", "quiet_hours");
 
-  const { jobId, phone } = await shiftTomorrow(name);
+  const { jobId } = await shiftTomorrow(name);
   await runJob(request, "reminders");
-  expect(await sent("sms", phone, jobId)).toEqual([]);
+  expect(await sent("email", email, jobId)).toEqual([]);
 
   // Quiet hours end: the notifications job sends it.
   const { data: held } = await service
@@ -213,7 +220,7 @@ test("non-urgent messages wait for quiet hours to end", async ({ request }) => {
     .select("id");
   expect(held).toHaveLength(1);
   await runJob(request, "notifications");
-  expect(await sent("sms", phone, jobId)).toHaveLength(1);
+  expect(await sent("email", email, jobId)).toHaveLength(1);
 });
 
 test("an admin changes a message's words, and messages use them", async ({
@@ -245,14 +252,12 @@ test("an admin changes a message's words, and messages use them", async ({
     page.getByText("Saved. Messages sent from now on use this wording."),
   ).toBeVisible();
 
-  await personCalled("Hannah Schmidt");
-  const { jobId, phone } = await shiftTomorrow("Hannah Schmidt");
+  const { email } = await personCalled("Hannah Schmidt");
+  const { jobId } = await shiftTomorrow("Hannah Schmidt");
   await runJob(request, "reminders");
-  const [text] = await sent("sms", phone, jobId);
-  expect(text?.body).toMatch(
-    new RegExp(
-      `^${brand.name}: Don't forget: Commercial cleaner for Westside Cleaning on `,
-    ),
+  const [reminder] = await sent("email", email, jobId);
+  expect(reminder?.body).toMatch(
+    /^Don't forget: Commercial cleaner for Westside Cleaning on /,
   );
 
   await page.getByRole("button", { name: "Use the standard wording" }).click();

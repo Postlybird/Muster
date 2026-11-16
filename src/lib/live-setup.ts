@@ -30,10 +30,18 @@ export function liveSetupProblems(
   need("RESEND_API_KEY", "real emails");
   need("EMAIL_FROM", "real emails");
 
-  provider("SMS_PROVIDER", "twilio", "real texts");
-  need("TWILIO_ACCOUNT_SID", "real texts");
-  need("TWILIO_AUTH_TOKEN", "real texts");
-  need("TWILIO_MESSAGING_SERVICE_SID", "real texts");
+  // Texts are only for call-outs, and off until Twilio is set up (owner,
+  // 16/11/2026): no SMS_PROVIDER means none. The pretend sender is never
+  // live.
+  const sms = value("SMS_PROVIDER");
+  if (sms && sms !== "twilio") {
+    problems.push("SMS_PROVIDER=twilio, or unset for no texts (real texts)");
+  }
+  if (sms === "twilio") {
+    need("TWILIO_ACCOUNT_SID", "real texts");
+    need("TWILIO_AUTH_TOKEN", "real texts");
+    need("TWILIO_MESSAGING_SERVICE_SID", "real texts");
+  }
 
   provider("GEOCODER_PROVIDER", "google", "address search across Australia");
   need("GOOGLE_MAPS_API_KEY", "address search across Australia");

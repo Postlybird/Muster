@@ -262,11 +262,10 @@ export default async function ReviewStepPage({
         {job.type === "urgent" ? (
           <Alert variant="info">
             <AlertDescription>
-              As soon as you post, we text and notify every available, qualified
-              worker nearby who takes call-outs, and the first to accept is
-              booked. If no one has within{" "}
-              {(await getAllSettings()).callout_alert_minutes} minutes,
-              we&apos;ll tell you, and our team will look too.
+              As soon as you post, we tell every available, qualified worker
+              nearby who takes call-outs, and the first to accept is booked. If
+              no one has within {(await getAllSettings()).callout_alert_minutes}{" "}
+              minutes, we&apos;ll tell you, and our team will look too.
             </AlertDescription>
           </Alert>
         ) : null}

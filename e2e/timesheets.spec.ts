@@ -302,13 +302,13 @@ test("the business changes hours, the worker queries them, and an admin settles 
   await expectAccessible(page);
   await page.getByRole("button", { name: "Save and approve" }).click();
   await expect(page.getByText("Approved with changes").first()).toBeVisible();
-  const { data: texts } = await serviceClient()
+  const { data: toWorker } = await serviceClient()
     .from("dev_outbox")
     .select("body")
-    .eq("channel", "sms")
+    .eq("channel", "email")
     .gte("created_at", since)
     .like("body", "%set your hours%");
-  expect(texts?.length).toBeGreaterThan(0);
+  expect(toWorker?.length).toBeGreaterThan(0);
 
   // The worker queries the change.
   await page.context().clearCookies();

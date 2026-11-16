@@ -19,7 +19,7 @@ export async function sendTestMessages(): Promise<void> {
       text: "This is a test email from the email adapter.",
       tag: "test",
     }),
-    getSmsSender().send({
+    getSmsSender()?.send({
       to: "+61400000000",
       body: `${brand.name}: this is a test text from the SMS adapter.`,
     }),

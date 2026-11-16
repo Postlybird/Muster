@@ -48,13 +48,14 @@ test("booked workers are reminded the day before, once", async ({
       });
     expect((await run()).status()).toBe(200);
     expect((await run()).status()).toBe(200);
-    const { data: texts } = await service
+    const { data: emails } = await service
       .from("dev_outbox")
       .select("body")
-      .eq("recipient", hannah!.phone!)
+      .eq("channel", "email")
+      .eq("recipient", "hannah.schmidt@demo.test")
       .like("body", `%Reminder: %/worker/shifts/${jobId}`);
-    expect(texts).toHaveLength(1);
-    expect(texts![0]!.body).toMatch(
+    expect(emails).toHaveLength(1);
+    expect(emails![0]!.body).toMatch(
       /Commercial cleaner for Westside Cleaning on \w{3} \d+ \w{3} from .* at .*, Blacktown\./,
     );
   } finally {

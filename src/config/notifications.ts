@@ -38,7 +38,7 @@ export const NOTIFICATION_CATEGORIES: Record<
 > = {
   urgent_work: {
     label: "Urgent call-outs",
-    help: "Urgent work near you, by text as well as in the app.",
+    help: "Urgent work near you that needs someone fast, at any hour.",
     critical: false,
   },
   bookings: {

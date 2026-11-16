@@ -5,7 +5,7 @@ import { cache } from "react";
 import { getEmailSender, type EmailAttachment } from "@/adapters/email";
 import { getAppPushSender } from "@/adapters/app-push";
 import { getPushSender } from "@/adapters/push";
-import { getSmsSender } from "@/adapters/sms";
+import { getSmsSender, textsEnabled } from "@/adapters/sms";
 import { brand, contactLine } from "@/config/brand";
 import {
   NOTIFICATION_CATEGORIES,
@@ -167,7 +167,7 @@ async function createNotification<K extends TemplateKey>(
     {
       audience: template.audience,
       hasPush: (browsers ?? 0) + (getAppPushSender() ? (phones ?? 0) : 0) > 0,
-      hasPhone: !!person.phone,
+      canText: !!person.phone && textsEnabled(),
       hasEmail: !!person.email,
     },
     template.category,
@@ -211,7 +211,7 @@ async function createNotification<K extends TemplateKey>(
 /**
  * Sends one message by its channels, once: it's claimed first, so the
  * notifications job and the code that made it never both send it. A
- * worker whose devices all turned push off gets a text instead.
+ * worker whose devices all turned push off gets an email instead.
  */
 async function deliver(admin: Admin, id: string): Promise<void> {
   const { data: claimed } = await admin
@@ -229,10 +229,21 @@ async function deliver(admin: Admin, id: string): Promise<void> {
   const recipient = person?.email ?? person?.phone ?? row.profile_id;
   const text = async () => {
     if (!person?.phone) throw new Error("No mobile number");
-    await getSmsSender().send({
+    const sms = getSmsSender();
+    if (!sms) throw new Error("Texts are off");
+    await sms.send({
       to: person.phone,
       body: `${brand.name}: ${row.message}`,
       urgent: row.urgent,
+    });
+  };
+  const email = async () => {
+    if (!person?.email) throw new Error("No email address");
+    await getEmailSender().send({
+      to: person.email,
+      subject: row.title,
+      text: row.message,
+      tag: row.template,
     });
   };
   for (const channel of row.channels as Channel[]) {
@@ -241,18 +252,12 @@ async function deliver(admin: Admin, id: string): Promise<void> {
         const reached = await push(admin, row, recipient);
         if (!reached) {
           failed.push("push");
-          if (!row.channels.includes("sms") && person?.phone) await text();
+          if (!row.channels.includes("email") && person?.email) await email();
         }
       } else if (channel === "sms") {
         await text();
       } else {
-        if (!person?.email) throw new Error("No email address");
-        await getEmailSender().send({
-          to: person.email,
-          subject: row.title,
-          text: row.message,
-          tag: row.template,
-        });
+        await email();
       }
     } catch (error) {
       console.error(`Couldn't send ${row.template} by ${channel}`, error);

@@ -75,7 +75,7 @@ export default async function FaqPage() {
         <p>
           Sign up with your email address, then add your mobile number, details,
           right to work, photo ID, the work you do and your tickets. It takes
-          about five minutes on your phone. We check everything and text you
+          about five minutes on your phone. We check everything and let you know
           when you&apos;re ready to work. You need to be at least{" "}
           {settings.min_worker_age}.
         </p>

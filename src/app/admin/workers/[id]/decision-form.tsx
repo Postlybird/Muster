@@ -96,7 +96,7 @@ export function DecisionForm({
               className="text-sm text-muted-foreground"
             >
               {fieldErrors?.reason?.[0] ??
-                "We text this to the worker and show it in the app."}
+                "We send this to the worker and show it in the app."}
             </p>
           </div>
         </div>

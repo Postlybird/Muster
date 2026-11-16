@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { textsEnabled } from "@/adapters/sms";
 import { suburbLabel } from "@/config/worker-options";
 import { quickStartDone } from "@/domain/onboarding";
 import { groupByIndustry } from "@/lib/industries";
@@ -54,6 +55,7 @@ export default async function QuickStartPage() {
       </div>
       <QuickStartForm
         phone={user.phone}
+        textsOn={textsEnabled()}
         suburbLabel={suburbLabel(
           worker.home_suburb,
           worker.home_state,
