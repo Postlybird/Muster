@@ -478,6 +478,9 @@ _Last updated: 16/11/2026_
 - **Try it:** sign up on the live site as a worker or a business, with test details only (in demo mode anyone with the outbox link can see the codes). Codes appear at `/dev/outbox`.
 - **Optional, any time:** turn on push notifications (Admin → Settings → Push notifications has the steps).
 - **Phase 2:** once you've looked over Phase 1, we'll propose the Phase 2 plan (brief §11: Stripe payments, the payroll provider's API, automated identity, police check and VEVO checks, in-app messages per shift, recurring jobs, smarter ranking and fuller reports) and wait for your OK before starting.
+- **Ideas for later** (owner, 19/11/2026; nothing changes now):
+  - **A leaderboard** for workers and businesses: the most reliable workers, the most shifts done and the best rated. It would build on what's there (badges, reliability, shifts done, ratings). To think through first: workers choose to appear; it ranks within a work type and area and starts again each month, so newer workers can get on it; it ranks on reliability and ratings more than hours, as casuals can turn shifts down; and businesses still see a worker's details only once they apply, as now (the privacy notice would need a line about it).
+  - **Short training for workers:** a Shifta induction (safety, clocking in, how to behave on site) that earns a badge, and links to White Card and IICRC courses.
 
 ## Decisions
 
