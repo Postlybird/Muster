@@ -122,6 +122,7 @@ Until you decide, Shifta uses the default shown, and each can change later.
 - [x] **Delete my account.** Decided 14/11/2026: both stores require it. It signs the person out for good and stops their messages, and removes their photo, phones and availability straight away; hours, pay and invoices are kept for 7 years, as the law requires. Anyone with shifts booked cancels them first.
 - [x] **The stores' reviewers.** Decided 14/11/2026: one reviewers' account signs in with a fixed code, the one exception to "no passwords". It works only while an admin has switched review sign-in on, and it's a worker we haven't checked, so reviewers can look around but can't apply for real shifts or see any business's details.
 - [x] **The 10 questions in `docs/plan.md`.** Decided 14/11/2026: keep our recommendations.
+- [ ] **Passwords, or a code by email?** Asked 18/11/2026; the owner will come back to it. Now everyone signs in and up with a 6-digit code (or the link) by email, which lasts 15 minutes, and stays signed in on that phone or computer, so a code is only needed on a new device or after signing out. Admins also use an authenticator app. **Recommendation:** keep codes: there's no password to leak, reuse or forget, sign-up is quicker and proves the email, and there are no password resets to handle. The other option: a password people can add in Settings, signing in with either, the code staying as "forgot my password" (about a day's work, with a minimum length and leaked passwords refused). Passwords only isn't recommended.
 
 ### Later (not needed to launch)
 
