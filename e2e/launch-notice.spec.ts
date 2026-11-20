@@ -31,6 +31,7 @@ test.describe("before we open for shifts", () => {
       "Shifts start in early 2027.",
     );
     await page.getByRole("tab", { name: "For workers" }).click();
+    await page.getByRole("tab", { name: "We check you" }).click();
     await expect(page.getByText("Before shifts start")).toBeVisible();
     await expectAccessible(page);
 
