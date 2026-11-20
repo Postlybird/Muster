@@ -26,6 +26,14 @@ const DEMO_VALUES: { [K in SettingKey]?: SettingValue<K> } = {
 };
 
 /**
+ * The live site's own starting values: it opens before shifts start, so it
+ * shows the launch notice (owner, 20/11/2026).
+ */
+const LIVE_VALUES: { [K in SettingKey]?: SettingValue<K> } = {
+  launch_notice: true,
+};
+
+/**
  * Default policy settings, from the registry in src/config/settings.ts. The
  * demo gets made-up company and bank details; the live site starts with
  * our legal name and ABN, and no invoice goes out until the owner enters
@@ -36,7 +44,8 @@ export function seedSettingValues({ demo }: { demo: boolean }) {
     const definition = SETTINGS[key];
     return {
       key,
-      value: (demo ? DEMO_VALUES[key] : undefined) ?? definition.defaultValue,
+      value:
+        (demo ? DEMO_VALUES[key] : LIVE_VALUES[key]) ?? definition.defaultValue,
       isPublic: definition.isPublic,
       description: `${definition.placeholder ? "PLACEHOLDER. " : ""}${definition.help}`,
     };

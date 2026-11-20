@@ -35,9 +35,11 @@ export type SettingInput =
       }[];
     };
 
-export type SettingGroup = "workers" | "cancellations" | "on_the_day" | "money";
+export type SettingGroup =
+  "launch" | "workers" | "cancellations" | "on_the_day" | "money";
 
 export const settingGroups: Record<SettingGroup, string> = {
+  launch: "Before we open for shifts",
   workers: "Workers",
   cancellations: "Cancellations, no-shows and reliability",
   on_the_day: "On the day and timesheets",
@@ -71,6 +73,28 @@ const weekdays = [
 ] as const;
 
 export const SETTINGS = {
+  // Before we open for shifts (owner, 20/11/2026)
+  launch_notice: define({
+    label: "Show the launch notice",
+    help: "While it's on, every page says when shifts start and that we'll email people when we open, and workers and businesses are told the same after they sign up. Switch it off when you open for shifts, then email everyone below.",
+    group: "launch",
+    schema: z.boolean(),
+    // On for the live site from its first setup (seed:reference), so people
+    // can sign up before shifts start; off in the demo.
+    defaultValue: false,
+    input: { kind: "boolean" },
+    isPublic: true,
+  }),
+  launch_notice_when: define({
+    label: "When shifts start",
+    help: 'Read after "Shifts start", like "in early 2027" or "on 13 January".',
+    group: "launch",
+    schema: z.string().trim().min(1, "Say when shifts start").max(40),
+    defaultValue: "in early 2027",
+    input: { kind: "text", maxLength: 40 },
+    isPublic: true,
+  }),
+
   // Workers
   min_worker_age: define({
     label: "Minimum worker age",

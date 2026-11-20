@@ -203,7 +203,10 @@ export default async function HomePage() {
             intro="Tap a step to see what happens."
             centred
           />
-          <HowItWorks autoApproveHours={settings.auto_approve_hours} />
+          <HowItWorks
+            autoApproveHours={settings.auto_approve_hours}
+            launching={settings.launch_notice}
+          />
         </Container>
       </section>
 

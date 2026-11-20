@@ -2,6 +2,7 @@ import { CircleCheck } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { LaunchNote } from "@/components/launch-note";
 import { getSessionUser } from "@/lib/auth";
 import type { RegisterKind } from "@/lib/register";
 import { roleHome } from "@/lib/roles";
@@ -41,6 +42,7 @@ export async function RegisterPage({
           <p className="text-lg text-muted-foreground">{copy.description}</p>
         </div>
 
+        <LaunchNote kind="signUp" />
         <RegisterForm kind={kind} />
 
         <div className="space-y-2 border-t pt-6 text-muted-foreground">

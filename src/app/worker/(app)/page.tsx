@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { isAvailableNow } from "@/domain/availability";
+import { launchWords } from "@/domain/launch";
 import { quickStartDone, type OnboardingStepKey } from "@/domain/onboarding";
 import { formatTime, zoneOf } from "@/lib/format";
 import { groupMyShifts } from "@/lib/my-shifts";
@@ -23,6 +24,7 @@ import {
   type StatusInfo,
 } from "@/lib/statuses";
 import { createClient } from "@/lib/supabase/server";
+import { launchNotice } from "@/server/launch";
 import { getAllSettings } from "@/server/settings";
 import { loadTickets } from "@/server/tickets";
 import { getMyWorker, type WorkerRow } from "@/server/workers";
@@ -306,8 +308,8 @@ async function Offers() {
 export default async function WorkerHomePage({
   searchParams,
 }: PageProps<"/worker">) {
-  const { user, worker } = await getMyWorker();
-  const { submitted, welcome } = await searchParams;
+  const [{ user, worker }, { submitted, welcome }, launchWhen] =
+    await Promise.all([getMyWorker(), searchParams, launchNotice()]);
   const name =
     worker.preferred_name ??
     worker.legal_first_name ??
@@ -336,8 +338,11 @@ export default async function WorkerHomePage({
       {submitted && worker.status === "pending" ? (
         <Alert variant="success">
           <AlertDescription>
-            Thanks, we&apos;ve got your details. We&apos;ll check them and text
-            you when you&apos;re ready to take shifts.
+            Thanks, we&apos;ve got your details.{" "}
+            {launchWhen !== null
+              ? // Before we open for shifts (owner, 20/11/2026).
+                launchWords(launchWhen).workerNext
+              : "We'll check them and let you know when you're ready to take shifts."}
           </AlertDescription>
         </Alert>
       ) : null}

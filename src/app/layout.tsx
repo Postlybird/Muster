@@ -3,13 +3,14 @@ import { GeistMono } from "geist/font/mono";
 import type { Metadata, Viewport } from "next";
 import { Suspense, type CSSProperties } from "react";
 
-import { DemoBanner } from "@/components/layout/demo-banner";
 import { NavigationProgress } from "@/components/layout/navigation-progress";
+import { SiteBanner } from "@/components/layout/site-banner";
 import { NativeBridge } from "@/components/native/native-bridge";
 import { isDemoMode } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { brand } from "@/config/brand";
+import { launchNotice } from "@/server/launch";
 
 import "./globals.css";
 
@@ -38,7 +39,9 @@ const brandVariables = {
   "--brand-accent-foreground": brand.colours.accentForeground,
 } as CSSProperties;
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // When shifts start, while the launch notice is on (owner, 20/11/2026).
+  const launchWhen = await launchNotice();
   return (
     <html
       lang="en-AU"
@@ -48,14 +51,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body
         className={cn(
           "flex min-h-full flex-col font-sans",
-          isDemoMode() && "[--banner-h:1.75rem]",
+          (isDemoMode() || launchWhen !== null) && "[--banner-h:1.75rem]",
         )}
       >
         {/* Reads the page address, so it waits for it on static pages. */}
         <Suspense fallback={null}>
           <NavigationProgress />
         </Suspense>
-        <DemoBanner />
+        <SiteBanner launchWhen={launchWhen} />
         {children}
         <Toaster />
         <NativeBridge />

@@ -24,6 +24,7 @@ import { ADMINS, BUSINESSES, WORKERS } from "./people";
 import { hourlyPayTable, rateCardFromRow } from "@/domain/rates";
 
 import { AWARD_RATE_CARDS, DEFAULT_BASE_RATES_CENTS } from "./rates";
+import { seedSettingValues } from "./settings";
 import { DEMO_WORKED } from "./worked";
 
 const credentialCodes = new Set(CREDENTIAL_TYPES.map((c) => c.code));
@@ -95,6 +96,13 @@ describe("seed catalogues", () => {
       const priced = checked.has(code);
       expect(priced, code).toBe(!WAITING_FOR_RATES.includes(code));
     }
+  });
+
+  it("show the launch notice on the live site only (owner, 20/11/2026)", () => {
+    const notice = (demo: boolean) =>
+      seedSettingValues({ demo }).find((s) => s.key === "launch_notice")?.value;
+    expect(notice(false)).toBe(true);
+    expect(notice(true)).toBe(false);
   });
 
   it("pre-tick a White Card for general labourers only (owner, 16/11/2026)", () => {

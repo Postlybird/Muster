@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { launchWords } from "@/domain/launch";
 import { ONBOARDING_STEPS } from "@/domain/onboarding";
+import { launchNotice } from "@/server/launch";
 import { missingOnboardingSteps } from "@/server/workers";
 
 import { loadStep, StepFrame } from "../step-frame";
@@ -14,7 +16,11 @@ export const metadata: Metadata = { title: "Check and submit" };
 export default async function SubmitPage() {
   const { user, worker, mode } = await loadStep();
   if (mode === "edit") redirect("/worker");
-  const missing = new Set(await missingOnboardingSteps(user, worker));
+  const [missingSteps, launchWhen] = await Promise.all([
+    missingOnboardingSteps(user, worker),
+    launchNotice(),
+  ]);
+  const missing = new Set(missingSteps);
   const steps = ONBOARDING_STEPS.filter((step) => step.key !== "submit");
 
   return (
@@ -92,9 +98,11 @@ export default async function SubmitPage() {
         <div className="space-y-2 rounded-lg bg-muted/50 p-4 text-sm">
           <p className="font-medium">What happens next</p>
           <p>
-            We check your ID, right to work and tickets, usually within two
-            business days, and text you when it&apos;s done. Then our payroll
-            provider emails you to set up pay.
+            {launchWhen !== null
+              ? // Before we open for shifts (owner, 20/11/2026).
+                launchWords(launchWhen).workerNext
+              : "We check your ID, right to work and tickets, usually within two business days, and let you know when it's done."}{" "}
+            Then our payroll provider emails you to set up pay.
           </p>
           <p>
             By submitting, you confirm the details you&apos;ve given are true

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 
 import { pushPublicKey } from "@/adapters/push";
 import { PageHeader } from "@/components/page-header";
@@ -14,6 +15,7 @@ import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 import { makePushKeys } from "./actions";
+import { LaunchEmail } from "./launch-email";
 import { PushKeys } from "./push-keys";
 import { SettingsGroupForm, type SettingRow } from "./settings-form";
 
@@ -68,12 +70,23 @@ export default async function SettingsPage() {
       ) : null}
       {(Object.entries(settingGroups) as [SettingGroup, string][]).map(
         ([group, title]) => (
-          <SettingsGroupForm
-            key={group}
-            group={group}
-            title={title}
-            rows={rowsFor(group)}
-          />
+          <Fragment key={group}>
+            <SettingsGroupForm
+              group={group}
+              title={title}
+              rows={rowsFor(group)}
+            />
+            {group === "launch" ? (
+              <LaunchEmail
+                noticeOn={
+                  parseSetting(
+                    "launch_notice",
+                    stored.get("launch_notice")?.value,
+                  ).value
+                }
+              />
+            ) : null}
+          </Fragment>
         ),
       )}
       <section

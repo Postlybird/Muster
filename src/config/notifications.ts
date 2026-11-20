@@ -459,6 +459,15 @@ export const TEMPLATES = {
     title: "You're ready to work",
     body: "You're verified and ready to work. Open the app to find shifts.",
   }),
+  launch_open_worker: define({
+    audience: "worker",
+    category: "account",
+    label: "We're open (workers)",
+    when: "An admin emails everyone that we're open for shifts, once each (owner, 20/11/2026).",
+    values: {},
+    title: "{{brand}} is open for shifts",
+    body: "Good news: {{brand}} is now open for shifts. Once we've checked your details, you can pick up shifts near you: {{link}}",
+  }),
 
   // Businesses
   first_applicant: define({
@@ -614,6 +623,15 @@ export const TEMPLATES = {
     },
     title: "{{business}} is approved on {{brand}}",
     body: "Good news: {{business}} is approved on {{brand}}.\n\n{{next}}\n\n{{contact}}",
+  }),
+  launch_open_business: define({
+    audience: "business",
+    category: "account",
+    label: "We're open (businesses)",
+    when: "An admin emails everyone that we're open for shifts, once each (owner, 20/11/2026).",
+    values: {},
+    title: "{{brand}} is open for shifts",
+    body: "Good news: {{brand}} is now open for shifts. Once your business is approved, you can post work straight away, including any shifts you've already set up: {{link}}\n\n{{contact}}",
   }),
   business_off_hold: define({
     audience: "business",

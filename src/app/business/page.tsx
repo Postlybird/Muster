@@ -9,6 +9,7 @@ import {
   recentJobShortcuts,
   templateShortcuts,
 } from "@/components/jobs/quick-post";
+import { LaunchNote } from "@/components/launch-note";
 import { PageHeader } from "@/components/page-header";
 import { WhatsNext } from "@/components/status/whats-next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -263,6 +264,10 @@ export default async function BusinessDashboardPage({
           ) : undefined
         }
       />
+
+      {business?.status !== "suspended" ? (
+        <LaunchNote kind="business" className="max-w-2xl" />
+      ) : null}
 
       {submitted && business?.status === "pending" ? (
         <Alert variant="success" className="max-w-2xl">

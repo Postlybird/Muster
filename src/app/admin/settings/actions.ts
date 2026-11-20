@@ -15,6 +15,9 @@ import { failure, formBoolean, success, type ActionState } from "@/lib/forms";
 import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import { prepareReviewAccount, reviewAccount } from "@/server/app-review";
+import { logAccess } from "@/server/audit";
+import { announceLaunch, LAUNCH_BATCH } from "@/server/launch";
+import { getAllSettings } from "@/server/settings";
 
 /** Reads one setting's value out of the form, shaped for its schema. */
 function readValue(key: SettingKey, formData: FormData): unknown {
@@ -142,4 +145,37 @@ export async function makePushKeys(): Promise<{
 }> {
   await requireAdmin();
   return makeVapidKeys();
+}
+
+/**
+ * Tells everyone who has signed up that we're open for shifts, once each
+ * (owner, 20/11/2026): only after the launch notice is off and a state is
+ * open, so the email and the site agree.
+ */
+export async function emailEveryoneWereOpen(): Promise<ActionState> {
+  await requireAdmin();
+  const [settings, supabase] = await Promise.all([
+    getAllSettings(),
+    createClient(),
+  ]);
+  if (settings.launch_notice) {
+    return failure("Switch off the launch notice first.");
+  }
+  const { count } = await supabase
+    .from("jurisdictions")
+    .select("code", { count: "exact", head: true })
+    .eq("open_for_work", true);
+  if (!count) return failure("Open a state for work in Licences first.");
+
+  const { told, left } = await announceLaunch();
+  await logAccess("announce_launch", "settings", "launch_notice", null, {
+    told,
+    left,
+  });
+  if (told === 0) return success("Everyone has already been told.");
+  return success(
+    left > 0
+      ? `Told ${told} people. ${left} still to tell: press it again for the next ${LAUNCH_BATCH}, tomorrow on the free email plan (it sends 100 emails a day).`
+      : `Told ${told} people that we're open.`,
+  );
 }

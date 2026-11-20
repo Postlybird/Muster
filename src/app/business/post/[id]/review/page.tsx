@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { POST_STEPS } from "@/domain/jobs";
+import { launchWords } from "@/domain/launch";
 import { hourlyBillCents, onCostPctFor, type StateCode } from "@/domain/pay";
 import { estimateLines } from "@/domain/pricing";
 import { dayTypeLabels } from "@/domain/rates";
@@ -24,6 +25,7 @@ import {
   loadJobDetails,
   postingProblem,
 } from "@/server/jobs";
+import { launchNotice } from "@/server/launch";
 import { loadPricing } from "@/server/pricing";
 import { getAllSettings } from "@/server/settings";
 
@@ -37,10 +39,11 @@ export default async function ReviewStepPage({
 }: PageProps<"/business/post/[id]/review">) {
   const { id } = await params;
   const { job, business, supabase } = await loadDraft(id);
-  const [details, missing, problem] = await Promise.all([
+  const [details, missing, problem, launchWhen] = await Promise.all([
     loadJobDetails(job),
     draftMissingSteps(job),
     postingProblem(business),
+    launchNotice(),
   ]);
   const state = details.site?.state as StateCode | undefined;
   const { data: blocked } = state
@@ -132,9 +135,16 @@ export default async function ReviewStepPage({
         {blocked ? (
           <Alert variant="warning" className="max-w-2xl">
             <AlertDescription className="text-foreground">
-              We&apos;re not taking work in {state} yet. Choose a site in a
-              state we&apos;re open in, or contact us and we&apos;ll let you
-              know as soon as we open in {state}.
+              {launchWhen !== null ? (
+                // Before we open for shifts (owner, 20/11/2026).
+                launchWords(launchWhen).cantPostYet
+              ) : (
+                <>
+                  We&apos;re not taking work in {state} yet. Choose a site in a
+                  state we&apos;re open in, or contact us and we&apos;ll let you
+                  know as soon as we open in {state}.
+                </>
+              )}
             </AlertDescription>
           </Alert>
         ) : null}

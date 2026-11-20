@@ -64,7 +64,8 @@ const businessSteps = (autoApproveHours: number): Step[] => [
 ];
 
 /** Working with us, from sign-up to pay day (brief §4.1, §4.4 to §4.8). */
-const WORKER_STEPS: Step[] = [
+/** Before we open for shifts, checks wait for the start (owner, 20/11/2026). */
+const workerSteps = (launching: boolean): Step[] => [
   {
     icon: MailCheck,
     title: "Sign up with your email",
@@ -81,7 +82,7 @@ const WORKER_STEPS: Step[] = [
     icon: BadgeCheck,
     title: "We check you",
     text: "Our team checks your ID, right to work and tickets, then lets you know you're ready. Businesses see that you're checked.",
-    time: "Usually 2 business days",
+    time: launching ? "Before shifts start" : "Usually 2 business days",
   },
   {
     icon: Search,
@@ -172,7 +173,14 @@ function audienceFor(hash: string): "business" | "worker" | null {
  * click or tap; /#how-it-works-workers opens the workers' side and
  * /#how-it-works the businesses'.
  */
-export function HowItWorks({ autoApproveHours }: { autoApproveHours: number }) {
+export function HowItWorks({
+  autoApproveHours,
+  launching = false,
+}: {
+  autoApproveHours: number;
+  /** The launch notice is on: shifts haven't started yet. */
+  launching?: boolean;
+}) {
   const [audience, setAudience] = useState("business");
   useEffect(() => {
     const fromHash = () => {
@@ -230,7 +238,7 @@ export function HowItWorks({ autoApproveHours }: { autoApproveHours: number }) {
         </div>
       </TabsContent>
       <TabsContent value="worker" className="space-y-8">
-        <StepTabs steps={WORKER_STEPS} label="Steps for workers" />
+        <StepTabs steps={workerSteps(launching)} label="Steps for workers" />
         <div className="flex justify-center">
           <Button asChild size="lg">
             <Link href="/register/worker">Start your sign-up</Link>

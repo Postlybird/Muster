@@ -438,8 +438,8 @@ export default async function WorkerJobPage({
         >
           <ShiftList shifts={applied} timeZone={siteZone} />
           <p className="text-sm text-muted-foreground">
-            Waiting for {job.business_name} to choose. We&apos;ll text you if
-            you&apos;re picked.
+            Waiting for {job.business_name} to choose. We&apos;ll let you know
+            if you&apos;re picked.
           </p>
           {note ? (
             <p className="text-sm">

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { LaunchNote } from "@/components/launch-note";
 import { brand } from "@/config/brand";
 import { getSessionUser } from "@/lib/auth";
 import { SIGN_UP_CHOICES } from "@/lib/register";
@@ -31,6 +32,7 @@ export default async function RegisterPage() {
           How will you use {brand.name}? It takes a minute or two.
         </p>
       </div>
+      <LaunchNote kind="signUp" className="mx-auto max-w-xl" />
       <ul className="grid gap-4 sm:grid-cols-2">
         {SIGN_UP_CHOICES.map((choice) => (
           <li key={choice.href}>

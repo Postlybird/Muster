@@ -26,7 +26,7 @@ function describe(row: TicketRow): {
         badge: { label: "Being checked", variant: "info" },
         detail: summary.verifiedUntil
           ? `Renewal being checked. Your current one is valid until ${formatCalendarDate(summary.verifiedUntil)}.`
-          : "We'll check it and text you when it's done.",
+          : "We'll check it and let you know when it's done.",
         action: "Edit",
       };
     case "rejected":
