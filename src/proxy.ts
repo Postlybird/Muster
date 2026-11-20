@@ -1,14 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { isSignedInArea } from "@/lib/signed-in-areas";
 import { updateSession } from "@/lib/supabase/proxy";
-
-const SIGNED_IN_AREAS = ["/worker", "/business", "/admin"];
-
-function isSignedInArea(pathname: string) {
-  return SIGNED_IN_AREAS.some(
-    (area) => pathname === area || pathname.startsWith(`${area}/`),
-  );
-}
 
 /**
  * Keeps the Supabase session fresh and sends signed-out visitors to the

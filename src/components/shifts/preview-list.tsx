@@ -1,6 +1,7 @@
 import { CalendarDays, Lock, MapPin, Search, Wallet } from "lucide-react";
 
 import { EmptyState } from "@/components/empty-state";
+import { launchWords } from "@/domain/launch";
 import { zoneOf } from "@/lib/format";
 import { shiftSummary } from "@/lib/job-format";
 import {
@@ -10,6 +11,7 @@ import {
   type ShiftPreview,
 } from "@/lib/offers";
 import { createClient } from "@/lib/supabase/server";
+import { launchNotice } from "@/server/launch";
 
 /**
  * Shifts near a worker we haven't checked yet (owner, 01/11/2026): the
@@ -24,7 +26,10 @@ export async function PreviewList({
   headingLevel?: "h2" | "h3";
 }) {
   const supabase = await createClient();
-  const { data } = await supabase.rpc("preview_shift_offers");
+  const [{ data }, launchWhen] = await Promise.all([
+    supabase.rpc("preview_shift_offers"),
+    launchNotice(),
+  ]);
   const previews = groupOffers(
     (data ?? []).map((row): ShiftPreview => ({
       ...row,
@@ -49,7 +54,12 @@ export async function PreviewList({
         <EmptyState
           icon={Search}
           title="Nothing near you right now"
-          description="New work in what you chose shows here as soon as it's posted."
+          description={
+            launchWhen !== null
+              ? // Before we open for shifts (owner, 20/11/2026).
+                launchWords(launchWhen).workerWaiting
+              : "New work in what you chose shows here as soon as it's posted."
+          }
         />
       ) : (
         <ul className="space-y-3" aria-label="Shifts near you">

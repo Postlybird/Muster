@@ -1,6 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-import { expectAccessible, serviceClient, signInAsDemo } from "./helpers";
+import {
+  expectAccessible,
+  quickSignUp,
+  randomEmail,
+  registerAs,
+  serviceClient,
+  signInAsDemo,
+} from "./helpers";
 
 // The launch notice (owner, 20/11/2026): the live site takes sign-ups
 // before shifts start, and says so on every page. It's a site-wide setting,
@@ -23,12 +30,12 @@ test.describe("before we open for shifts", () => {
     await setNotice(false);
   });
 
-  test("every page says when shifts start, and sign-up promises an email", async ({
+  test("every page says when shifts start, and invites people to sign up", async ({
     page,
   }) => {
     await page.goto("/");
     await expect(page.locator("[data-site-banner]")).toContainText(
-      "Shifts start in early 2027.",
+      "Shifts start in early 2027. Sign up now",
     );
     await page.getByRole("tab", { name: "For workers" }).click();
     await page.getByRole("tab", { name: "We check you" }).click();
@@ -38,9 +45,37 @@ test.describe("before we open for shifts", () => {
     await page.goto("/register/worker");
     await expect(
       page.getByText(
-        "Shifts start in early 2027. Sign up now and we'll email you as soon as they open.",
+        "Shifts start in early 2027. Sign up now and we'll let you know as soon as they open.",
       ),
     ).toBeVisible();
+  });
+
+  test("a worker who has just signed up hears they'll be told when they can apply", async ({
+    page,
+  }) => {
+    await registerAs(page, "worker", {
+      first: "Isla",
+      last: "Brown",
+      email: randomEmail("worker"),
+    });
+    // Far from the demo's shifts, as on the live site before we open.
+    await quickSignUp(page, { suburb: ["Hobart", "Hobart TAS 7000"] });
+    await expect(
+      page.getByText(
+        "You're signed up. Shifts start in early 2027. We'll let you know as soon as you can apply for shifts. Until then, add your details below when you're ready, and we'll check them.",
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        "Shifts start in early 2027. We'll let you know as soon as you can apply for shifts.",
+        { exact: true },
+      ),
+    ).toBeVisible();
+    // Everyone in the app has signed up, so the bar doesn't ask them to.
+    const banner = page.locator("[data-site-banner]");
+    await expect(banner).toContainText("Shifts start in early 2027.");
+    await expect(banner).not.toContainText("Sign up");
+    await expectAccessible(page);
   });
 
   test("workers and businesses hear what happens next", async ({ page }) => {

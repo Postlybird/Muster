@@ -350,8 +350,10 @@ export default async function WorkerHomePage({
       {welcome && isDraft && signedUp ? (
         <Alert variant="success">
           <AlertDescription>
-            You&apos;re signed up. Here are shifts near you. Add your details
-            below when you&apos;re ready, and we&apos;ll check them.
+            You&apos;re signed up.{" "}
+            {launchWhen !== null
+              ? launchWords(launchWhen).workerSignedUp
+              : "Here are shifts near you. Add your details below when you're ready, and we'll check them."}
           </AlertDescription>
         </Alert>
       ) : null}

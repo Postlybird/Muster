@@ -3,6 +3,8 @@ import Link from "next/link";
 import { launchWords } from "@/domain/launch";
 import { isDemoMode } from "@/lib/env";
 
+import { LaunchBannerText } from "./launch-banner-text";
+
 /**
  * The bar across the top of every page: when shifts start, while the
  * launch notice is on (owner, 20/11/2026), and in demo mode that messages
@@ -20,8 +22,11 @@ export function SiteBanner({ launchWhen }: { launchWhen: string | null }) {
       <p className="truncate">
         {words ? (
           <>
-            <span className="sm:hidden">{words.bannerShort}</span>
-            <span className="hidden sm:inline">{words.banner}</span>
+            <LaunchBannerText
+              start={words.start}
+              banner={words.banner}
+              bannerShort={words.bannerShort}
+            />
             {demo ? (
               <>
                 {" "}

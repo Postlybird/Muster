@@ -19,7 +19,7 @@ The owner said go on 16/11/2026, then brought the switch-over forward from Janua
 | Google Cloud | Address search (Places API (New)) | An API key limited to the Places API (New), with billing on, a daily cap on Places requests (Quotas) and a budget alert, so a flood of searches can't run up the bill |
 | Cloudflare Turnstile | The bot check on sign-in and register | A widget for www.shifta.com.au: site key and secret key |
 | ABN Lookup | Checking businesses' ABNs | The GUID from abr.business.gov.au |
-| Supabase | The live database | Pro plan; project `shifta-live` in Sydney; its database password, secret key and project ref; an access token for GitHub |
+| Supabase | The live database | Pro plan, in a new organisation of its own, so the demo's organisation stays free (a second project in a paid organisation adds about US$10 a month); project `shifta-live` in Sydney; its database password, secret key and project ref; an access token for GitHub |
 | Vercel | The live site | Pro plan; a second project from this repository with `main` as its production branch; a deploy hook for `main` |
 | Web push | App notifications | A pair of keys, made in the demo's Admin → Settings → Push notifications |
 | Apple Developer Program | The App Store app (owner, 08/11/2026) | A business membership (US$99 a year, with the company's D-U-N-S number); the Team ID and an App Store Connect API key, as secrets in the GitHub environment `stores`; an Apple push key for Firebase (`docs/apps.md`) |
